@@ -16,7 +16,6 @@ var Player = function() {
         self.experiment = new Experiment().fromJS(data.expData);
         self.experiment.setPointers();
         console.log("experiment deserialized.");
-
         self.addRecording(0,0,{
             testData: 12345
         })
@@ -85,10 +84,26 @@ Player.prototype.HtmlBuilder = function(firstOrDefaultElement, parentId) {
         case 'ImageData':
             console.log("Ich bin vom Typ ImageData");
             $('#' + parentId).append($("<li>").text(" -- " + firstOrDefaultElement.type));
+            var newDiv = $("<div>").text("X: " + firstOrDefaultElement.editorX() + " Y:" + firstOrDefaultElement.editorY());
+            $(newDiv).css({
+                border: '1px solid red',
+                position:  'absolute',
+                top:       firstOrDefaultElement.editorY() + $(window).height()/8,
+                left:      firstOrDefaultElement.editorX() + $(window).width()/8
+            });
+            $("body").append(newDiv);
             break;
         case 'VideoData':
             console.log("Ich bin vom Typ VideoData");
             $('#' + parentId).append($("<li>").text(" -- " + firstOrDefaultElement.type));
+            var newDiv = $("<div>").text("VIDEO X: " + firstOrDefaultElement.editorX() + " Y:" + firstOrDefaultElement.editorY());
+            $(newDiv).css({
+                border: '1px solid red',
+                position:  'absolute',
+                top:       firstOrDefaultElement.editorY() + $(window).height()/8,
+                left:      firstOrDefaultElement.editorX() + $(window).width()/8
+            });
+            $("body").append(newDiv);
             break;
         case 'ExpBlock':
             console.log("Ich bin vom Typ ExpBlock");
