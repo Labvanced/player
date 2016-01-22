@@ -66,7 +66,7 @@ Player.prototype.parseNextElement = function() {
         case 'EndBlock':
             console.log("EndBlock reached. Continue in parent.");
             if (this.currentSequence.parent === null){
-                console.log("end of block reached!");
+                console.log("end of experimental block reached!");
                 this.startNextBlock();
                 break;
             }
@@ -81,7 +81,7 @@ Player.prototype.parseNextElement = function() {
             var numTrials = currentElement.trialTypesInteracting().idx.length;
 
             
-            if (this.currentTrialId >= numTrials) {
+            if (this.currentTrialId >= numTrials-1) {
                 // trial loop finished:
                 console.log("trial loop finished");
                 this.currentTrialId = -1;
