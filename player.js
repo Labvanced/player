@@ -163,41 +163,41 @@ Player.prototype.HtmlBuilder = function(firstOrDefaultElement, parentId) {
             console.log("Ich bin vom Typ ImageData");
 
             firstOrDefaultElement.modifier().selectedTrialType(this.currentTrialSelection);
-            var source = "/files/" + firstOrDefaultElement.modifier().selectedTrialView.file_id() + "/" + firstOrDefaultElement.modifier().selectedTrialView.file_orig_name();
-            var imgElement = $('<img>').attr("src", source);
-            //var temp = $('#' + parentId).append(imgElement);
-
-            $('#' + parentId).append($("<li>").text(" -- " + firstOrDefaultElement.type));
-            var newDiv = $("<div>").text(firstOrDefaultElement.name() + " X: " + firstOrDefaultElement.editorX() + " Y:" + firstOrDefaultElement.editorY());
+            var fileId = firstOrDefaultElement.modifier().selectedTrialView.file_id();
+            var source = "/files/" + fileId + "/" + firstOrDefaultElement.modifier().selectedTrialView.file_orig_name();
+            var imgElement = $("<img style='cursor:pointer' class='experimentControl' id='" + fileId + "'>").attr("src", source);
+            var newDiv = $("<div>");
             $(newDiv).css({
-                border: '1px solid red',
                 position:  'absolute',
-                width: '180px',
-                height: '124px',
-                top:       firstOrDefaultElement.editorY() - 62,
-                left:      firstOrDefaultElement.editorX() - 90
+                top: $('#video').position().top - 278 + firstOrDefaultElement.editorY() - 150,
+                left: $('#video').position().left - 360 + firstOrDefaultElement.editorX() - 250
             });
             newDiv.append(imgElement);
             $('#' + parentId).append(newDiv);
+            $("#"+fileId).click(function(){
+                player.addRecording(player.currentBlock, player.currentTrialId, {
+                    id: this.id,
+                    time: Date.now() // Vorsicht IE8 und früher
+                });
+            });
             break;
         case 'VideoData':
-            console.log("Ich bin vom Typ VideoData");
-
             firstOrDefaultElement.modifier().selectedTrialType(this.currentTrialSelection);
             var source = "/files/" + firstOrDefaultElement.modifier().selectedTrialView.file_id() + "/" + firstOrDefaultElement.modifier().selectedTrialView.file_orig_name();
-            var videoElement = $('<video width="320" height="240" autoplay>').append($('<source type="video/mp4">')).attr("src", source);
-            //var temp = $('#' + parentId).append(videoElement);
-
-            $('#' + parentId).append($("<li>").text(" -- " + firstOrDefaultElement.type));
-            var newDiv = $("<div>").text("VIDEO X: " + firstOrDefaultElement.editorX() + " Y:" + firstOrDefaultElement.editorY());
+            var videoElement = $('<video width="720" height="576" autoplay>').append($('<source type="video/mp4">')).attr("src", source);
+            var newDiv = $("<div id='video'>");
             $(newDiv).css({
-                border: '1px solid red',
+                //border: '1px solid red',
                 position:  'absolute',
-                width: '720px',
-                height: '576px',
-                top:       firstOrDefaultElement.editorY() - 278,
-                left:      firstOrDefaultElement.editorX() - 360
+                //width: '720px',
+                //height: '576px',
+                top: '50%',
+                left: '50%',
+                marginTop: '-278px',
+                marginLeft: '-360px'
             });
+            //top:       firstOrDefaultElement.editorY() - 278,
+            //    left:      firstOrDefaultElement.editorX() - 360
             newDiv.append(videoElement);
             $('#' + parentId).append(newDiv);
             break;
