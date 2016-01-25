@@ -36,7 +36,6 @@ var Player = function() {
     }).done(function() {
         self.HtmlBuilder(self.experiment.exp_data.entities.byId["2a06e0c6c4a34de0ec59f9aa0411a9fe"], "2a06e0c6c4a34de0ec59f9aa0411a9fe");
     });
-
 };
 Player.prototype.HtmlBuilder = function(firstOrDefaultElement, parentId) {
     switch (firstOrDefaultElement.type) {
@@ -97,12 +96,14 @@ Player.prototype.HtmlBuilder = function(firstOrDefaultElement, parentId) {
         case 'ImageData':
             console.log("Ich bin vom Typ ImageData");
             $('#' + parentId).append($("<li>").text(" -- " + firstOrDefaultElement.type));
-            var newDiv = $("<div>").text("X: " + firstOrDefaultElement.editorX() + " Y:" + firstOrDefaultElement.editorY());
+            var newDiv = $("<div>").text(firstOrDefaultElement.name() + " X: " + firstOrDefaultElement.editorX() + " Y:" + firstOrDefaultElement.editorY());
             $(newDiv).css({
                 border: '1px solid red',
                 position:  'absolute',
-                top:       firstOrDefaultElement.editorY() + $(window).height()/8,
-                left:      firstOrDefaultElement.editorX() + $(window).width()/8
+                width: '180px',
+                height: '124px',
+                top:       firstOrDefaultElement.editorY() - 62,
+                left:      firstOrDefaultElement.editorX() - 90
             });
             $("body").append(newDiv);
             break;
@@ -113,8 +114,10 @@ Player.prototype.HtmlBuilder = function(firstOrDefaultElement, parentId) {
             $(newDiv).css({
                 border: '1px solid red',
                 position:  'absolute',
-                top:       firstOrDefaultElement.editorY() + $(window).height()/8,
-                left:      firstOrDefaultElement.editorX() + $(window).width()/8
+                width: '720px',
+                height: '576px',
+                top:       firstOrDefaultElement.editorY() - 278,
+                left:      firstOrDefaultElement.editorX() - 360
             });
             $("body").append(newDiv);
             break;
