@@ -68,8 +68,8 @@ function onComplete(event) {
     $progressbar.addClass("complete");
     $("#sectionPreload").toggle();
     $("#sectionExperiment").show();
-    showStimuli(document.getElementById("stimuli-1"));
-    showStimuli(document.getElementById("stimuli-2"));
+    //showStimuli(document.getElementById("stimuli-1"));
+    //showStimuli(document.getElementById("stimuli-2"));
 }
 
 function onError(event) {
