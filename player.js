@@ -183,8 +183,7 @@ Player.prototype.HtmlBuilder = function(firstOrDefaultElement, parentId) {
             break;
         case 'VideoData':
             firstOrDefaultElement.modifier().selectedTrialType(this.currentTrialSelection);
-            var source = "/files/" + firstOrDefaultElement.modifier().selectedTrialView.file_id() + "/" + firstOrDefaultElement.modifier().selectedTrialView.file_orig_name();
-            var videoElement = $('<video width="720" height="576" autoplay>').append($('<source type="video/mp4">')).attr("src", source);
+            var videoElement = $('<video width="720" height="576" autoplay>').append($('<source type="video/mp4">')).attr("src", firstOrDefaultElement.vidSource());
             var newDiv = $("<div id='video'>");
             $(newDiv).css({
                 //border: '1px solid red',
