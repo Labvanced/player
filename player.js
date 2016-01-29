@@ -18,7 +18,7 @@ var Player = function() {
     console.log("requesting experiment with id "+this.expId+" from server.");
 
     var parameters = { expId: this.expId };
-    $.get('/getExperiment', parameters, function(data){
+    $.get('/startExpPlayer', parameters, function(data){
         console.log("experiment spec loaded from server.");
         self.sessionNr = 0;//data.sessionNr; //TODO: work around for testing: starting always with first session.
         self.groupNr = data.groupNr;
