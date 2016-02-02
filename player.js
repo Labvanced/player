@@ -55,24 +55,21 @@ Player.prototype.parseNextElement = function() {
         this.currentSequence.selectNextElement();
         currentElement = this.currentSequence.currSelectedElement();
     }
+    else if (currentElement == "EndOfSequence"){
+        console.log("EndOfSequence reached");
+        this.endCurrentSequence();
+        return;
+    }
 
     switch (currentElement.type) {
         case 'StartBlock':
             console.log("StartBlock reached. continue to next element.");
             this.currentSequence.selectNextElement();
-            self.parseNextElement();
+            this.parseNextElement();
             break;
         case 'EndBlock':
             console.log("EndBlock reached. Continue in parent.");
-            if (this.currentSequence.parent === null){
-                console.log("end of experimental block reached!");
-                this.startNextBlock();
-                break;
-            }
-            else {
-                this.currentSequence = this.currentSequence.parent.parent;
-                self.parseNextElement();
-            }
+            this.endCurrentSequence();
             break;
         case 'ExpTrialLoop':
             console.log("Ich bin vom Typ ExpTrialLoop");
@@ -146,6 +143,17 @@ Player.prototype.parseNextElement = function() {
             break;
         default:
             console.error("type "+ currentElement.type + " is not defined.")
+    }
+};
+
+Player.prototype.endCurrentSequence = function () {
+    if (this.currentSequence.parent === null) {
+        console.log("end of experimental block reached!");
+        this.startNextBlock();
+    }
+    else {
+        this.currentSequence = this.currentSequence.parent.parent;
+        this.parseNextElement();
     }
 };
 
