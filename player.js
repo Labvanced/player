@@ -169,8 +169,8 @@ Player.prototype.HtmlBuilder = function(firstOrDefaultElement, parentId) {
             var newDiv = $("<div>");
             $(newDiv).css({
                 position:  'absolute',
-                top: $('#video').position().top - 278 + firstOrDefaultElement.editorY() - 150,
-                left: $('#video').position().left - 360 + firstOrDefaultElement.editorX() - 250
+                top: firstOrDefaultElement.modifier().selectedTrialView.editorY(),
+                left: firstOrDefaultElement.modifier().selectedTrialView.editorX()
             });
             newDiv.append(imgElement);
             $('#' + parentId).append(newDiv);
@@ -220,12 +220,14 @@ Player.prototype.HtmlBuilder = function(firstOrDefaultElement, parentId) {
     }
 }
 Player.prototype.addRecording = function(blockNr, trialNr, recData) {
-    var recordData = {
-        blockNr: blockNr,
-        trialNr: trialNr,
-        recData: recData
-    };
-    $.post('/record', recordData);
+    if (this.experiment.is_recording()) {
+        var recordData = {
+            blockNr: blockNr,
+            trialNr: trialNr,
+            recData: recData
+        };
+        $.post('/record', recordData);
+    }
 };
 
 Player.prototype.finishSession = function() {
