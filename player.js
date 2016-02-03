@@ -74,7 +74,7 @@ Player.prototype.parseNextElement = function() {
         case 'ExpTrialLoop':
             console.log("Ich bin vom Typ ExpTrialLoop");
 
-            var numTrials = currentElement.trialTypesInteracting().idx.length;
+            var numTrials = currentElement.totalNrTrials();
 
             
             if (this.currentTrialId >= numTrials-1) {
