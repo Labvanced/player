@@ -12,7 +12,8 @@ var Player = function() {
     this.currentSequence = null;
     this.currentBlock = -1;
     this.currentTrialSelection = null;
-    this.currentTrialId = -1;
+    this.trialSpecifications = [];
+    this.trialIter = -1;
     this.currentTrialDiv = null;
 
     console.log("requesting experiment with id "+this.expId+" from server.");
@@ -40,6 +41,7 @@ Player.prototype.startNextBlock = function() {
         this.finishSession();
     }
     else {
+        console.log("starting block "+this.currentBlock);
         this.currentSequence = this.blocks[this.currentBlock].subSequence();
         this.parseNextElement();
     }
@@ -74,13 +76,57 @@ Player.prototype.parseNextElement = function() {
         case 'ExpTrialLoop':
             console.log("Ich bin vom Typ ExpTrialLoop");
 
-            var numTrials = currentElement.trialTypesInteracting().idx.length;
+            if (this.trialIter == -1) {
+                // beginning of trial loop:
+                console.log("beginning of trial loop...");
 
-            
-            if (this.currentTrialId >= numTrials-1) {
+                this.trialSpecifications = [];
+                var numReps = currentElement.repsPerTrialType();
+
+                var trialTypesInteracting = currentElement.trialTypesInteracting();
+                for (var i=0; i<trialTypesInteracting.idx.length; i++){
+                    var currentTrialSelection = {
+                        type: 'interacting',
+                        trialTypesInteractingIdx: i,
+                        factors: currentElement.factors(),
+                        levels: trialTypesInteracting.idx[i]
+                    };
+                    for (var k=0; k<numReps; k++) {
+                        this.trialSpecifications.push(currentTrialSelection);
+                    }
+                }
+
+                var trialTypesNonInteract = currentElement.trialTypesNonInteract();
+                for (var i=0; i<trialTypesNonInteract.idx.length; i++){
+                    var currentTrialSelection = {
+                        type: 'noninteract',
+                        factor: trialTypesNonInteract.idx[i][0],
+                        level: trialTypesNonInteract.idx[i][1]
+                    };
+                    for (var k=0; k<numReps; k++) {
+                        this.trialSpecifications.push(currentTrialSelection);
+                    }
+                }
+
+                // now randomize:
+                console.log("do randomization...");
+                this.trial_randomization = [];
+                for (var i = 0; i < this.trialSpecifications.length; i++) {
+                    this.trial_randomization.push(i);
+                }
+                for (var i = this.trial_randomization.length - 1; i > 0; i--) {
+                    var j = Math.floor(Math.random() * (i + 1)); // random number between 0 and i
+                    var temp = this.trial_randomization[i];
+                    this.trial_randomization[i] = this.trial_randomization[j];
+                    this.trial_randomization[j] = temp;
+                }
+                console.log("randomization finished...");
+            }
+
+            if (this.trialIter >= this.trialSpecifications.length - 1) {
                 // trial loop finished:
                 console.log("trial loop finished");
-                this.currentTrialId = -1;
+                this.trialIter = -1;
                 this.currentSequence.selectNextElement();
                 self.parseNextElement();
                 return;
@@ -94,21 +140,19 @@ Player.prototype.parseNextElement = function() {
                 }
 
                 // start next trial:
-                this.currentTrialId++;
-                console.log("start trial id "+this.currentTrialId);
+                this.trialIter++;
+                console.log("start trial iteration "+this.trialIter);
 
-                this.addRecording(0,0,{
-                    trialStart: this.currentTrialId
+                this.currentRandomizedTrialId = this.trial_randomization[this.trialIter];
+                console.log("start randomized trial id "+this.currentRandomizedTrialId);
+
+                this.addRecording(this.currentBlock, this.currentRandomizedTrialId,{
+                    trialIter: this.trialIter
                 });
 
-                this.currentTrialDiv = $("<div id='" + currentElement.id() + "_" + this.currentTrialId + "'>");
+                this.currentTrialDiv = $("<div id='" + currentElement.id() + "_" + this.trialIter + "'>");
                 $('#experimentTree').append(this.currentTrialDiv);
-                this.currentTrialSelection = {
-                    type: 'interacting',
-                    trialTypesInteractingIdx: this.currentTrialId,
-                    factors: currentElement.factors(),
-                    levels: currentElement.trialTypesInteracting().idx[this.currentTrialId]
-                };
+                this.currentTrialSelection = this.trialSpecifications[this.currentRandomizedTrialId];
 
                 // go into trial sequence:
                 this.currentSequence = currentElement.subSequence();
@@ -135,10 +179,13 @@ Player.prototype.parseNextElement = function() {
             }
 
             // TODO: jump to next frame on mouse click or other events... instead of fixed time delay:
-            setTimeout(function() {
+            if (currentElement.offsetEnabled()){
+                setTimeout(function() {
                     self.currentSequence.selectNextElement();
                     self.parseNextElement();
-                }, 10000);
+                }, currentElement.offset());
+            }
+
 
             break;
         default:
@@ -183,7 +230,7 @@ Player.prototype.HtmlBuilder = function(firstOrDefaultElement, parentId) {
             newDiv.append(imgElement);
             $('#' + parentId).append(newDiv);
             $("#"+fileId).click(function(){
-                player.addRecording(player.currentBlock, player.currentTrialId, {
+                player.addRecording(player.currentBlock, player.currentRandomizedTrialId, {
                     id: this.id,
                     time: Date.now() // Vorsicht IE8 und früher
                 });
