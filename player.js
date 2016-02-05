@@ -15,6 +15,7 @@ var Player = function() {
     this.trialSpecifications = [];
     this.trialIter = -1;
     this.currentTrialDiv = null;
+    this.playerFrame= null;
 
     console.log("requesting experiment with id "+this.expId+" from server.");
 
@@ -174,19 +175,10 @@ Player.prototype.parseNextElement = function() {
             break;
         case 'FrameData':
             console.log("Ich bin vom Typ FrameData");
-            for(var i = 0; i < currentElement.elements().length; i++) {
-                this.HtmlBuilder(currentElement.elements()[i], this.currentTrialDiv.attr('id'));
-            }
-
-            // TODO: jump to next frame on mouse click or other events... instead of fixed time delay:
-            if (currentElement.offsetEnabled()){
-                setTimeout(function() {
-                    self.currentSequence.selectNextElement();
-                    self.parseNextElement();
-                }, currentElement.offset());
-            }
-
-
+            this.playerFrame = null;
+            currentElement.selectTrialType(this.currentTrialSelection);
+            this.playerFrame = new PlayerFrame(currentElement,this.currentTrialDiv,this);
+            this.playerFrame.init();
             break;
         default:
             console.error("type "+ currentElement.type + " is not defined.")
@@ -203,6 +195,7 @@ Player.prototype.endCurrentSequence = function () {
         this.parseNextElement();
     }
 };
+
 
 Player.prototype.HtmlBuilder = function(firstOrDefaultElement, parentId) {
     switch (firstOrDefaultElement.type) {
@@ -274,6 +267,8 @@ Player.prototype.HtmlBuilder = function(firstOrDefaultElement, parentId) {
             console.error("type "+ firstOrDefaultElement.type + " is not defined.")
     }
 }
+
+
 Player.prototype.addRecording = function(blockNr, trialNr, recData) {
     if (this.experiment.is_recording()) {
         var recordData = {
