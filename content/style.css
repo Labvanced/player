@@ -7,6 +7,7 @@ html,
 body {
   background-color: rgb(30,30,30);
   color: white;
+  overflow: hidden;
 }
 
 #state {
@@ -15,6 +16,15 @@ body {
   line-height: 1em;
   padding: 20px;
   text-align: center;
+}
+
+
+#progressState {
+  left: 10%;
+  right: 10%;
+  position: absolute;
+  text-align: center;
+  top: 35%;
 }
 
 #progress {
@@ -50,3 +60,11 @@ body {
   .pointer {
     cursor: pointer;
   }
+
+#startExpSection {
+  position: absolute;
+  text-align: center;
+  top: 60%;
+  left: 10%;
+  right: 10%;
+}

@@ -30,7 +30,7 @@ var Player = function() {
 
         self.blocks = self.experiment.exp_data.groups()[self.groupNr].sessions()[self.sessionNr].blocks();
 
-        self.startNextBlock();
+        //self.startNextBlock();
 
     });
 };
@@ -55,6 +55,7 @@ Player.prototype.parseNextElement = function() {
     var currentElement = this.currentSequence.currSelectedElement();
 
     if (!currentElement){
+        // we are just starting this sequence, so we have to select the first element.
         this.currentSequence.selectNextElement();
         currentElement = this.currentSequence.currSelectedElement();
     }
@@ -152,6 +153,7 @@ Player.prototype.parseNextElement = function() {
                 });
 
                 this.currentTrialDiv = $("<div id='" + currentElement.id() + "_" + this.trialIter + "'>");
+                //this.currentTrialDiv.css('overflow','hidden');
                 $('#experimentTree').append(this.currentTrialDiv);
                 this.currentTrialSelection = this.trialSpecifications[this.currentRandomizedTrialId];
 

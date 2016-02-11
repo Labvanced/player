@@ -61,27 +61,27 @@
     </script>
 </head>
 <body>
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-lg-12">
-            <button type="button" class="pointer btn btn-default" id="launchFullScreen">Enter Fullscreen</button>
-            <button type="button" class="pointer btn btn-default" id="exitFullScreen">Exit Fullscreen</button>
-            <hr />
-        </div>
-    </div>
-</div>
 <div id="experimentViewPort">
     <ul id="experimentTree">
 
     </ul>
 </div>
 <section id="sectionPreload">
-    <h1>Your experiment is being prepared ...</h1>
+    <div id="progressState"><h1>Your experiment is being prepared ...</h1></div>
     <div id="progress">...</div>
     <div id="progressbar">
         <div class="bar"></div>
     </div>
 </section>
+
+
+<div id="startExpSection" style="display: none">
+    You can now start the experiment. This will switch your browser into fullscreen mode.
+    <br><br>
+    <button type="button" class="pointer btn btn-default" id="startExp">Start Experiment</button>
+</div>
+
+
     <section id="sectionExperiment" style="display:none;">
         <div class="container-fluid">
             <div class="row">
