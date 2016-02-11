@@ -66,10 +66,30 @@ function hideStimuli(obj) {
 
 function onComplete(event) {
     $progressbar.addClass("complete");
-    $("#sectionPreload").toggle();
-    $("#sectionExperiment").show();
-    //showStimuli(document.getElementById("stimuli-1"));
-    //showStimuli(document.getElementById("stimuli-2"));
+    $('#progressState').html("<h1>Done Loading</h1>");
+    $('#progress').hide();
+    $('#startExpSection').show();
+    $('#startExp').click(function(){
+        launchIntoFullscreen(document.documentElement);
+        $('#progressState').html("<h1>Wait for Experiment to Start</h1>");
+
+        $("#startExpSection").hide();
+
+        // wait for five seconds:
+        setTimeout(function(){
+            $("#sectionPreload").hide();
+
+            // TODO: this check is not working yet:
+            var fullscreenEnabled = document.fullscreenEnabled || document.mozFullScreenEnabled || document.webkitFullscreenEnabled;
+            if (fullscreenEnabled){
+                player.startNextBlock();
+            }
+        },5000);
+
+
+    });
+
+
 }
 
 function onError(event) {
