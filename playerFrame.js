@@ -17,6 +17,8 @@ PlayerFrame.prototype.init = function() {
     this.setTimeOut();
     this.frameView = new FrameView(this.frameDiv,this.frameData,this,"playerView");
     this.frameView.init(this.getViewSize());
+
+    //this.frameDiv.css({'display':'block'});
 };
 
 
