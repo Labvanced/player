@@ -4,7 +4,7 @@
 var PlayerFrame = function(frameData,frameDiv,player) {
 
 
-    this.frameData = frameData;
+    this.frameData = frameData.getDeepCopy();
     this.frameDiv  = frameDiv;
     this.player = player;
     this.fraemView = null;
@@ -14,11 +14,17 @@ var PlayerFrame = function(frameData,frameDiv,player) {
 
 PlayerFrame.prototype.init = function() {
 
-    this.setTimeOut();
+
     this.frameView = new FrameView(this.frameDiv,this.frameData,this,"playerView");
     this.frameView.init(this.getViewSize());
 
     //this.frameDiv.css({'display':'block'});
+};
+
+PlayerFrame.prototype.startFrame = function() {
+
+    this.setTimeOut();
+    this.frameDiv.css('display','block');
 };
 
 
@@ -26,7 +32,9 @@ PlayerFrame.prototype.endFrame = function() {
     // set next frame
     this.player.currentSequence.selectNextElement();
     // empty div and make new frame
+    this.frameDiv.remove();
     this.player.parseNextElement();
+
 };
 
 

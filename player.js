@@ -122,7 +122,9 @@ Player.prototype.parseNextElement = function() {
                     this.trial_randomization[i] = this.trial_randomization[j];
                     this.trial_randomization[j] = temp;
                 }
-                console.log("randomization finished...");
+                console.log("randomization finished...start first trial initialization");
+
+                this.addTrialViews(this.trialIter+1,currentElement);
             }
 
             if (this.trialIter >= this.trialSpecifications.length - 1) {
@@ -135,12 +137,6 @@ Player.prototype.parseNextElement = function() {
             }
             else {
 
-                // remove old trial div:
-                if (this.currentTrialDiv){
-                    this.currentTrialDiv.remove();
-                    this.currentTrialDiv = null;
-                }
-
                 // start next trial:
                 this.trialIter++;
                 console.log("start trial iteration "+this.trialIter);
@@ -152,15 +148,23 @@ Player.prototype.parseNextElement = function() {
                     trialIter: this.trialIter
                 });
 
-                this.currentTrialDiv = $("<div id='" + currentElement.id() + "_" + this.trialIter + "'>");
-                //this.currentTrialDiv.css('overflow','hidden');
-                $('#experimentTree').append(this.currentTrialDiv);
                 this.currentTrialSelection = this.trialSpecifications[this.currentRandomizedTrialId];
+
+                // select next element from preload
+                if(this.currentTrialDiv){
+                    this.currentTrialDiv.remove();
+                }
+                this.currentTrialFrames = this.nextTrialFrames;
+                this.currentTrialDiv = this.nextTrialDiv;
 
                 // go into trial sequence:
                 this.currentSequence = currentElement.subSequence();
                 this.currentSequence.currSelectedElement(null);
                 self.parseNextElement();
+
+                this.addTrialViews(this.trialIter+1,currentElement);
+
+
             }
             break;
         case 'QuestionnaireEditorData':
@@ -177,10 +181,9 @@ Player.prototype.parseNextElement = function() {
             break;
         case 'FrameData':
             console.log("Ich bin vom Typ FrameData");
-            this.playerFrame = null;
-            currentElement.selectTrialType(this.currentTrialSelection);
-            this.playerFrame = new PlayerFrame(currentElement,this.currentTrialDiv,this);
-            this.playerFrame.init();
+            // startFrame
+            this.currentTrialFrames[currentElement.id()].startFrame();
+
             break;
         default:
             console.error("type "+ currentElement.type + " is not defined.")
@@ -197,6 +200,35 @@ Player.prototype.endCurrentSequence = function () {
         this.parseNextElement();
     }
 };
+
+
+
+Player.prototype.addTrialViews = function (trialIdx,trialLoop) {
+
+
+
+    this.nextTrialDiv = $(document.createElement('div'));
+    $('#experimentTree').append(this.nextTrialDiv);
+    var nextRandomizedTrialId = this.trial_randomization[trialIdx];
+    var nextTrialSelection = this.trialSpecifications[nextRandomizedTrialId];
+
+    this.nextTrialFrames = {};
+
+    var frameDataArr = trialLoop.subSequence().elements();
+    for(var frameIdx =0;frameIdx<frameDataArr.length;frameIdx++){
+
+        var frameDiv = $(document.createElement('div'));
+        frameDiv.css('display','none');
+        $(this.nextTrialDiv).append(frameDiv);
+
+        var playerFrame = new PlayerFrame(frameDataArr[frameIdx],frameDiv,this);
+        playerFrame.frameData.selectTrialType(nextTrialSelection);
+        playerFrame.init();
+        this.nextTrialFrames[frameDataArr[frameIdx].id()]=playerFrame;
+    }
+
+};
+
 
 
 Player.prototype.HtmlBuilder = function(firstOrDefaultElement, parentId) {
