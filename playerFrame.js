@@ -7,7 +7,8 @@ var PlayerFrame = function(frameData,frameDiv,player) {
     this.frameData = frameData.getDeepCopy();
     this.frameDiv  = frameDiv;
     this.player = player;
-    this.fraemView = null;
+    this.frameView = null;
+    this.startedTime= null;
 
 };
 
@@ -24,6 +25,7 @@ PlayerFrame.prototype.init = function() {
 PlayerFrame.prototype.startFrame = function() {
 
     this.setTimeOut();
+    this.startedTime = Date.now();
     this.frameDiv.css('display','block');
 };
 

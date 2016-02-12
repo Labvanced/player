@@ -15,7 +15,7 @@ var Player = function() {
     this.trialSpecifications = [];
     this.trialIter = -1;
     this.currentTrialDiv = null;
-    this.playerFrame= null;
+    this.currentFrame= null;
 
     console.log("requesting experiment with id "+this.expId+" from server.");
 
@@ -160,9 +160,12 @@ Player.prototype.parseNextElement = function() {
                 // go into trial sequence:
                 this.currentSequence = currentElement.subSequence();
                 this.currentSequence.currSelectedElement(null);
-                self.parseNextElement();
+                this.parseNextElement();
 
-                this.addTrialViews(this.trialIter+1,currentElement);
+                if (this.trialIter+1< this.trial_randomization.length ){
+                    this.addTrialViews(this.trialIter+1,currentElement);
+                }
+
 
 
             }
@@ -182,7 +185,8 @@ Player.prototype.parseNextElement = function() {
         case 'FrameData':
             console.log("Ich bin vom Typ FrameData");
             // startFrame
-            this.currentTrialFrames[currentElement.id()].startFrame();
+            this.currentFrame = this.currentTrialFrames[currentElement.id()];
+            this.currentFrame.startFrame();
 
             break;
         default:
@@ -200,7 +204,6 @@ Player.prototype.endCurrentSequence = function () {
         this.parseNextElement();
     }
 };
-
 
 
 Player.prototype.addTrialViews = function (trialIdx,trialLoop) {
@@ -229,6 +232,15 @@ Player.prototype.addTrialViews = function (trialIdx,trialLoop) {
 
 };
 
+
+Player.prototype.getTrialId = function () {
+    return this.currentRandomizedTrialId;
+};
+
+
+Player.prototype.getBlockId = function () {
+    return  this.currentBlock
+};
 
 
 Player.prototype.HtmlBuilder = function(firstOrDefaultElement, parentId) {
