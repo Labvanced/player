@@ -300,7 +300,7 @@ Player.prototype.HtmlBuilder = function(firstOrDefaultElement, parentId) {
         default:
             console.error("type "+ firstOrDefaultElement.type + " is not defined.")
     }
-}
+};
 
 
 Player.prototype.addRecording = function(blockNr, trialNr, recData) {
