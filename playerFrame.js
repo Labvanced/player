@@ -7,7 +7,7 @@ var PlayerFrame = function(frameData,frameDiv,player) {
     this.frameData = frameData.getDeepCopy();
     this.frameDiv  = frameDiv;
     this.player = player;
-    this.fraemView = null;
+    this.frameView = null;
 
 };
 
