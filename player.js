@@ -90,7 +90,11 @@ Player.prototype.parseNextElement = function() {
                     var currentTrialSelection = {
                         type: 'interacting',
                         trialTypesInteractingIdx: i,
-                        factors: currentElement.factors(),
+                        factors: jQuery.map(currentElement.factors(),
+                            function(elem, idx){
+                                return elem.id();
+                            }
+                        ),
                         levels: trialTypesInteracting.idx[i]
                     };
                     for (var k=0; k<numReps; k++) {
