@@ -182,9 +182,23 @@ Player.prototype.parseNextElement = function() {
             break;
         case 'TextEditorData':
             console.log("Ich bin vom Typ TextEditorData");
-            // TODO: render Text
-            this.currentSequence.selectNextElement();
-            self.parseNextElement();
+
+            if (isActive()) {
+                this.nextTrialDiv = $(document.createElement('div'));
+                $('#experimentTree').append(this.nextTrialDiv);
+                this.nextTrialDiv.html(currentElement.text());
+
+                setTimeout(function () {
+                    this.nextTrialDiv.remove();
+                    self.currentSequence.selectNextElement();
+                    self.parseNextElement();
+                }, 10000);
+            }
+            else {
+                this.currentSequence.selectNextElement();
+                self.parseNextElement();
+            }
+
             break;
         case 'FrameData':
             console.log("Ich bin vom Typ FrameData");
