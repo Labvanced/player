@@ -183,16 +183,21 @@ Player.prototype.parseNextElement = function() {
         case 'TextEditorData':
             console.log("Ich bin vom Typ TextEditorData");
 
-            if (isActive()) {
+            if (currentElement.isActive()) {
                 this.nextTrialDiv = $(document.createElement('div'));
                 $('#experimentTree').append(this.nextTrialDiv);
                 this.nextTrialDiv.html(currentElement.text());
+                var nextButton = $('<button/>',
+                    {
+                        text: 'Start',
+                        click: function () {
+                            self.nextTrialDiv.remove();
+                            self.currentSequence.selectNextElement();
+                            self.parseNextElement();
+                        }
+                    });
+                this.nextTrialDiv.append(nextButton);
 
-                setTimeout(function () {
-                    this.nextTrialDiv.remove();
-                    self.currentSequence.selectNextElement();
-                    self.parseNextElement();
-                }, 10000);
             }
             else {
                 this.currentSequence.selectNextElement();
