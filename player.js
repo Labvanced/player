@@ -148,9 +148,14 @@ Player.prototype.parseNextElement = function() {
                 this.currentRandomizedTrialId = this.trial_randomization[this.trialIter];
                 console.log("start randomized trial id "+this.currentRandomizedTrialId);
 
-                this.addRecording(this.currentBlock, this.currentRandomizedTrialId,{
-                    trialIter: this.trialIter
-                });
+
+                var recData = new RecData(currentElement.trialOrder().id(),this.currentRandomizedTrialId );
+
+                this.addRecording(this.currentBlock, this.trialIter ,recData.toJS());
+
+               // this.addRecording(this.currentBlock, this.currentRandomizedTrialId,{
+               //     trialIter: this.trialIter
+               // });
 
                 this.currentTrialSelection = this.trialSpecifications[this.currentRandomizedTrialId];
 
@@ -256,85 +261,16 @@ Player.prototype.addTrialViews = function (trialIdx,trialLoop) {
 };
 
 
-Player.prototype.getTrialId = function () {
+Player.prototype.getRandomizedTrialId = function () {
     return this.currentRandomizedTrialId;
 };
 
+Player.prototype.getTrialId = function () {
+    return this.trialIter
+};
 
 Player.prototype.getBlockId = function () {
     return  this.currentBlock
-};
-
-
-Player.prototype.HtmlBuilder = function(firstOrDefaultElement, parentId) {
-    switch (firstOrDefaultElement.type) {
-        case 'QuestionnaireEditorData':
-            console.log("Ich bin vom Typ QuestionnaireEditorData");
-            $('#' + parentId).append($("<li>").text(firstOrDefaultElement.type));
-            break;
-        case 'TextEditorData':
-            console.log("Ich bin vom Typ TextEditorData");
-            $('#' + parentId).append($("<li>").text(firstOrDefaultElement.type));
-            break;
-        case 'ImageData':
-            console.log("Ich bin vom Typ ImageData");
-
-            firstOrDefaultElement.modifier().selectedTrialType(this.currentTrialSelection);
-            var fileId = firstOrDefaultElement.modifier().selectedTrialView.file_id();
-            var source = "/files/" + fileId + "/" + firstOrDefaultElement.modifier().selectedTrialView.file_orig_name();
-            var imgElement = $("<img style='cursor:pointer' class='experimentControl' id='" + fileId + "'>").attr("src", source);
-            var newDiv = $("<div>");
-            $(newDiv).css({
-                position:  'absolute',
-                top: firstOrDefaultElement.modifier().selectedTrialView.editorY(),
-                left: firstOrDefaultElement.modifier().selectedTrialView.editorX()
-            });
-            newDiv.append(imgElement);
-            $('#' + parentId).append(newDiv);
-            $("#"+fileId).click(function(){
-                player.addRecording(player.currentBlock, player.currentRandomizedTrialId, {
-                    id: this.id,
-                    time: Date.now() // Vorsicht IE8 und früher
-                });
-            });
-            break;
-        case 'VideoData':
-            firstOrDefaultElement.modifier().selectedTrialType(this.currentTrialSelection);
-            var videoElement = $('<video width="720" height="576" autoplay>').append($('<source type="video/mp4">')).attr("src", firstOrDefaultElement.vidSource());
-            var newDiv = $("<div id='video'>");
-            $(newDiv).css({
-                //border: '1px solid red',
-                position:  'absolute',
-                //width: '720px',
-                //height: '576px',
-                top: '50%',
-                left: '50%',
-                marginTop: '-278px',
-                marginLeft: '-360px'
-            });
-            //top:       firstOrDefaultElement.editorY() - 278,
-            //    left:      firstOrDefaultElement.editorX() - 360
-            newDiv.append(videoElement);
-            $('#' + parentId).append(newDiv);
-            break;
-        case 'ExpBlock':
-            console.log("Ich bin vom Typ ExpBlock");
-            $('#' + parentId).append($("<ul>").append(
-                $("<li id='" + firstOrDefaultElement.id() + "'>").text("ExpBlock")));
-            this.HtmlBuilder(firstOrDefaultElement.subSequence(), firstOrDefaultElement.id());
-            break;
-        case 'ExpTrialLoop':
-            console.log("Ich bin vom Typ ExpTrialLoop");
-            $('#' + parentId).append($("<li id='" + firstOrDefaultElement.id() + "'>").text(firstOrDefaultElement.type));
-            this.HtmlBuilder(firstOrDefaultElement.subSequence(), firstOrDefaultElement.id());
-            break;
-        case 'GlobalVar':
-            console.log("Ich bin vom Typ GlobalVar");
-            $('#' + parentId).append($("<li id='" + firstOrDefaultElement.id() + "'>").text(firstOrDefaultElement.type));
-            break;
-        default:
-            console.error("type "+ firstOrDefaultElement.type + " is not defined.")
-    }
 };
 
 
