@@ -149,7 +149,7 @@ Player.prototype.parseNextElement = function() {
                 console.log("start randomized trial id "+this.currentRandomizedTrialId);
 
 
-                var recData = new RecData(currentElement.trialOrder().id(),this.currentRandomizedTrialId );
+                var recData = new RecData(currentElement().trialOrderVar().id(),this.currentRandomizedTrialId );
 
                 this.addRecording(this.currentBlock, this.trialIter ,recData.toJS());
 
