@@ -106,7 +106,7 @@ Player.prototype.parseNextElement = function() {
                 for (var i=0; i<trialTypesNonInteract.idx.length; i++){
                     var currentTrialSelection = {
                         type: 'noninteract',
-                        factor: trialTypesNonInteract.idx[i][0],
+                        factor: currentElement.additionalTrialTypes()[i].id(),
                         level: trialTypesNonInteract.idx[i][1]
                     };
                     for (var k=0; k<numReps; k++) {
@@ -148,12 +148,30 @@ Player.prototype.parseNextElement = function() {
                 this.currentRandomizedTrialId = this.trial_randomization[this.trialIter];
                 console.log("start randomized trial id "+this.currentRandomizedTrialId);
 
+                // record user independent data
 
+                // randomized trialId
                 var recData = new RecData(currentElement.trialOrderVar().id(),this.currentRandomizedTrialId );
                 this.addRecording(this.currentBlock, this.trialIter ,recData.toJS());
 
+                // randomized blockId
+                var recData = new RecData(currentElement.parent.parent.blockId().id(),currentElement.parent.parent.name());
+                this.addRecording(this.currentBlock, this.trialIter ,recData.toJS());
 
+                // factors and add trial types
                 this.currentTrialSelection = this.trialSpecifications[this.currentRandomizedTrialId];
+                if (this.currentTrialSelection.type=="interacting"){
+                    for (var fac = 0;fac<this.currentTrialSelection.factors.length;fac++){
+                        var recData = new RecData(this.currentTrialSelection.factors[fac],this.currentTrialSelection.levels[fac]);
+                        this.addRecording(this.currentBlock, this.trialIter ,recData.toJS());
+                    }
+                }
+                else{
+                    var recData = new RecData(this.currentTrialSelection.factor,this.currentTrialSelection.level);
+                    this.addRecording(this.currentBlock, this.trialIter ,recData.toJS());
+
+                }
+
 
                 // select next element from preload
                 if(this.currentTrialDiv){
