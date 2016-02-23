@@ -149,13 +149,9 @@ Player.prototype.parseNextElement = function() {
                 console.log("start randomized trial id "+this.currentRandomizedTrialId);
 
 
-                var recData = new RecData(currentElement().trialOrderVar().id(),this.currentRandomizedTrialId );
-
+                var recData = new RecData(currentElement.trialOrderVar().id(),this.currentRandomizedTrialId );
                 this.addRecording(this.currentBlock, this.trialIter ,recData.toJS());
 
-               // this.addRecording(this.currentBlock, this.currentRandomizedTrialId,{
-               //     trialIter: this.trialIter
-               // });
 
                 this.currentTrialSelection = this.trialSpecifications[this.currentRandomizedTrialId];
 
