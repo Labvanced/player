@@ -188,7 +188,7 @@ Player.prototype.parseNextElement = function() {
                 this.nextTrialDiv = $(document.createElement('div'));
                 $('#experimentTree').append(this.nextTrialDiv);
                 this.nextTrialDiv.html(currentElement.text());
-                var nextButton = $('<button/>',
+                var nextButton = $('<button type="button" class="pointer btn btn-default"/>',
                     {
                         text: 'Start',
                         click: function () {
@@ -285,6 +285,11 @@ Player.prototype.finishSession = function() {
     console.log("finishExpSession...");
     $.post('/finishExpSession', function( data ) {
         console.log("recording session completed.");
+        $('#endExpSection').show();
+        $('#endExp').click(function(){
+            history.go(-1);
+        });
+
     });
 };
 
