@@ -149,13 +149,12 @@ Player.prototype.parseNextElement = function() {
                 console.log("start randomized trial id "+this.currentRandomizedTrialId);
 
                 // record user independent data
+                // randomized blockId
+                var recData = new RecData(currentElement.parent.parent.blockId().id(),currentElement.parent.parent.name());
+                this.addRecording(this.currentBlock, this.trialIter ,recData.toJS());
 
                 // randomized trialId
                 var recData = new RecData(currentElement.trialOrderVar().id(),this.currentRandomizedTrialId );
-                this.addRecording(this.currentBlock, this.trialIter ,recData.toJS());
-
-                // randomized blockId
-                var recData = new RecData(currentElement.parent.parent.blockId().id(),currentElement.parent.parent.name());
                 this.addRecording(this.currentBlock, this.trialIter ,recData.toJS());
 
                 // factors and add trial types
@@ -248,7 +247,7 @@ Player.prototype.parseNextElement = function() {
 };
 
 Player.prototype.endCurrentSequence = function () {
-    if (this.currentSequence.parent === null) {
+    if (this.currentSequence.parent.type == "ExpBlock") {
         console.log("end of experimental block reached!");
         this.startNextBlock();
     }
