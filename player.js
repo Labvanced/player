@@ -186,18 +186,29 @@ Player.prototype.parseNextElement = function() {
 
             if (currentElement.isActive()) {
                 this.nextTrialDiv = $(document.createElement('div'));
+                this.nextTrialDiv.addClass( 'textFrameOuter' );
                 $('#experimentTree').append(this.nextTrialDiv);
-                this.nextTrialDiv.html(currentElement.text());
-                var nextButton = $('<button type="button" class="pointer btn btn-default"/>',
-                    {
-                        text: 'Start',
-                        click: function () {
-                            self.nextTrialDiv.remove();
-                            self.currentSequence.selectNextElement();
-                            self.parseNextElement();
-                        }
-                    });
-                this.nextTrialDiv.append(nextButton);
+
+                var textWrapper = $(document.createElement('div'));
+                textWrapper.addClass( 'textFrameCentered' );
+                this.nextTrialDiv.append(textWrapper);
+
+                // insert text that was entered in editor:
+                textWrapper.html(currentElement.text());
+
+                var buttonWrapper = $(document.createElement('div'));
+                buttonWrapper.css('text-align', 'center');
+                textWrapper.append(buttonWrapper);
+
+                buttonWrapper.append($('<button/>', {
+                    "class": 'pointer btn btn-default',
+                    text: 'Start',
+                    click: function () {
+                        self.nextTrialDiv.remove();
+                        self.currentSequence.selectNextElement();
+                        self.parseNextElement();
+                    }
+                }));
 
             }
             else {
