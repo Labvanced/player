@@ -216,9 +216,12 @@ Player.prototype.parseNextElement = function() {
             break;
         case 'QuestionnaireEditorData':
             console.log("Ich bin vom Typ QuestionnaireEditorData");
-            // TODO: render questionaire
-            this.currentSequence.selectNextElement();
-            self.parseNextElement();
+            var questDiv = $(document.createElement('div'));
+            questDiv.css('display','none');
+            $('#experimentTree').append(questDiv);
+            this.currQuestionnaireView = new PlayerQuestView(currentElement,questDiv,this);
+            this.currQuestionnaireView.init();
+            this.currQuestionnaireView.start();
             break;
         case 'TextEditorData':
             console.log("Ich bin vom Typ TextEditorData");
