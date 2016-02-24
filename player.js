@@ -16,6 +16,7 @@ var Player = function() {
     this.trialIter = -1;
     this.currentTrialDiv = null;
     this.currentFrame= null;
+    this.webcamLoaded = false;
 
     console.log("requesting experiment with id "+this.expId+" from server.");
 
@@ -26,6 +27,7 @@ var Player = function() {
         self.groupNr = data.groupNr;
         self.experiment = new Experiment().fromJS(data.expData);
         self.experiment.setPointers();
+
         console.log("experiment deserialized.");
 
         self.blocks = self.experiment.exp_data.groups()[self.groupNr].sessions()[self.sessionNr].blocks();
@@ -82,56 +84,76 @@ Player.prototype.parseNextElement = function() {
                 // beginning of trial loop:
                 console.log("beginning of trial loop...");
 
-                this.trialSpecifications = [];
-                var numReps = currentElement.repsPerTrialType();
-
-                var trialTypesInteracting = currentElement.trialTypesInteracting();
-                for (var i=0; i<trialTypesInteracting.idx.length; i++){
-                    var currentTrialSelection = {
-                        type: 'interacting',
-                        trialTypesInteractingIdx: i,
-                        factors: jQuery.map(currentElement.factors(),
-                            function(elem, idx){
-                                return elem.id();
-                            }
-                        ),
-                        levels: trialTypesInteracting.idx[i]
-                    };
-                    for (var k=0; k<numReps; k++) {
-                        this.trialSpecifications.push(currentTrialSelection);
-                    }
+                if (currentElement.webcamEnabled() && !this.webcamLoaded){
+                    Webcam.attach("#my_camera");
+                    Webcam.on("load", function() {
+                        console.log("webcam loaded");
+                        self.webcamLoaded = true;
+                        self.parseNextElement();
+                    });
+                    Webcam.on("error", function(err_msg){
+                        console.log("webcam error: "+err_msg);
+                        self.finishSessionWithError(err_msg);
+                    });
+                    return;
                 }
 
-                var trialTypesNonInteract = currentElement.trialTypesNonInteract();
-                for (var i=0; i<trialTypesNonInteract.idx.length; i++){
-                    var currentTrialSelection = {
-                        type: 'noninteract',
-                        factor: currentElement.additionalTrialTypes()[i].id(),
-                        level: trialTypesNonInteract.idx[i][1]
-                    };
-                    for (var k=0; k<numReps; k++) {
-                        this.trialSpecifications.push(currentTrialSelection);
+                this.trialSpecifications = currentElement.trialSpecifications();
+
+                // create trial_randomization first with increasing integer:
+                this.trial_randomization = [];
+                for (var i = 0; i < this.trialSpecifications.length; i++) {
+                    for (var j = 0; j < currentElement.repsPerTrialType() ; j++) {
+                        this.trial_randomization.push(i);
                     }
                 }
 
                 // now randomize:
                 console.log("do randomization...");
-                this.trial_randomization = [];
-                for (var i = 0; i < this.trialSpecifications.length; i++) {
-                    this.trial_randomization.push(i);
-                }
                 for (var i = this.trial_randomization.length - 1; i > 0; i--) {
-                    var j = Math.floor(Math.random() * (i + 1)); // random number between 0 and i
+                    var permuteWithIdx = Math.floor(Math.random() * (i + 1)); // random number between 0 and i
                     var temp = this.trial_randomization[i];
-                    this.trial_randomization[i] = this.trial_randomization[j];
-                    this.trial_randomization[j] = temp;
+                    this.trial_randomization[i] = this.trial_randomization[permuteWithIdx];
+                    this.trial_randomization[permuteWithIdx] = temp;
                 }
-                console.log("randomization finished...start first trial initialization");
 
+                // make sure that there is spacing between repetitions:
+                var minIntervalBetweenRep = currentElement.minIntervalBetweenRep();
+                if (minIntervalBetweenRep>0) {
+                    console.log("try to satify all constraints...");
+                    for (var j = 0; j < 1000; j++) {
+                        var constraintsSatisfied = true;
+                        for (var i = 0; i < this.trial_randomization.length; i++) {
+                            var stepsToLookBack = Math.min(i, minIntervalBetweenRep);
+                            for (var k = 1; k <= stepsToLookBack; k++) {
+                                // look back k steps:
+                                if (this.trial_randomization[i] == this.trial_randomization[i-k]) {
+                                    constraintsSatisfied = false;
+                                    // permute trial i with any random other trial:
+                                    var permuteWithIdx = Math.floor(Math.random() * this.trial_randomization.length);
+                                    var temp = this.trial_randomization[i];
+                                    this.trial_randomization[i] = this.trial_randomization[permuteWithIdx];
+                                    this.trial_randomization[permuteWithIdx] = temp;
+                                }
+                            }
+                        }
+                        if (constraintsSatisfied) {
+                            console.log("all constraints were satisfied in iteration "+j);
+                            break;
+                        }
+                        else {
+                            console.log("not all constraints were satisfied in iteration "+j);
+                        }
+                    }
+                    if (!constraintsSatisfied){
+                        console.log("constraints could not be satisfied!");
+                    }
+                }
+                console.log("randomization finished... start first trial initialization...");
                 this.addTrialViews(this.trialIter+1,currentElement);
             }
 
-            if (this.trialIter >= this.trialSpecifications.length - 1) {
+            if (this.trialIter >= this.trial_randomization.length - 1) {
                 // trial loop finished:
                 console.log("trial loop finished");
                 this.trialIter = -1;
@@ -309,6 +331,17 @@ Player.prototype.addRecording = function(blockNr, trialNr, recData) {
     }
 };
 
+Player.prototype.finishSessionWithError = function(err_msg) {
+    console.log("error during experiment...");
+    $.post('/errExpSession', {err_msg: err_msg});
+    $('#experimentViewPort').hide();
+    $('#errEndExpSection').show();
+    $('#err_msg').text(err_msg);
+    $('#errEndExp').click(function(){
+        history.go(-1);
+    });
+};
+
 Player.prototype.finishSession = function() {
     console.log("finishExpSession...");
     $.post('/finishExpSession', function( data ) {
@@ -317,7 +350,6 @@ Player.prototype.finishSession = function() {
         $('#endExp').click(function(){
             history.go(-1);
         });
-
     });
 };
 

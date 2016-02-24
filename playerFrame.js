@@ -3,7 +3,6 @@
 
 var PlayerFrame = function(frameData,frameDiv,player) {
 
-
     this.frameData = frameData.getDeepCopy();
     this.frameDiv  = frameDiv;
     this.player = player;
@@ -11,7 +10,6 @@ var PlayerFrame = function(frameData,frameDiv,player) {
     this.startedTime= null;
 
 };
-
 
 PlayerFrame.prototype.init = function() {
 
@@ -27,6 +25,21 @@ PlayerFrame.prototype.startFrame = function() {
     this.setTimeOut();
     this.startedTime = Date.now();
     this.frameDiv.css('display','block');
+
+    // if emotion recording is enabled:
+    if (this.frameData.parent.parent.webcamEnabled() && this.frameData.emotionEnabled()) {
+        setTimeout(function () {
+            Webcam.snap(function (data_uri) {
+                console.log("snap complete, image data is in data_uri");
+                Webcam.upload(data_uri, '/uploadWebcam', function (code, text) {
+                    console.log("Upload complete!");
+                    // 'code' will be the HTTP response code from the server, e.g. 200
+                    // 'text' will be the raw response content
+                });
+            });
+        }, this.frameData.emotionOffset());
+    }
+
 };
 
 
@@ -45,9 +58,6 @@ PlayerFrame.prototype.getViewSize = function() {
     var height = window.innerHeight;
     return [width,height];
 };
-
-
-
 
 
 PlayerFrame.prototype.setTimeOut = function() {
