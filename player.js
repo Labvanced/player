@@ -101,12 +101,15 @@ Player.prototype.parseNextElement = function() {
                 }
 
                 this.trialSpecifications = currentElement.trialSpecifications();
+                var numRep = currentElement.repsPerTrialType()
 
                 // create trial_randomization first with increasing integer:
                 this.trial_randomization = [];
+                this.trial_present_order = [];
                 for (var i = 0; i < this.trialSpecifications.length; i++) {
-                    for (var j = 0; j < currentElement.repsPerTrialType() ; j++) {
+                    for (var j = 0; j < numRep ; j++) {
                         this.trial_randomization.push(i);
+                        this.trial_present_order.push(j+numRep*i);
                     }
                 }
 
@@ -114,9 +117,12 @@ Player.prototype.parseNextElement = function() {
                 console.log("do randomization...");
                 for (var i = this.trial_randomization.length - 1; i > 0; i--) {
                     var permuteWithIdx = Math.floor(Math.random() * (i + 1)); // random number between 0 and i
-                    var temp = this.trial_randomization[i];
+                    var temp1 = this.trial_randomization[i];
+                    var temp2 = this.trial_present_order[i];
                     this.trial_randomization[i] = this.trial_randomization[permuteWithIdx];
-                    this.trial_randomization[permuteWithIdx] = temp;
+                    this.trial_present_order[i] = this.trial_present_order[permuteWithIdx];
+                    this.trial_randomization[permuteWithIdx] = temp1;
+                    this.trial_present_order[permuteWithIdx] = temp2;
                 }
 
                 // make sure that there is spacing between repetitions:
@@ -133,9 +139,12 @@ Player.prototype.parseNextElement = function() {
                                     constraintsSatisfied = false;
                                     // permute trial i with any random other trial:
                                     var permuteWithIdx = Math.floor(Math.random() * this.trial_randomization.length);
-                                    var temp = this.trial_randomization[i];
+                                    var temp1 = this.trial_randomization[i];
+                                    var temp2 = this.trial_present_order[i];
                                     this.trial_randomization[i] = this.trial_randomization[permuteWithIdx];
-                                    this.trial_randomization[permuteWithIdx] = temp;
+                                    this.trial_present_order[i] = this.trial_present_order[permuteWithIdx];
+                                    this.trial_randomization[permuteWithIdx] = temp1;
+                                    this.trial_present_order[permuteWithIdx] = temp2;
                                 }
                             }
                         }
@@ -151,6 +160,7 @@ Player.prototype.parseNextElement = function() {
                         console.log("constraints could not be satisfied!");
                     }
                 }
+
                 console.log("randomization finished... start first trial initialization...");
                 this.addTrialViews(this.trialIter+1,currentElement);
             }
@@ -173,12 +183,20 @@ Player.prototype.parseNextElement = function() {
                 console.log("start randomized trial id "+this.currentRandomizedTrialId);
 
                 // record user independent data
-                // randomized blockId
+                // blockId
                 var recData = new RecData(currentElement.parent.parent.blockId().id(),currentElement.parent.parent.name());
                 this.addRecording(this.currentBlock, this.trialIter ,recData.toJS());
 
-                // randomized trialId
-                var recData = new RecData(currentElement.trialOrderVar().id(),this.currentRandomizedTrialId );
+                // trialTypeId
+                var recData = new RecData(currentElement.trialTypeIdVar().id(),this.currentRandomizedTrialId );
+                this.addRecording(this.currentBlock, this.trialIter ,recData.toJS());
+
+                // trialId
+                var recData = new RecData(currentElement.trialUniqueIdVar().id(),this.trial_present_order[this.trialIter] );
+                this.addRecording(this.currentBlock, this.trialIter ,recData.toJS());
+
+                // trial presentation order
+                var recData = new RecData(currentElement.trialOrderVar().id(), this.trialIter );
                 this.addRecording(this.currentBlock, this.trialIter ,recData.toJS());
 
                 // factors and add trial types
@@ -211,8 +229,6 @@ Player.prototype.parseNextElement = function() {
                 if (this.trialIter+1< this.trial_randomization.length ){
                     this.addTrialViews(this.trialIter+1,currentElement);
                 }
-
-
 
             }
             break;
