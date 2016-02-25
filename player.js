@@ -89,7 +89,9 @@ Player.prototype.parseNextElement = function() {
                     Webcam.on("load", function() {
                         console.log("webcam loaded");
                         self.webcamLoaded = true;
-                        self.parseNextElement();
+                        setTimeout(function(){
+                            self.parseNextElement();
+                        }, 3000);
                     });
                     Webcam.on("error", function(err_msg){
                         console.log("webcam error: "+err_msg);
@@ -215,13 +217,19 @@ Player.prototype.parseNextElement = function() {
             }
             break;
         case 'QuestionnaireEditorData':
-            console.log("Ich bin vom Typ QuestionnaireEditorData");
-            var questDiv = $(document.createElement('div'));
-            questDiv.css('display','none');
-            $('#experimentTree').append(questDiv);
-            this.currQuestionnaireView = new PlayerQuestView(currentElement,questDiv,this);
-            this.currQuestionnaireView.init();
-            this.currQuestionnaireView.start();
+            if (currentElement.isActive()) {
+                console.log("Ich bin vom Typ QuestionnaireEditorData");
+                var questDiv = $(document.createElement('div'));
+                questDiv.css('display','none');
+                $('#experimentTree').append(questDiv);
+                this.currQuestionnaireView = new PlayerQuestView(currentElement,questDiv,this);
+                this.currQuestionnaireView.init();
+                this.currQuestionnaireView.start();
+            }
+            else {
+                this.currentSequence.selectNextElement();
+                self.parseNextElement();
+            }
             break;
         case 'TextEditorData':
             console.log("Ich bin vom Typ TextEditorData");

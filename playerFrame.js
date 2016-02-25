@@ -22,6 +22,7 @@ PlayerFrame.prototype.init = function() {
 
 PlayerFrame.prototype.startFrame = function() {
 
+    console.log('starting frame...');
     this.setTimeOut();
     this.startedTime = Date.now();
     this.frameDiv.css('display','block');
@@ -29,6 +30,7 @@ PlayerFrame.prototype.startFrame = function() {
     // if emotion recording is enabled:
     if (this.frameData.parent.parent.webcamEnabled() && this.frameData.emotionEnabled()) {
         setTimeout(function () {
+            console.log('make snapshot...');
             Webcam.snap(function (data_uri) {
                 console.log("snap complete, image data is in data_uri");
                 Webcam.upload(data_uri, '/uploadWebcam', function (code, text) {
