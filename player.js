@@ -236,7 +236,10 @@ Player.prototype.parseNextElement = function() {
             if (currentElement.isActive()) {
                 console.log("Ich bin vom Typ QuestionnaireEditorData");
                 var questDiv = $(document.createElement('div'));
-                questDiv.css('display','none');
+                $(questDiv).css({
+                    'display':'none',
+                    'overflow':'auto'
+                });
                 $('#experimentTree').append(questDiv);
                 this.currQuestionnaireView = new PlayerQuestView(currentElement,questDiv,this);
                 this.currQuestionnaireView.init();
