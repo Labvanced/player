@@ -11,6 +11,7 @@ var PlayerFrame = function(frameData,frameDiv,player) {
     this.state = 'preloaded'; // or 'displaying' or 'finished'
     this.trialIdx = null;
     this.frameTimeout = null;
+    this.elements = this.frameData.elements()
 
 };
 
@@ -32,6 +33,13 @@ PlayerFrame.prototype.startFrame = function() {
         this.setTimeOut();
         this.startedTime = Date.now();
         this.frameDiv.css('display', 'block');
+
+        for (var i = 0; i<this.elements.length; i++){
+            if (this.elements[i] instanceof VideoData){
+                $($(this.frameDiv).children()[i]).children()[0].play();
+            }
+        }
+
 
         // if emotion recording is enabled:
         if (this.frameData.parent.parent.webcamEnabled() && this.frameData.emotionEnabled()) {
