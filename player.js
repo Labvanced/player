@@ -20,14 +20,6 @@ var Player = function() {
 
     console.log("requesting experiment with id "+this.expId+" from server.");
 
-    this.cameraDiv = $(document.createElement('div'));
-    $(this.cameraDiv).id = "my_camera";
-    $(this.cameraDiv).css({
-        "display": "none"
-    });
-    $('#body').append(this.cameraDiv);
-
-
     var parameters = { expId: this.expId };
     $.get('/startExpPlayer', parameters, function(data){
         console.log("experiment spec loaded from server.");
@@ -93,11 +85,11 @@ Player.prototype.parseNextElement = function() {
                 console.log("beginning of trial loop...");
 
                 if (currentElement.webcamEnabled() && !this.webcamLoaded){
-                    $(this.cameraDiv).css({
+                    /*$("#my_camera").css({
                         "display": "block",
                         "width": "640px",
-                        "height": "480"
-                    });
+                        "height": "480px"
+                    });*/
                     Webcam.attach("#my_camera");
                     Webcam.on("load", function() {
                         console.log("webcam loaded");

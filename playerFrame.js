@@ -26,6 +26,7 @@ PlayerFrame.prototype.init = function() {
 };
 
 PlayerFrame.prototype.startFrame = function() {
+    var self = this;
 
     if (this.state == 'preloaded') {
         console.log('starting frame in trialIdx '+this.trialIdx);
@@ -40,15 +41,19 @@ PlayerFrame.prototype.startFrame = function() {
             }
         }
 
-
         // if emotion recording is enabled:
         if (this.frameData.parent.parent.webcamEnabled() && this.frameData.emotionEnabled()) {
             setTimeout(function () {
-                if (this.state == 'displaying') {
+                if (self.state == 'displaying') {
                     console.log('make snapshot...');
                     Webcam.snap(function (data_uri) {
                         console.log("snap complete, image data is in data_uri");
-                        Webcam.upload(data_uri, '/uploadWebcam', function (code, text) {
+
+                        var emotionVarId = self.frameData.parent.parent.trialEmotionVar().id();
+                        var trialNr = self.player.trialIter;
+                        var blockNr = self.player.currentBlock;
+
+                        Webcam.upload(data_uri, '/uploadWebcam?emotionVarId='+emotionVarId+'&trialNr='+trialNr+'&blockNr='+blockNr, function (code, text) {
                             console.log("Upload complete!");
                             // 'code' will be the HTTP response code from the server, e.g. 200
                             // 'text' will be the raw response content
