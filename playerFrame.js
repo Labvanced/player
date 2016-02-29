@@ -55,8 +55,39 @@ PlayerFrame.prototype.startFrame = function() {
 
                         Webcam.upload(data_uri, '/uploadWebcam?emotionVarId='+emotionVarId+'&trialNr='+trialNr+'&blockNr='+blockNr, function (code, text) {
                             console.log("Upload complete!");
-                            // 'code' will be the HTTP response code from the server, e.g. 200
-                            // 'text' will be the raw response content
+
+                            var response = JSON.parse(text);
+
+                            if( response.success){
+                                var emotionLabels = ['anger','contempt','disgust','fear','happiness','sadness','surprise'];
+                                var emotions = [];
+                                var sum = 0;
+                                for (var k=0; k<emotionLabels.length; k++) {
+                                    var value = response.recData.data[emotionLabels[k]];
+                                    sum += value;
+                                    emotions.push(value);
+                                }
+                                for (var k=0; k<emotionLabels.length; k++) {
+                                    emotions[k] /= sum;
+                                }
+
+                                console.log(emotions);
+
+                                var data = [{
+                                    x: emotionLabels,
+                                    y: emotions,
+                                    type: 'bar'
+                                }];
+
+                                var resultsDiv = document.createElement('div');
+                                $(resultsDiv).css({
+                                    width: "300px",
+                                    height: "250px"
+                                });
+                                $(self.frameDiv).append($(resultsDiv));
+                                Plotly.newPlot(resultsDiv, data);
+                            }
+
                         });
                     });
                 }
