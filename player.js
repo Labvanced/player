@@ -261,17 +261,26 @@ Player.prototype.parseNextElement = function() {
             if (currentElement.isActive()) {
                 this.nextTrialDiv = $(document.createElement('div'));
                 this.nextTrialDiv.addClass( 'textFrameOuter' );
+                $(this.nextTrialDiv).css({
+                    'width': '80%'
+                });
                 $('#experimentTree').append(this.nextTrialDiv);
 
                 var textWrapper = $(document.createElement('div'));
                 textWrapper.addClass( 'textFrameCentered' );
+                $(textWrapper).css({
+                    'margin-left':'12.5%'
+                });
+
                 this.nextTrialDiv.append(textWrapper);
 
                 // insert text that was entered in editor:
                 textWrapper.html(currentElement.text());
 
                 var buttonWrapper = $(document.createElement('div'));
-                buttonWrapper.css('text-align', 'center');
+                $(buttonWrapper).css({
+                    'text-align': 'center'
+                });
                 textWrapper.append(buttonWrapper);
 
                 buttonWrapper.append($('<button/>', {
