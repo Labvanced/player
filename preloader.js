@@ -66,12 +66,12 @@ function hideStimuli(obj) {
 
 function onComplete(event) {
     $progressbar.addClass("complete");
-    $('#progressState').html("<h1>Done Loading</h1>");
+    $('#progressState').html("<h1>Ready!</h1>");
     $('#progress').hide();
     $('#startExpSection').show();
     $('#startExp').click(function(){
         launchIntoFullscreen(document.documentElement);
-        $('#progressState').html("<h1>Wait for Experiment to Start</h1>");
+        $('#progressState').html("<h1>Starting Experiment...</h1>");
 
         $("#startExpSection").hide();
 
