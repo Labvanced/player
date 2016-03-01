@@ -81,11 +81,19 @@ PlayerFrame.prototype.startFrame = function() {
 
                                 var resultsDiv = document.createElement('div');
                                 $(resultsDiv).css({
-                                    width: "300px",
-                                    height: "250px"
+                                    width: "320px",
+                                    height: "240px"
                                 });
                                 $(self.frameDiv).append($(resultsDiv));
                                 Plotly.newPlot(resultsDiv, data);
+
+                                var snapDiv = document.createElement('div');
+                                $(snapDiv).css({
+                                    width: "320px",
+                                    height: "240px"
+                                });
+                                $(self.frameDiv).append($(snapDiv));
+                                snapDiv.innerHTML = '<img src="'+data_uri+'"/>';
                             }
 
                         });
