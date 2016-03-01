@@ -13,7 +13,7 @@ var Player = function() {
     this.currentBlock = -1;
     this.currentTrialSelection = null;
     this.trialSpecifications = [];
-    this.trialIter = -1;
+    this.trialIter = "init"; // or "waitForStart" or 0,1,2,..
     this.currentTrialDiv = null;
     this.currentFrame= null;
     this.webcamLoaded = false;
@@ -80,7 +80,7 @@ Player.prototype.parseNextElement = function() {
         case 'ExpTrialLoop':
             console.log("Ich bin vom Typ ExpTrialLoop");
 
-            if (this.trialIter == -1) {
+            if (this.trialIter == "init") {
                 // beginning of trial loop:
                 console.log("beginning of trial loop...");
 
@@ -96,7 +96,7 @@ Player.prototype.parseNextElement = function() {
                         self.webcamLoaded = true;
                         setTimeout(function(){
                             self.parseNextElement();
-                        }, 3000);
+                        }, 1000);
                     });
                     Webcam.on("error", function(err_msg){
                         console.log("webcam error: "+err_msg);
@@ -167,60 +167,80 @@ Player.prototype.parseNextElement = function() {
                 }
 
                 console.log("randomization finished... start first trial initialization...");
-                this.addTrialViews(this.trialIter+1,currentElement);
-            }
+                this.addTrialViews(0, currentElement);
 
-            if (this.trialIter >= this.trial_randomization.length - 1) {
-                // trial loop finished:
-                console.log("trial loop finished");
-                this.trialIter = -1;
-                this.currentSequence.selectNextElement();
-                self.parseNextElement();
+                self.trialIter = "waitForStart";
+
+                $('#countdownSection').show();
+                $('#countdown').text("2");
+                setTimeout(function() {
+                    $('#countdown').text("1");
+                },1000);
+                setTimeout(function() {
+                    $('#countdown').text("0");
+                },2000);
+                setTimeout(function() {
+                    $('#countdownSection').hide();
+                    self.parseNextElement();
+                },3000);
                 return;
             }
             else {
 
-                // start next trial:
-                this.trialIter++;
-                console.log("start trial iteration "+this.trialIter);
+                if (this.trialIter == "waitForStart") {
+                    this.trialIter = 0;
+                }
+                else {
+                    // start next trial:
+                    this.trialIter++;
+                }
+
+                if (this.trialIter >= this.trial_randomization.length - 1) {
+                    // trial loop finished:
+                    console.log("trial loop finished");
+                    this.trialIter = "init"; // reset to init so that another trial loop in another block will start from the beginning
+                    this.currentSequence.selectNextElement();
+                    self.parseNextElement();
+                    return;
+                }
+
+                console.log("start trial iteration " + this.trialIter);
 
                 this.currentRandomizedTrialId = this.trial_randomization[this.trialIter];
-                console.log("start randomized trial id "+this.currentRandomizedTrialId);
+                console.log("start randomized trial id " + this.currentRandomizedTrialId);
 
                 // record user independent data
                 // blockId
-                var recData = new RecData(currentElement.parent.parent.blockId().id(),currentElement.parent.parent.name());
-                this.addRecording(this.currentBlock, this.trialIter ,recData.toJS());
+                var recData = new RecData(currentElement.parent.parent.blockId().id(), currentElement.parent.parent.name());
+                this.addRecording(this.currentBlock, this.trialIter, recData.toJS());
 
                 // trialTypeId
-                var recData = new RecData(currentElement.trialTypeIdVar().id(),this.currentRandomizedTrialId );
-                this.addRecording(this.currentBlock, this.trialIter ,recData.toJS());
+                var recData = new RecData(currentElement.trialTypeIdVar().id(), this.currentRandomizedTrialId);
+                this.addRecording(this.currentBlock, this.trialIter, recData.toJS());
 
                 // trialId
-                var recData = new RecData(currentElement.trialUniqueIdVar().id(),this.trial_present_order[this.trialIter] );
-                this.addRecording(this.currentBlock, this.trialIter ,recData.toJS());
+                var recData = new RecData(currentElement.trialUniqueIdVar().id(), this.trial_present_order[this.trialIter]);
+                this.addRecording(this.currentBlock, this.trialIter, recData.toJS());
 
                 // trial presentation order
-                var recData = new RecData(currentElement.trialOrderVar().id(), this.trialIter );
-                this.addRecording(this.currentBlock, this.trialIter ,recData.toJS());
+                var recData = new RecData(currentElement.trialOrderVar().id(), this.trialIter);
+                this.addRecording(this.currentBlock, this.trialIter, recData.toJS());
 
                 // factors and add trial types
                 this.currentTrialSelection = this.trialSpecifications[this.currentRandomizedTrialId];
-                if (this.currentTrialSelection.type=="interacting"){
-                    for (var fac = 0;fac<this.currentTrialSelection.factors.length;fac++){
-                        var recData = new RecData(this.currentTrialSelection.factors[fac],this.currentTrialSelection.levels[fac]);
-                        this.addRecording(this.currentBlock, this.trialIter ,recData.toJS());
+                if (this.currentTrialSelection.type == "interacting") {
+                    for (var fac = 0; fac < this.currentTrialSelection.factors.length; fac++) {
+                        var recData = new RecData(this.currentTrialSelection.factors[fac], this.currentTrialSelection.levels[fac]);
+                        this.addRecording(this.currentBlock, this.trialIter, recData.toJS());
                     }
                 }
-                else{
-                    var recData = new RecData(this.currentTrialSelection.factor,this.currentTrialSelection.level);
-                    this.addRecording(this.currentBlock, this.trialIter ,recData.toJS());
-
+                else {
+                    var recData = new RecData(this.currentTrialSelection.factor, this.currentTrialSelection.level);
+                    this.addRecording(this.currentBlock, this.trialIter, recData.toJS());
                 }
 
-
                 // select next element from preload
-                if(this.currentTrialDiv){
+                if (this.currentTrialDiv) {
                     this.currentTrialDiv.remove();
                 }
                 this.currentTrialFrames = this.nextTrialFrames;
@@ -231,10 +251,10 @@ Player.prototype.parseNextElement = function() {
                 this.currentSequence.currSelectedElement(null);
                 this.parseNextElement();
 
-                if (this.trialIter+1< this.trial_randomization.length ){
-                    this.addTrialViews(this.trialIter+1,currentElement);
+                // preload next trial:
+                if (this.trialIter + 1 < this.trial_randomization.length) {
+                    this.addTrialViews(this.trialIter + 1, currentElement);
                 }
-
             }
             break;
         case 'QuestionnaireEditorData':
