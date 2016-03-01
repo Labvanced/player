@@ -172,12 +172,12 @@ Player.prototype.parseNextElement = function() {
                 self.trialIter = "waitForStart";
 
                 $('#countdownSection').show();
-                $('#countdown').text("2");
+                $('#countdown').text("3");
                 setTimeout(function() {
-                    $('#countdown').text("1");
+                    $('#countdown').text("2");
                 },1000);
                 setTimeout(function() {
-                    $('#countdown').text("0");
+                    $('#countdown').text("1");
                 },2000);
                 setTimeout(function() {
                     $('#countdownSection').hide();
@@ -195,7 +195,7 @@ Player.prototype.parseNextElement = function() {
                     this.trialIter++;
                 }
 
-                if (this.trialIter >= this.trial_randomization.length - 1) {
+                if (this.trialIter >= this.trial_randomization.length) {
                     // trial loop finished:
                     console.log("trial loop finished");
                     this.trialIter = "init"; // reset to init so that another trial loop in another block will start from the beginning
