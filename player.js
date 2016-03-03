@@ -22,7 +22,7 @@ var Player = function() {
 
     var parameters = { expId: this.expId };
     $.get('/startExpPlayer', parameters, function(data){
-        console.log("experiment spec loaded from server.");
+        console.log("expection.factorseriment spec loaded from server.");
         self.sessionNr = 0;//data.sessionNr; //TODO: work around for testing: starting always with first session.
         self.groupNr = data.groupNr;
         self.experiment = new Experiment().fromJS(data.expData);
@@ -230,12 +230,14 @@ Player.prototype.parseNextElement = function() {
                 this.currentTrialSelection = this.trialSpecifications[this.currentRandomizedTrialId];
                 if (this.currentTrialSelection.type == "interacting") {
                     for (var fac = 0; fac < this.currentTrialSelection.factors.length; fac++) {
-                        var recData = new RecData(this.currentTrialSelection.factors[fac], this.currentTrialSelection.levels[fac]);
+                        var value = this.experiment.exp_data.entities.byId[this.currentTrialSelection.factors[fac]].levels()[this.currentTrialSelection.levels[fac]].name();
+                        var recData = new RecData(this.currentTrialSelection.factors[fac], value);
                         this.addRecording(this.currentBlock, this.trialIter, recData.toJS());
                     }
                 }
                 else {
-                    var recData = new RecData(this.currentTrialSelection.factor, this.currentTrialSelection.level);
+                    var value = this.experiment.exp_data.entities.byId[this.currentTrialSelection.factor].levels()[this.currentTrialSelection.level].name();
+                    var recData = new RecData(this.currentTrialSelection.factor, value);
                     this.addRecording(this.currentBlock, this.trialIter, recData.toJS());
                 }
 
