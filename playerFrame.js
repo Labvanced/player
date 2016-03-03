@@ -59,6 +59,10 @@ PlayerFrame.prototype.startFrame = function() {
                             var response = JSON.parse(text);
 
                             if( response.success){
+
+                                // remove happiness bias:
+                                response.recData.data['happiness'] /= 10;
+
                                 var emotionLabels = ['anger','contempt','disgust','fear','happiness','sadness','surprise'];
                                 var emotions = [];
                                 var sum = 0;
@@ -79,12 +83,22 @@ PlayerFrame.prototype.startFrame = function() {
                                     type: 'bar'
                                 }];
 
+                                var feedbackWrapperDiv = document.createElement('div');
+                                $(feedbackWrapperDiv).css({
+                                    position: "absolute",
+                                    width: "320px",
+                                    height: "480px",
+                                    top: (window.innerHeight-480)/2,
+                                    left: (window.innerWidth-320)/2
+                                });
+                                $(self.frameDiv).append($(feedbackWrapperDiv));
+
                                 var resultsDiv = document.createElement('div');
                                 $(resultsDiv).css({
                                     width: "320px",
                                     height: "240px"
                                 });
-                                $(self.frameDiv).append($(resultsDiv));
+                                $(feedbackWrapperDiv).append($(resultsDiv));
                                 Plotly.newPlot(resultsDiv, data);
 
                                 var snapDiv = document.createElement('div');
@@ -92,7 +106,7 @@ PlayerFrame.prototype.startFrame = function() {
                                     width: "320px",
                                     height: "240px"
                                 });
-                                $(self.frameDiv).append($(snapDiv));
+                                $(feedbackWrapperDiv).append($(snapDiv));
                                 snapDiv.innerHTML = '<img src="'+data_uri+'"/>';
                             }
 
