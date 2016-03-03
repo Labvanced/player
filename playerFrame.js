@@ -56,58 +56,60 @@ PlayerFrame.prototype.startFrame = function() {
                         Webcam.upload(data_uri, '/uploadWebcam?emotionVarId='+emotionVarId+'&trialNr='+trialNr+'&blockNr='+blockNr, function (code, text) {
                             console.log("Upload complete!");
 
-                            var response = JSON.parse(text);
+                            if (self.frameData.emotionFeedbackEnabled()) {
+                                var response = JSON.parse(text);
 
-                            if( response.success){
+                                if (response.success) {
 
-                                // remove happiness bias:
-                                response.recData.data['happiness'] /= 10;
+                                    // remove happiness bias:
+                                    response.recData.data['happiness'] /= 10;
 
-                                var emotionLabels = ['anger','contempt','disgust','fear','happiness','sadness','surprise'];
-                                var emotions = [];
-                                var sum = 0;
-                                for (var k=0; k<emotionLabels.length; k++) {
-                                    var value = response.recData.data[emotionLabels[k]];
-                                    sum += value;
-                                    emotions.push(value);
+                                    var emotionLabels = ['anger', 'contempt', 'disgust', 'fear', 'happiness', 'sadness', 'surprise'];
+                                    var emotions = [];
+                                    var sum = 0;
+                                    for (var k = 0; k < emotionLabels.length; k++) {
+                                        var value = response.recData.data[emotionLabels[k]];
+                                        sum += value;
+                                        emotions.push(value);
+                                    }
+                                    for (var k = 0; k < emotionLabels.length; k++) {
+                                        emotions[k] /= sum;
+                                    }
+
+                                    console.log(emotions);
+
+                                    var data = [{
+                                        x: emotionLabels,
+                                        y: emotions,
+                                        type: 'bar'
+                                    }];
+
+                                    var feedbackWrapperDiv = document.createElement('div');
+                                    $(feedbackWrapperDiv).css({
+                                        position: "absolute",
+                                        width: "320px",
+                                        height: "480px",
+                                        top: (window.innerHeight - 480) / 2,
+                                        left: (window.innerWidth - 320) / 2
+                                    });
+                                    $(self.frameDiv).append($(feedbackWrapperDiv));
+
+                                    var resultsDiv = document.createElement('div');
+                                    $(resultsDiv).css({
+                                        width: "320px",
+                                        height: "240px"
+                                    });
+                                    $(feedbackWrapperDiv).append($(resultsDiv));
+                                    Plotly.newPlot(resultsDiv, data);
+
+                                    var snapDiv = document.createElement('div');
+                                    $(snapDiv).css({
+                                        width: "320px",
+                                        height: "240px"
+                                    });
+                                    $(feedbackWrapperDiv).append($(snapDiv));
+                                    snapDiv.innerHTML = '<img src="' + data_uri + '"/>';
                                 }
-                                for (var k=0; k<emotionLabels.length; k++) {
-                                    emotions[k] /= sum;
-                                }
-
-                                console.log(emotions);
-
-                                var data = [{
-                                    x: emotionLabels,
-                                    y: emotions,
-                                    type: 'bar'
-                                }];
-
-                                var feedbackWrapperDiv = document.createElement('div');
-                                $(feedbackWrapperDiv).css({
-                                    position: "absolute",
-                                    width: "320px",
-                                    height: "480px",
-                                    top: (window.innerHeight-480)/2,
-                                    left: (window.innerWidth-320)/2
-                                });
-                                $(self.frameDiv).append($(feedbackWrapperDiv));
-
-                                var resultsDiv = document.createElement('div');
-                                $(resultsDiv).css({
-                                    width: "320px",
-                                    height: "240px"
-                                });
-                                $(feedbackWrapperDiv).append($(resultsDiv));
-                                Plotly.newPlot(resultsDiv, data);
-
-                                var snapDiv = document.createElement('div');
-                                $(snapDiv).css({
-                                    width: "320px",
-                                    height: "240px"
-                                });
-                                $(feedbackWrapperDiv).append($(snapDiv));
-                                snapDiv.innerHTML = '<img src="'+data_uri+'"/>';
                             }
 
                         });
