@@ -389,10 +389,11 @@ Player.prototype.getBlockId = function () {
 };
 
 
-Player.prototype.addRecording = function(blockNr, trialNr, recData) {
+Player.prototype.addRecording = function(blockNr, trialNr, recData, moduleName) {
     if (this.experiment.is_recording()) {
         var recordData = {
             blockNr: blockNr,
+            moduleName: moduleName,
             trialNr: trialNr,
             recData: recData
         };
