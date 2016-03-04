@@ -18,6 +18,11 @@ var Player = function() {
     this.currentFrame= null;
     this.webcamLoaded = false;
 
+    Webcam.on("error", function(err_msg){
+        console.log("webcam error: "+err_msg);
+        self.finishSessionWithError(err_msg);
+    });
+
     console.log("requesting experiment with id "+this.expId+" from server.");
 
     var parameters = { expId: this.expId };
@@ -85,23 +90,16 @@ Player.prototype.parseNextElement = function() {
                 console.log("beginning of trial loop...");
 
                 if (currentElement.webcamEnabled() && !this.webcamLoaded){
-                    /*$("#my_camera").css({
-                        "display": "block",
-                        "width": "640px",
-                        "height": "480px"
-                    });*/
                     Webcam.attach("#my_camera");
                     Webcam.on("load", function() {
+                        Webcam.off("load");
                         console.log("webcam loaded");
                         self.webcamLoaded = true;
                         setTimeout(function(){
                             self.parseNextElement();
                         }, 1000);
                     });
-                    Webcam.on("error", function(err_msg){
-                        console.log("webcam error: "+err_msg);
-                        self.finishSessionWithError(err_msg);
-                    });
+
                     return;
                 }
 
@@ -199,6 +197,13 @@ Player.prototype.parseNextElement = function() {
                     // trial loop finished:
                     console.log("trial loop finished");
                     this.trialIter = "init"; // reset to init so that another trial loop in another block will start from the beginning
+
+                    if (this.webcamLoaded){
+                        console.log("removing webcam");
+                        Webcam.reset();
+                        this.webcamLoaded = false;
+                    }
+
                     this.currentSequence.selectNextElement();
                     self.parseNextElement();
                     return;
@@ -251,11 +256,17 @@ Player.prototype.parseNextElement = function() {
                 // go into trial sequence:
                 this.currentSequence = currentElement.subSequence();
                 this.currentSequence.currSelectedElement(null);
+
+                console.log("start timer to measure display time for next trial...");
+                var start = new Date().getTime();
                 this.parseNextElement();
+                console.log("end timer. Display time was " + (new Date().getTime() - start) + " ms");
 
                 // preload next trial:
                 if (this.trialIter + 1 < this.trial_randomization.length) {
-                    this.addTrialViews(this.trialIter + 1, currentElement);
+                    setTimeout(function(){
+                        self.addTrialViews(self.trialIter + 1, currentElement);
+                    }, 1);
                 }
             }
             break;
