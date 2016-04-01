@@ -68,6 +68,7 @@ function onComplete(event) {
     $progressbar.addClass("complete");
     $('#progressState').html("<h1>Ready!</h1>");
     $('#progress').hide();
+    $('#progressbar').hide();
     $('#startExpSection').show();
     $('#startExp').click(function(){
         launchIntoFullscreen(document.documentElement);
