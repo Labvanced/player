@@ -35,9 +35,12 @@ PlayerFrame.prototype.startFrame = function() {
         this.startedTime = Date.now();
         this.frameDiv.css('display', 'block');
 
-        for (var i = 0; i<this.elements.length; i++){
-            if (this.elements[i] instanceof VideoData){
-                $($(this.frameDiv).children()[i]).children()[0].play();
+        var viewElements = this.frameView.viewElements();
+        for (var i = 0; i< viewElements.length; i++){
+            if(viewElements[i].dataModel.content){
+                if (viewElements[i].dataModel.content() instanceof VideoData){
+                    viewElements[i].content.play();
+                }
             }
         }
 
