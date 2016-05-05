@@ -140,6 +140,22 @@ PlayerFrame.prototype.endFrame = function() {
         console.log('switch frame state from displaying to finished in trialIdx '+this.trialIdx);
         this.state = 'finished';
         clearTimeout(this.frameTimeout);
+
+        // save all questionaire element data, if there are some:
+        var answers = [];
+        var varIds = [];
+        for (var i = 0; i<this.elements.length;i++){
+            if (this.elements[i].content) {
+                var content = this.elements[i].content();
+                if (content.answer) {
+                    varIds.push(content.variable().id());
+                    answers.push(content.answer());
+                }
+            }
+        }
+        var recData = new RecData(varIds,answers);
+        player.addRecording(player.getBlockId(), player.getTrialId(), recData.toJS());
+
         // set next frame
         this.player.currentSequence.selectNextElement();
         // empty div and make new frame
