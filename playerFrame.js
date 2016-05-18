@@ -3,6 +3,8 @@
 
 var PlayerFrame = function(frameData,frameDiv,player) {
 
+    var self = this;
+
     this.frameData = frameData.getDeepCopy();
     this.frameDiv  = frameDiv;
     this.player = player;
@@ -12,6 +14,12 @@ var PlayerFrame = function(frameData,frameDiv,player) {
     this.trialIdx = null;
     this.frameTimeout = null;
     this.elements = this.frameData.elements()
+
+
+    window.addEventListener('resize', function() {
+        self.resize();
+    }, false);
+
 
 };
 
@@ -33,6 +41,12 @@ PlayerFrame.prototype.init = function() {
 
 
     //this.frameDiv.css({'display':'block'});
+};
+
+PlayerFrame.prototype.resize = function() {
+    console.log("warning player size changed!!! TODO: pause experiment...");
+    // TODO: pause experiment
+    this.frameView.resize(this.getViewSize());
 };
 
 PlayerFrame.prototype.startFrame = function() {
