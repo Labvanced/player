@@ -66,7 +66,7 @@ function hideStimuli(obj) {
 
 function onComplete(event) {
     $progressbar.addClass("complete");
-    $('#progressState').html("<h1>Ready!</h1>");
+    $('#progressState').html("");
     $('#progress').hide();
     $('#progressbar').hide();
     $('#startExpSection').show();
