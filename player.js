@@ -27,6 +27,12 @@ var Player = function() {
 
     var parameters = { expId: this.expId };
     $.get('/startExpPlayer', parameters, function(data){
+
+        if (!data.success) {
+            queue.cancel();
+            self.finishSessionWithError("This experiment does not exist!");
+            return;
+        }
         console.log("expection.factorseriment spec loaded from server.");
         self.sessionNr = 0;//data.sessionNr; //TODO: work around for testing: starting always with first session.
         self.groupNr = data.groupNr;
