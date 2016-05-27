@@ -3,7 +3,9 @@
 var Player = function() {
     var self = this;
 
-    this.expId = location.search.split('id=')[1];
+    //this.expId = location.search.split('id=')[1];
+    this.expId = location.search.split("&")[0].replace("?","").split("=")[1];
+
     this.experiment = null;
     this.sessionNr = 0;
     this.groupNr = 0;
@@ -28,7 +30,7 @@ var Player = function() {
     var parameters = { expId: this.expId };
     $.get('/startExpPlayer', parameters, function(data){
 
-        if (!data.success) {
+        if (data.hasOwnProperty('success') && data.success == false) {
             queue.cancel();
             self.finishSessionWithError("This experiment does not exist!");
             return;
