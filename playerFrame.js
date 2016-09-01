@@ -49,6 +49,10 @@ PlayerFrame.prototype.resize = function() {
     this.frameView.resize(this.getViewSize());
 };
 
+PlayerFrame.prototype.getFrameTime = function() {
+    return Date.now()-this.startedTime;
+};
+
 PlayerFrame.prototype.startFrame = function() {
     var self = this;
 
@@ -57,6 +61,15 @@ PlayerFrame.prototype.startFrame = function() {
         this.state = 'displaying';
         this.setTimeOut();
         this.startedTime = Date.now();
+
+        // setup callacks
+        var events = this.frameData.events();
+        for (var i = 0; i < events.length; i++){
+            var event =  events[i];
+            event.trigger().setupOnFrameView(this);
+        }
+
+
         this.frameDiv.css('display', 'block');
 
         var viewElements = this.frameView.viewElements();
