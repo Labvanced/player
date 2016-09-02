@@ -434,5 +434,12 @@ Player.prototype.finishSession = function() {
 Player.prototype.init = function() {
     var self = this;
 
-
+    document.onmousedown=disableclick;
+    function disableclick(event)
+    {
+        if(event.button==2)
+        {
+            return false;
+        }
+    }
 };
