@@ -183,6 +183,10 @@ PlayerFrame.prototype.endFrame = function() {
         var recData = new RecData(varIds,answers);
         player.addRecording(player.getBlockId(), player.getTrialId(), recData.toJS());
 
+        // remove document event handlers
+        $(document).off("keyup");
+        $(document).off("keydown");
+
         // set next frame
         this.player.currentSequence.selectNextElement();
         // empty div and make new frame
