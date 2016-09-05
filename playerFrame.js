@@ -26,20 +26,17 @@ var PlayerFrame = function(frameData,frameDiv,player) {
 
 PlayerFrame.prototype.init = function() {
 
-
     this.frameView = new FrameView(this.frameDiv,this.frameData,this,"playerView");
     this.frameView.init(this.getViewSize());
     this.state = 'preloaded';
     var offX = (window.innerWidth-this.frameData.frameWidth()*this.frameView.scale())/2 ;
     var offY = (window.innerHeight-this.frameData.frameHeight()*this.frameView.scale())/2;
 
-
     $(this.frameDiv).css({
         "position": "absolute",
         "left": offX,
         "top": offY
     });
-
 
     //this.frameDiv.css({'display':'block'});
 };

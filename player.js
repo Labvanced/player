@@ -223,9 +223,6 @@ Player.prototype.parseNextElement = function() {
                 console.log("start randomized trial id " + this.currentRandomizedTrialId);
 
                 // record user independent data
-                // blockId
-                var recData = new RecData(currentElement.parent.parent.blockId().id(), currentElement.parent.parent.name());
-                this.addRecording(this.currentBlock, this.trialIter, recData.toJS());
 
                 // trialTypeId
                 var recData = new RecData(currentElement.trialTypeIdVar().id(), this.currentRandomizedTrialId);
@@ -397,11 +394,21 @@ Player.prototype.getBlockId = function () {
 };
 
 
-Player.prototype.addRecording = function(blockNr, trialNr, recData, moduleName) {
+Player.prototype.startRecordingsOfNewTask = function(newTaskNr, subjectId, sessionId, blockId, taskId) {
     if (this.experiment.is_recording()) {
         var recordData = {
             blockNr: blockNr,
-            moduleName: moduleName,
+            trialNr: trialNr,
+            recData: recData
+        };
+        $.post('/record', recordData);
+    }
+};
+
+Player.prototype.addRecording = function(blockNr, trialNr, recData) {
+    if (this.experiment.is_recording()) {
+        var recordData = {
+            blockNr: blockNr,
             trialNr: trialNr,
             recData: recData
         };
