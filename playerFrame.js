@@ -13,8 +13,9 @@ var PlayerFrame = function(frameData,frameDiv,player) {
     this.state = 'preloaded'; // or 'displaying' or 'finished'
     this.trialIdx = null;
     this.frameTimeout = null;
-    this.elements = this.frameData.elements()
+    this.elements = this.frameData.elements();
 
+    this.onFrameEndCallbacks = [];
 
     window.addEventListener('resize', function() {
         self.resize();
@@ -66,7 +67,7 @@ PlayerFrame.prototype.startFrame = function() {
         var events = this.frameData.events();
         for (var i = 0; i < events.length; i++){
             var event =  events[i];
-            event.trigger().setupOnFrameView(this);
+            event.trigger().setupOnPlayerFrame(this);
         }
 
 
@@ -167,6 +168,17 @@ PlayerFrame.prototype.endFrame = function() {
         console.log('switch frame state from displaying to finished in trialIdx '+this.trialIdx);
         this.state = 'finished';
         clearTimeout(this.frameTimeout);
+
+        for (var i = 0; i<this.onFrameEndCallbacks.length;i++) {
+            this.onFrameEndCallbacks[i]();
+        }
+
+        // setup callacks
+        var events = this.frameData.events();
+        for (var i = 0; i < events.length; i++){
+            var event =  events[i];
+            event.trigger().destroyOnPlayerFrame(this);
+        }
 
         // save all questionaire element data, if there are some:
         var answers = [];
