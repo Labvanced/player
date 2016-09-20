@@ -73,7 +73,7 @@ PlayerFrame.prototype.startFrame = function() {
         var viewElements = this.frameView.viewElements();
         for (var i = 0; i< viewElements.length; i++){
             if(viewElements[i].dataModel.content){
-                if (viewElements[i].dataModel.content() instanceof VideoData){
+                if (viewElements[i].dataModel.content() instanceof VideoElement){
                     viewElements[i].content.play();
                 }
             }
