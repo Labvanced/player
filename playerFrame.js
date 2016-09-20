@@ -25,20 +25,25 @@ var PlayerFrame = function(frameData,frameDiv,player) {
 };
 
 PlayerFrame.prototype.init = function() {
+    if (this.frameData.bgColorEnabled()) {
+        $(this.frameDiv).css({
+            "background-color": this.frameData.bgColor()
+        });
+    }
+    var centeredDiv = $("<div/>");
+    $(this.frameDiv).append(centeredDiv);
 
-    this.frameView = new FrameView(this.frameDiv,this.frameData,this,"playerView");
+    this.frameView = new FrameView(centeredDiv,this.frameData,this,"playerView");
     this.frameView.init(this.getViewSize());
     this.state = 'preloaded';
     var offX = (window.innerWidth-this.frameData.frameWidth()*this.frameView.scale())/2 ;
     var offY = (window.innerHeight-this.frameData.frameHeight()*this.frameView.scale())/2;
 
-    $(this.frameDiv).css({
+    $(centeredDiv).css({
         "position": "absolute",
         "left": offX,
         "top": offY
     });
-
-    //this.frameDiv.css({'display':'block'});
 };
 
 PlayerFrame.prototype.resize = function() {

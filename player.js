@@ -358,6 +358,10 @@ Player.prototype.endCurrentSequence = function () {
 Player.prototype.addTrialViews = function (trialIdx,trialLoop) {
 
     this.nextTrialDiv = $(document.createElement('div'));
+    this.nextTrialDiv.css({
+        "width": "100%",
+        "height": "100%"
+    });
     $('#experimentTree').append(this.nextTrialDiv);
     var nextRandomizedTrialId = this.trial_randomization[trialIdx];
     var nextTrialSelection = this.trialSpecifications[nextRandomizedTrialId];
@@ -368,7 +372,11 @@ Player.prototype.addTrialViews = function (trialIdx,trialLoop) {
     for(var frameIdx =0;frameIdx<frameDataArr.length;frameIdx++){
 
         var frameDiv = $(document.createElement('div'));
-        frameDiv.css('display','none');
+        frameDiv.css({
+            'display':'none',
+            "width": "100%",
+            "height": "100%"
+        });
         $(this.nextTrialDiv).append(frameDiv);
 
         var playerFrame = new PlayerFrame(frameDataArr[frameIdx],frameDiv,this);
