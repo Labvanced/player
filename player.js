@@ -177,18 +177,28 @@ Player.prototype.parseNextElement = function() {
 
                 self.trialIter = "waitForStart";
 
-                $('#countdownSection').show();
-                $('#countdown').text("3");
-                setTimeout(function() {
-                    $('#countdown').text("2");
-                },1000);
-                setTimeout(function() {
-                    $('#countdown').text("1");
-                },2000);
-                setTimeout(function() {
-                    $('#countdownSection').hide();
-                    self.parseNextElement();
-                },3000);
+                if (currentElement.displayInitialCountdown()) {
+                    $('#countdownSection').show();
+                    $('#countdown').text("3");
+                    setTimeout(function () {
+                        $('#countdown').text("2");
+                    }, 1000);
+                    setTimeout(function () {
+                        $('#countdown').text("1");
+                    }, 2000);
+                    setTimeout(function () {
+                        $('#countdownSection').hide();
+                        self.parseNextElement();
+                    }, 3000);
+                }
+                else {
+                    $('#countdownSection').show();
+                    $('#countdown').text("preloading task");
+                    setTimeout(function () {
+                        $('#countdownSection').hide();
+                        self.parseNextElement();
+                    }, 500);
+                }
                 return;
             }
             else {
