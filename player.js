@@ -250,14 +250,18 @@ Player.prototype.parseNextElement = function() {
                 this.currentTrialSelection = this.trialSpecifications[this.currentRandomizedTrialId];
                 if (this.currentTrialSelection.type == "interacting") {
                     for (var fac = 0; fac < this.currentTrialSelection.factors.length; fac++) {
-                        var value = this.experiment.exp_data.entities.byId[this.currentTrialSelection.factors[fac]].levels()[this.currentTrialSelection.levels[fac]].name();
+                        var factorVar = this.experiment.exp_data.entities.byId[this.currentTrialSelection.factors[fac]];
+                        var value = factorVar.levels()[this.currentTrialSelection.levels[fac]].name();
                         var recData = new RecData(this.currentTrialSelection.factors[fac], value);
+                        factorVar.value(value);
                         this.addRecording(this.currentBlock, this.trialIter, recData.toJS());
                     }
                 }
                 else {
-                    var value = this.experiment.exp_data.entities.byId[this.currentTrialSelection.factor].levels()[this.currentTrialSelection.level].name();
+                    var factorVar = this.experiment.exp_data.entities.byId[this.currentTrialSelection.factor];
+                    var value = factorVar.levels()[this.currentTrialSelection.level].name();
                     var recData = new RecData(this.currentTrialSelection.factor, value);
+                    factorVar.value(value);
                     this.addRecording(this.currentBlock, this.trialIter, recData.toJS());
                 }
 
