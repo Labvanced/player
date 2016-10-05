@@ -19,6 +19,7 @@ var Player = function() {
     this.currentTrialDiv = null;
     this.currentFrame= null;
     this.webcamLoaded = false;
+    this.variablesToReset = [];
 
     Webcam.on("error", function(err_msg){
         console.log("webcam error: "+err_msg);
@@ -109,6 +110,23 @@ Player.prototype.parseNextElement = function() {
                     });
 
                     return;
+                }
+
+                // create array with variables that need to be reset after each trial: (the actual reset is done further below)
+                var allFrameDataInTrial = currentElement.subSequence().elements();
+                this.variablesToReset = [];
+                var variablesToResetById = {};
+                for (var i=0; i<allFrameDataInTrial.length; i++){
+                    var allVariablesInFrame = allFrameDataInTrial[i].localWorkspaceVars();
+                    for (var j=0; j<allVariablesInFrame.length; j++){
+                        if (allVariablesInFrame[j].resetAtTrialStart()) {
+                            var id = allVariablesInFrame[j].id();
+                            if (!variablesToResetById.hasOwnProperty(id)) {
+                                variablesToResetById[id] = true;
+                                this.variablesToReset.push(allVariablesInFrame[j]);
+                            }
+                        }
+                    }
                 }
 
                 this.trialSpecifications = currentElement.trialSpecifications();
@@ -231,6 +249,11 @@ Player.prototype.parseNextElement = function() {
 
                 this.currentRandomizedTrialId = this.trial_randomization[this.trialIter];
                 console.log("start randomized trial id " + this.currentRandomizedTrialId);
+
+                // reset variables at start of trial:
+                for (var i=0; i<this.variablesToReset.length; i++){
+                    this.variablesToReset[i].resetValue();
+                }
 
                 // record user independent data
 
