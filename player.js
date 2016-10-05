@@ -29,26 +29,30 @@ var Player = function() {
     console.log("requesting experiment with id "+this.expId+" from server.");
 
     var parameters = { expId: this.expId };
-    $.get('/startExpPlayer', parameters, function(data){
 
-        if (data.hasOwnProperty('success') && data.success == false) {
-            queue.cancel();
-            self.finishSessionWithError("This experiment does not exist!");
-            return;
-        }
-        console.log("expection.factorseriment spec loaded from server.");
-        self.sessionNr = 0;//data.sessionNr; //TODO: work around for testing: starting always with first session.
-        self.groupNr = data.groupNr;
-        self.experiment = new Experiment().fromJS(data.expData);
-        self.experiment.setPointers();
+    createExpDesignComponents(function() {
+        $.get('/startExpPlayer', parameters, function(data){
 
-        console.log("experiment deserialized.");
+            if (data.hasOwnProperty('success') && data.success == false) {
+                queue.cancel();
+                self.finishSessionWithError("This experiment does not exist!");
+                return;
+            }
+            console.log("expection.factorseriment spec loaded from server.");
+            self.sessionNr = 0;//data.sessionNr; //TODO: work around for testing: starting always with first session.
+            self.groupNr = data.groupNr;
+            self.experiment = new Experiment().fromJS(data.expData);
+            self.experiment.setPointers();
 
-        self.blocks = self.experiment.exp_data.groups()[self.groupNr].sessions()[self.sessionNr].blocks();
+            console.log("experiment deserialized.");
 
-        //self.startNextBlock();
+            self.blocks = self.experiment.exp_data.groups()[self.groupNr].sessions()[self.sessionNr].blocks();
 
+            //self.startNextBlock();
+
+        });
     });
+
 };
 
 Player.prototype.startNextBlock = function() {
@@ -334,6 +338,8 @@ Player.prototype.parseNextElement = function() {
             console.log("Ich bin vom Typ TextEditorData");
 
             if (currentElement.isActive()) {
+
+                // preload text/trial div:
                 this.nextTrialDiv = $(document.createElement('div'));
                 this.nextTrialDiv.addClass( 'textFrameOuter' );
                 $('#experimentTree').append(this.nextTrialDiv);
@@ -360,6 +366,13 @@ Player.prototype.parseNextElement = function() {
                         self.parseNextElement();
                     }
                 }));
+
+                // display the preloaded text div
+                if (this.currentTrialDiv) {
+                    this.currentTrialDiv.remove();
+                }
+                this.currentTrialFrames = null;
+                this.currentTrialDiv = this.nextTrialDiv;
 
             }
             else {
