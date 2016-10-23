@@ -72,6 +72,7 @@ function onComplete(event) {
     $('#startExpSection').show();
     $('#startExp').click(function(){
         launchIntoFullscreen(document.documentElement);
+
         $('#progressState').html("<h1>Starting Experiment...</h1>");
 
         $("#startExpSection").hide();
@@ -83,7 +84,7 @@ function onComplete(event) {
             // TODO: this check is not working yet:
             var fullscreenEnabled = document.fullscreenEnabled || document.mozFullScreenEnabled || document.webkitFullscreenEnabled;
             if (fullscreenEnabled){
-                player.startNextBlock();
+                loadCalibrationScreen();
             }
         },5000);
 
@@ -91,6 +92,24 @@ function onComplete(event) {
     });
 
 
+}
+
+function loadCalibrationScreen(){
+    var pic = document.getElementById("creditCard");
+    this.creditWidth = $(pic).width();
+    this.creditHeight = $(pic).height();
+    $('#confirmCalib').click(function () {
+        $('#calibrateScreen').hide();
+        player.startNextBlock();
+    });
+    $('#calibrateScreen').show();
+}
+
+function updateSlider(amount){
+    var pic = document.getElementById("creditCard");
+    this.factor = amount/100;
+    pic.style.width = this.creditWidth * this.factor +'px';
+    pic.style.height = this.creditHeight * this.factor +'px';
 }
 
 function onError(event) {
