@@ -94,7 +94,7 @@ PlayerFrame.prototype.startFrame = function() {
 
                         var emotionVarId = self.frameData.parent.parent.trialEmotionVar().id();
                         var trialNr = self.player.trialIter;
-                        var blockNr = self.player.currentBlock;
+                        var blockNr = self.player.currentBlockIdx;
 
                         Webcam.upload(data_uri, '/uploadWebcam?emotionVarId='+emotionVarId+'&trialNr='+trialNr+'&blockNr='+blockNr, function (code, text) {
                             console.log("Upload complete!");
