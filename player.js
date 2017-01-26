@@ -18,8 +18,9 @@ var Player = function() {
     this.currentTask = null;
     this.currentTaskIdx = -1;
 
+    this.currentTrialIdx = null;
     this.currentTrialSelection = null;
-    this.trialSpecifications = [];
+    this.randomizedTrials = [];
     this.trialIter = "init"; // or "waitForStart" or 0,1,2,..
     this.currentTrialDiv = null;
     this.currentTrialFrames = null;
@@ -92,14 +93,14 @@ Player.prototype.startNextTask = function() {
             console.log("webcam loaded");
             self.webcamLoaded = true;
             setTimeout(function(){
-                self.parseNextElement();
+                self.startNextTask();
             }, 1000);
         });
         return;
     }
 
     // create array with variables that need to be reset after each trial: (the actual reset is done further below)
-    var allFrameDataInTrial = currentElement.subSequence().elements();
+    var allFrameDataInTrial = this.currentTask.subSequence().elements();
     this.variablesToReset = [];
     var variablesToResetById = {};
     for (var i=0; i<allFrameDataInTrial.length; i++){
@@ -115,73 +116,14 @@ Player.prototype.startNextTask = function() {
         }
     }
 
-    this.trialSpecifications = currentElement.trialSpecifications();
-    var numRep = currentElement.repsPerTrialType()
-
-    // create trial_randomization first with increasing integer:
-    this.trial_randomization = [];
-    this.trial_present_order = [];
-    for (var i = 0; i < this.trialSpecifications.length; i++) {
-        for (var j = 0; j < numRep ; j++) {
-            this.trial_randomization.push(i);
-            this.trial_present_order.push(j+numRep*i);
-        }
-    }
-
-    // now randomize:
-    console.log("do randomization...");
-    for (var i = this.trial_randomization.length - 1; i > 0; i--) {
-        var permuteWithIdx = Math.floor(Math.random() * (i + 1)); // random number between 0 and i
-        var temp1 = this.trial_randomization[i];
-        var temp2 = this.trial_present_order[i];
-        this.trial_randomization[i] = this.trial_randomization[permuteWithIdx];
-        this.trial_present_order[i] = this.trial_present_order[permuteWithIdx];
-        this.trial_randomization[permuteWithIdx] = temp1;
-        this.trial_present_order[permuteWithIdx] = temp2;
-    }
-
-    // make sure that there is spacing between repetitions:
-    var minIntervalBetweenRep = currentElement.minIntervalBetweenRep();
-    if (minIntervalBetweenRep>0) {
-        console.log("try to satify all constraints...");
-        for (var j = 0; j < 1000; j++) {
-            var constraintsSatisfied = true;
-            for (var i = 0; i < this.trial_randomization.length; i++) {
-                var stepsToLookBack = Math.min(i, minIntervalBetweenRep);
-                for (var k = 1; k <= stepsToLookBack; k++) {
-                    // look back k steps:
-                    if (this.trial_randomization[i] == this.trial_randomization[i-k]) {
-                        constraintsSatisfied = false;
-                        // permute trial i with any random other trial:
-                        var permuteWithIdx = Math.floor(Math.random() * this.trial_randomization.length);
-                        var temp1 = this.trial_randomization[i];
-                        var temp2 = this.trial_present_order[i];
-                        this.trial_randomization[i] = this.trial_randomization[permuteWithIdx];
-                        this.trial_present_order[i] = this.trial_present_order[permuteWithIdx];
-                        this.trial_randomization[permuteWithIdx] = temp1;
-                        this.trial_present_order[permuteWithIdx] = temp2;
-                    }
-                }
-            }
-            if (constraintsSatisfied) {
-                console.log("all constraints were satisfied in iteration "+j);
-                break;
-            }
-            else {
-                console.log("not all constraints were satisfied in iteration "+j);
-            }
-        }
-        if (!constraintsSatisfied){
-            console.log("constraints could not be satisfied!");
-        }
-    }
+    this.randomizedTrials = this.currentTask.getRandomizedTrials();
 
     console.log("randomization finished... start first trial initialization...");
-    this.addTrialViews(0, currentElement);
+    this.addTrialViews(0, this.currentTask);
 
     self.trialIter = "waitForStart";
 
-    if (currentElement.displayInitialCountdown()) {
+    if (this.currentTask.displayInitialCountdown()) {
         $('#countdownSection').show();
         $('#countdown').text("3");
         setTimeout(function () {
@@ -192,7 +134,7 @@ Player.prototype.startNextTask = function() {
         }, 2000);
         setTimeout(function () {
             $('#countdownSection').hide();
-            self.parseNextElement();
+            self.startNextTrial();
         }, 3000);
     }
     else {
@@ -200,7 +142,7 @@ Player.prototype.startNextTask = function() {
         $('#countdown').text("preloading task");
         setTimeout(function () {
             $('#countdownSection').hide();
-            self.parseNextElement();
+            self.startNextTrial();
         }, 500);
     }
 };
@@ -216,7 +158,7 @@ Player.prototype.startNextTrial = function() {
         this.trialIter++;
     }
 
-    if (this.trialIter >= this.trial_randomization.length) {
+    if (this.trialIter >= this.randomizedTrials.length) {
         // trial loop finished:
         console.log("trial loop finished");
         this.trialIter = "init"; // reset to init so that another trial loop in another block will start from the beginning
@@ -227,15 +169,14 @@ Player.prototype.startNextTrial = function() {
             this.webcamLoaded = false;
         }
 
-        this.currentSequence.selectNextElement();
-        self.parseNextElement();
+        self.startNextTask();
         return;
     }
 
     console.log("start trial iteration " + this.trialIter);
 
-    this.currentRandomizedTrialId = this.trial_randomization[this.trialIter];
-    console.log("start randomized trial id " + this.currentRandomizedTrialId);
+    this.currentTrialIdx = this.randomizedTrials[this.trialIter].trialVariation.trialIdx();
+    console.log("start randomized trial id " + this.currentTrialIdx);
 
     // reset variables at start of trial:
     for (var i=0; i<this.variablesToReset.length; i++){
@@ -245,35 +186,26 @@ Player.prototype.startNextTrial = function() {
     // record user independent data
 
     // trialTypeId
-    var recData = new RecData(currentElement.trialTypeIdVar().id(), this.currentRandomizedTrialId);
+    var recData = new RecData(this.currentTask.trialTypeIdVar().id(), this.currentTrialIdx);
     this.addRecording(this.currentBlockIdx, this.trialIter, recData.toJS());
 
     // trialId
-    var recData = new RecData(currentElement.trialUniqueIdVar().id(), this.trial_present_order[this.trialIter]);
+    var recData = new RecData(this.currentTask.trialUniqueIdVar().id(), this.currentTrialIdx);
     this.addRecording(this.currentBlockIdx, this.trialIter, recData.toJS());
 
     // trial presentation order
-    var recData = new RecData(currentElement.trialOrderVar().id(), this.trialIter);
+    var recData = new RecData(this.currentTask.trialOrderVar().id(), this.trialIter);
     this.addRecording(this.currentBlockIdx, this.trialIter, recData.toJS());
 
     // factors and add trial types
-    this.currentTrialSelection = this.trialSpecifications[this.currentRandomizedTrialId];
-    if (this.currentTrialSelection.type == "interacting") {
-        for (var fac = 0; fac < this.currentTrialSelection.factors.length; fac++) {
-            var factorVar = this.experiment.exp_data.entities.byId[this.currentTrialSelection.factors[fac]];
-            var value = factorVar.levels()[this.currentTrialSelection.levels[fac]].name();
-            var recData = new RecData(this.currentTrialSelection.factors[fac], value);
-            factorVar.value(value);
-            this.addRecording(this.currentBlockIdx, this.trialIter, recData.toJS());
-        }
-    }
-    else {
-        var factorVar = this.experiment.exp_data.entities.byId[this.currentTrialSelection.factor];
-        var value = factorVar.levels()[this.currentTrialSelection.level].name();
-        var recData = new RecData(this.currentTrialSelection.factor, value);
+    this.currentTrialSelection = this.randomizedTrials[this.currentTrialIdx];
+    /*for (var fac = 0; fac < this.currentTrialSelection.factors.length; fac++) {
+        var factorVar = this.experiment.exp_data.entities.byId[this.currentTrialSelection.factors[fac]];
+        var value = factorVar.levels()[this.currentTrialSelection.levels[fac]].name();
+        var recData = new RecData(this.currentTrialSelection.factors[fac], value);
         factorVar.value(value);
         this.addRecording(this.currentBlockIdx, this.trialIter, recData.toJS());
-    }
+    }*/
 
     // select next element from preload
     if (this.currentTrialDiv) {
@@ -283,16 +215,17 @@ Player.prototype.startNextTrial = function() {
     this.currentTrialDiv = this.nextTrialDiv;
 
     // go into trial sequence:
-    this.currentSequence = currentElement.subSequence();
+    this.currentSequence = this.currentTask.subSequence();
     this.currentSequence.currSelectedElement(null);
 
     console.log("start timer to measure display time for next trial...");
     var start = new Date().getTime();
-    this.parseNextElement();
+    this.currentSequence.selectNextElement();
+    this.startNextPageOrFrame();
     console.log("end timer. Display time was " + (new Date().getTime() - start) + " ms");
 
     // preload next trial:
-    if (this.trialIter + 1 < this.trial_randomization.length) {
+    if (this.trialIter + 1 < this.randomizedTrials.length) {
         setTimeout(function(){
             self.addTrialViews(self.trialIter + 1, self.currentTask);
         }, 1);
@@ -301,7 +234,7 @@ Player.prototype.startNextTrial = function() {
 
 };
 
-Player.prototype.parseNextElement = function() {
+Player.prototype.startNextPageOrFrame = function() {
     var currentElement = this.currentSequence.currSelectedElement();
     switch (currentElement.type) {
         case 'FrameData':
@@ -312,11 +245,11 @@ Player.prototype.parseNextElement = function() {
             console.log("TODO");
             break;
         default:
-            console.error("type "+ currentElement.type + " is not defined.")
+            console.error("type "+ currentElement.type + " is not defined.");
     }
 };
 
-Player.prototype.addTrialViews = function (trialIdx,trialLoop) {
+Player.prototype.addTrialViews = function (trialIter,trialLoop) {
 
     this.nextTrialDiv = $(document.createElement('div'));
     this.nextTrialDiv.css({
@@ -324,8 +257,7 @@ Player.prototype.addTrialViews = function (trialIdx,trialLoop) {
         "height": "100%"
     });
     $('#experimentTree').append(this.nextTrialDiv);
-    var nextRandomizedTrialId = this.trial_randomization[trialIdx];
-    var nextTrialSelection = this.trialSpecifications[nextRandomizedTrialId];
+    var nextTrialSelection = this.randomizedTrials[trialIter];
 
     this.nextTrialFrames = {};
 
@@ -341,7 +273,7 @@ Player.prototype.addTrialViews = function (trialIdx,trialLoop) {
         $(this.nextTrialDiv).append(frameDiv);
 
         var playerFrame = new PlayerFrame(frameDataArr[frameIdx],frameDiv,this);
-        playerFrame.trialIdx = trialIdx;
+        playerFrame.trialIter = trialIter;
         playerFrame.frameData.selectTrialType(nextTrialSelection);
         playerFrame.init();
         this.nextTrialFrames[frameDataArr[frameIdx].id()] = playerFrame;
@@ -351,7 +283,7 @@ Player.prototype.addTrialViews = function (trialIdx,trialLoop) {
 
 
 Player.prototype.getRandomizedTrialId = function () {
-    return this.currentRandomizedTrialId;
+    return this.currentTrialIdx;
 };
 
 Player.prototype.getTrialId = function () {

@@ -11,7 +11,7 @@ var PlayerFrame = function(frameData,frameDiv,player) {
     this.frameView = null;
     this.startedTime= null;
     this.state = 'preloaded'; // or 'displaying' or 'finished'
-    this.trialIdx = null;
+    this.trialIter = null;
     this.frameTimeout = null;
     this.elements = this.frameData.elements();
 
@@ -60,7 +60,7 @@ PlayerFrame.prototype.startFrame = function() {
     var self = this;
 
     if (this.state == 'preloaded') {
-        console.log('starting frame in trialIdx '+this.trialIdx);
+        console.log('starting frame in trialIter '+this.trialIter);
         this.state = 'displaying';
         this.setTimeOut();
         this.startedTime = Date.now();
@@ -167,7 +167,7 @@ PlayerFrame.prototype.startFrame = function() {
 
 PlayerFrame.prototype.endFrame = function() {
     if (this.state == 'displaying') {
-        console.log('switch frame state from displaying to finished in trialIdx '+this.trialIdx);
+        console.log('switch frame state from displaying to finished in trialIter '+this.trialIter);
         this.state = 'finished';
         clearTimeout(this.frameTimeout);
 
@@ -205,7 +205,7 @@ PlayerFrame.prototype.endFrame = function() {
         this.player.currentSequence.selectNextElement();
         // empty div and make new frame
         this.frameDiv.remove();
-        this.player.parseNextElement();
+        this.player.startNextPageOrFrame();
     }
 };
 
