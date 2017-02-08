@@ -13,31 +13,7 @@ queue.on("progress",     onProgress);
 var list = [
     {
         id: "1",
-        src: "https://images.unsplash.com/photo-1446034295857-c39f8844fad4"
-    },
-    {
-        id: "2",
-        src: "https://images.unsplash.com/photo-1447522200268-a0378dac3fba"
-    },
-    {
-        id: "3",
-        src: "https://images.unsplash.com/photo-1447876394678-42a7efa1b6db"
-    },
-    {
-        id: "4",
-        src: "https://images.unsplash.com/photo-1435186376919-88c211714029"
-    },
-    {
-        id: "5",
-        src: "https://images.unsplash.com/photo-1444792131309-2e517032ded6"
-    },
-    {
-        id: "6",
-        src: "https://images.unsplash.com/photo-1445127040028-b1bdb9acd16e"
-    },
-    {
-        id: "7",
-        src: "https://images.unsplash.com/photo-1446426156356-92b664d86b77"
+        src: "/assets/img/scicovery/design_rec_analyze.png"
     }
 ];
 queue.loadManifest(list);
@@ -98,6 +74,15 @@ function loadCalibrationScreen(){
     var pic = document.getElementById("creditCard");
     this.creditWidth = $(pic).width();
     this.creditHeight = $(pic).height();
+    $( "#slide" ).slider({
+        value: 30,
+        min: 50,
+        step: 1,
+        max: 300,
+        slide: function( event, ui ) {
+            updateSlider(ui.value);
+        }
+    });
     $('#confirmCalib').click(function () {
         $('#calibrateScreen').hide();
         player.startNextBlock();
