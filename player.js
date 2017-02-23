@@ -54,6 +54,16 @@ var Player = function() {
             self.experiment = new Experiment().fromJS(data.expData);
             self.experiment.setPointers();
 
+            
+            var expPrev =  new ExperimentPreview(self.experiment);
+            var newContent = jQuery('<div/>');
+            newContent.load("/html_views/experimentPreview.html", function () {
+                newContent.prependTo('#expPreview');
+                ko.applyBindings(expPrev, newContent[0]);
+                expPrev.init();
+            });
+
+
             console.log("experiment deserialized.");
 
             self.blocks = self.experiment.exp_data.availableGroups()[self.groupNr].sessions()[self.sessionNr].blocks();
