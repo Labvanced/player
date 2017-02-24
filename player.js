@@ -60,7 +60,7 @@ var Player = function() {
             newContent.load("/html_views/experimentPreview.html", function () {
                 newContent.prependTo('#expPreview');
                 ko.applyBindings(expPrev, newContent[0]);
-                expPrev.init();
+                expPrev.init(950,400);
             });
 
 
