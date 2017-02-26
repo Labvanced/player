@@ -183,18 +183,16 @@ PlayerFrame.prototype.endFrame = function() {
         }
 
         // save all questionaire element data, if there are some:
-        var answers = [];
-        var varIds = [];
+        var recData = new RecData();
         for (var i = 0; i<this.elements.length;i++){
             if (this.elements[i].content) {
                 var content = this.elements[i].content();
                 if (content.answer) {
-                    varIds.push(content.variable().id());
-                    answers.push(content.answer());
+                    recData.addRecording(content.variable());
                 }
             }
         }
-        var recData = new RecData(varIds,answers);
+
         player.addRecording(player.getBlockId(), player.getTrialId(), recData.toJS());
 
         // remove document event handlers

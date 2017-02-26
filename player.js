@@ -112,7 +112,9 @@ Player.prototype.startNextTask = function() {
     // create array with variables that need to be reset after each trial: (the actual reset is done further below)
     var allFrameDataInTrial = this.currentTask.subSequence().elements();
     this.variablesToReset = [];
+    this.varablesToRecord = [];
     var variablesToResetById = {};
+    var variablesToRecordById = {};
     for (var i=0; i<allFrameDataInTrial.length; i++){
         var allVariablesInFrame = allFrameDataInTrial[i].localWorkspaceVars();
         for (var j=0; j<allVariablesInFrame.length; j++){
@@ -121,6 +123,13 @@ Player.prototype.startNextTask = function() {
                 if (!variablesToResetById.hasOwnProperty(id)) {
                     variablesToResetById[id] = true;
                     this.variablesToReset.push(allVariablesInFrame[j]);
+                }
+            }
+            if (allVariablesInFrame[j].recordAtTrialEnd()) {
+                var id = allVariablesInFrame[j].id();
+                if (!variablesToRecordById.hasOwnProperty(id)) {
+                    variablesToRecordById[id] = true;
+                    this.variablesToRecord.push(allVariablesInFrame[j]);
                 }
             }
         }
@@ -166,6 +175,39 @@ Player.prototype.startNextTrial = function() {
     else {
         // start next trial:
         this.trialIter++;
+
+        // record variables at end of trial:
+        var recData = new recData();
+
+        // record user independent data
+        // Ich bin nicht ganz sicher ob ich die variablen richtig verstehe
+
+        // trialTypeId
+        //var recData = new RecData(this.currentTask.trialTypeIdVar().id(), this.currentTrialIdx);
+        //this.addRecording(this.currentBlockIdx, this.trialIter, recData.toJS());
+
+        this.currentTask.trialTypeIdVar().recValue = this.currentTrialIdx;
+        recData.addRecording(this.currentTask.trialTypeIdVar());
+
+        // trialId
+        //var recData = new RecData(this.currentTask.trialUniqueIdVar().id(), this.currentTrialIdx);
+        //this.addRecording(this.currentBlockIdx, this.trialIter, recData.toJS());
+
+        this.currentTask.trialUniqueIdVar().recValue = this.currentTrialIdx;
+        recData.addRecording(this.currentTask.trialUniqueIdVar());
+
+        // trial presentation order
+        //var recData = new RecData(this.currentTask.trialOrderVar().id(), this.trialIter);
+        //this.addRecording(this.currentBlockIdx, this.trialIter, recData.toJS());
+
+        this.currentTask.trialOrderVar().recValue = this.trialIter;
+        recData.addRecording(this.currentTask.trialOrderVar());
+        
+        for (var i=0; i<this.varablesToRecord.length; i++){
+            recData.addRecording(this.variablesToRecord[i]);
+        }
+
+        this.addRecording(this.currentBlockIdx, this.trialIter, recData.toJS());
     }
 
     if (this.trialIter >= this.randomizedTrials.length) {
@@ -193,19 +235,6 @@ Player.prototype.startNextTrial = function() {
         this.variablesToReset[i].resetValue();
     }
 
-    // record user independent data
-
-    // trialTypeId
-    var recData = new RecData(this.currentTask.trialTypeIdVar().id(), this.currentTrialIdx);
-    this.addRecording(this.currentBlockIdx, this.trialIter, recData.toJS());
-
-    // trialId
-    var recData = new RecData(this.currentTask.trialUniqueIdVar().id(), this.currentTrialIdx);
-    this.addRecording(this.currentBlockIdx, this.trialIter, recData.toJS());
-
-    // trial presentation order
-    var recData = new RecData(this.currentTask.trialOrderVar().id(), this.trialIter);
-    this.addRecording(this.currentBlockIdx, this.trialIter, recData.toJS());
 
     // factors and add trial types
     this.currentTrialSelection = this.randomizedTrials[this.currentTrialIdx];
