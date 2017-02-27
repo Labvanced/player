@@ -14,6 +14,8 @@ var PlayerFrame = function(frameData,frameDiv,player) {
     this.trialIter = null;
     this.frameTimeout = null;
     this.elements = this.frameData.elements();
+    this.mouseX = null;
+    this.mouseY = null;
 
     this.onFrameEndCallbacks = [];
 
@@ -25,6 +27,7 @@ var PlayerFrame = function(frameData,frameDiv,player) {
 };
 
 PlayerFrame.prototype.init = function() {
+    var self = this; 
     if (this.frameData.bgColorEnabled()) {
         $(this.frameDiv).css({
             "background-color": this.frameData.bgColor()
@@ -32,6 +35,11 @@ PlayerFrame.prototype.init = function() {
     }
     var centeredDiv = $("<div/>");
     $(this.frameDiv).append(centeredDiv);
+
+    $(this.frameDiv).mousemove(function(e){
+            self.mouseX = e.pageX;
+            self.mouseY = e.pageY;
+    });
 
     this.frameView = new FrameView(centeredDiv,this.frameData,this,"playerView");
     this.frameView.init(this.getViewSize());
@@ -182,7 +190,8 @@ PlayerFrame.prototype.endFrame = function() {
             event.trigger().destroyOnPlayerFrame(this);
         }
 
-        // save all questionaire element data, if there are some:
+        /**
+        // save all questionaire element data, if there are some: TOTO  depreciated, can be deleted, 
         var recData = new RecData();
         for (var i = 0; i<this.elements.length;i++){
             if (this.elements[i].content) {
@@ -194,6 +203,7 @@ PlayerFrame.prototype.endFrame = function() {
         }
 
         player.addRecording(player.getBlockId(), player.getTrialId(), recData.toJS());
+         **/
 
         // remove document event handlers
         $(document).off("keyup");

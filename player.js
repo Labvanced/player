@@ -27,7 +27,7 @@ var Player = function() {
     this.currentSequence = null;
 
     this.currentFrame = null;
-    this.currentFrameIdx = -1;
+    this.currentFrameIdx = -1
 
     this.webcamLoaded = false;
     this.variablesToReset = [];
@@ -54,14 +54,16 @@ var Player = function() {
             self.experiment = new Experiment().fromJS(data.expData);
             self.experiment.setPointers();
 
-            
-            var expPrev =  new ExperimentPreview(self.experiment);
-            var newContent = jQuery('<div/>');
-            newContent.load("/html_views/experimentPreview.html", function () {
-                newContent.prependTo('#expPreview');
-                ko.applyBindings(expPrev, newContent[0]);
-                expPrev.init(950,400);
-            });
+            if (self.experiment.is_recording()){
+                var expPrev =  new ExperimentPreview(self.experiment);
+                var newContent = jQuery('<div/>');
+                newContent.load("/html_views/experimentPreview.html", function () {
+                    newContent.prependTo('#expPreview');
+                    ko.applyBindings(expPrev, newContent[0]);
+                    expPrev.init(950,400);
+                });
+            }
+
 
 
             console.log("experiment deserialized.");
@@ -71,6 +73,7 @@ var Player = function() {
     });
 
 };
+
 
 Player.prototype.startNextBlock = function() {
     this.currentBlockIdx++;
@@ -92,79 +95,114 @@ Player.prototype.startNextTask = function() {
     this.currentTaskIdx++;
     this.currentTask = this.currentBlock.subTasks()[this.currentTaskIdx];
 
-    // start initialization of trials: Randomization and Preloading:
-    this.trialIter = "init";
-    console.log("start initialization of trials: Randomization and Preloading");
+    if (this.currentTask){
+        // start initialization of trials: Randomization and Preloading:
+        this.trialIter = "init";
+        console.log("start initialization of trials: Randomization and Preloading");
 
-    if (this.currentTask.webcamEnabled() && !this.webcamLoaded){
-        Webcam.attach("#my_camera");
-        Webcam.on("load", function() {
-            Webcam.off("load");
-            console.log("webcam loaded");
-            self.webcamLoaded = true;
-            setTimeout(function(){
-                self.startNextTask();
-            }, 1000);
-        });
-        return;
-    }
+        if (this.currentTask.webcamEnabled() && !this.webcamLoaded){
+            Webcam.attach("#my_camera");
+            Webcam.on("load", function() {
+                Webcam.off("load");
+                console.log("webcam loaded");
+                self.webcamLoaded = true;
+                setTimeout(function(){
+                    self.startNextTask();
+                }, 1000);
+            });
+            return;
+        }
 
-    // create array with variables that need to be reset after each trial: (the actual reset is done further below)
-    var allFrameDataInTrial = this.currentTask.subSequence().elements();
-    this.variablesToReset = [];
-    this.varablesToRecord = [];
-    var variablesToResetById = {};
-    var variablesToRecordById = {};
-    for (var i=0; i<allFrameDataInTrial.length; i++){
-        var allVariablesInFrame = allFrameDataInTrial[i].localWorkspaceVars();
-        for (var j=0; j<allVariablesInFrame.length; j++){
-            if (allVariablesInFrame[j].resetAtTrialStart()) {
-                var id = allVariablesInFrame[j].id();
-                if (!variablesToResetById.hasOwnProperty(id)) {
-                    variablesToResetById[id] = true;
-                    this.variablesToReset.push(allVariablesInFrame[j]);
+        // create array with variables that need to be reset after each trial: (the actual reset is done further below)
+        var allFrameDataInTrial = this.currentTask.subSequence().elements();
+        this.variablesToReset = [];
+        this.variablesToRecord = [];
+        var variablesToResetById = {};
+        var variablesToRecordById = {};
+        for (var i=0; i<allFrameDataInTrial.length; i++){
+            var allVariablesInFrame = allFrameDataInTrial[i].localWorkspaceVars();
+            for (var j=0; j<allVariablesInFrame.length; j++){
+                if (allVariablesInFrame[j].resetAtTrialStart()) {
+                    var id = allVariablesInFrame[j].id();
+                    if (!variablesToResetById.hasOwnProperty(id)) {
+                        variablesToResetById[id] = true;
+                        this.variablesToReset.push(allVariablesInFrame[j]);
+                    }
                 }
-            }
-            if (allVariablesInFrame[j].recordAtTrialEnd()) {
-                var id = allVariablesInFrame[j].id();
-                if (!variablesToRecordById.hasOwnProperty(id)) {
-                    variablesToRecordById[id] = true;
-                    this.variablesToRecord.push(allVariablesInFrame[j]);
+                if (allVariablesInFrame[j].recordAtTrialEnd()) {
+                    var id = allVariablesInFrame[j].id();
+                    if (!variablesToRecordById.hasOwnProperty(id)) {
+                        variablesToRecordById[id] = true;
+                        this.variablesToRecord.push(allVariablesInFrame[j]);
+                    }
                 }
             }
         }
+
+        this.randomizedTrials = this.currentTask.getRandomizedTrials();
+
+        console.log("randomization finished... start first trial initialization...");
+        this.addTrialViews(0, this.currentTask);
+
+        self.trialIter = "waitForStart";
+
+        if (this.currentTask.displayInitialCountdown()) {
+            $('#countdownSection').show();
+            $('#countdown').text("3");
+            setTimeout(function () {
+                $('#countdown').text("2");
+            }, 1000);
+            setTimeout(function () {
+                $('#countdown').text("1");
+            }, 2000);
+            setTimeout(function () {
+                $('#countdownSection').hide();
+                self.startNextTrial();
+            }, 3000);
+        }
+        else {
+            $('#countdownSection').show();
+            $('#countdown').text("preloading task");
+            setTimeout(function () {
+                $('#countdownSection').hide();
+                self.startNextTrial();
+            }, 500);
+        }
+    }
+    else{
+        this.startNextBlock();
     }
 
-    this.randomizedTrials = this.currentTask.getRandomizedTrials();
-
-    console.log("randomization finished... start first trial initialization...");
-    this.addTrialViews(0, this.currentTask);
-
-    self.trialIter = "waitForStart";
-
-    if (this.currentTask.displayInitialCountdown()) {
-        $('#countdownSection').show();
-        $('#countdown').text("3");
-        setTimeout(function () {
-            $('#countdown').text("2");
-        }, 1000);
-        setTimeout(function () {
-            $('#countdown').text("1");
-        }, 2000);
-        setTimeout(function () {
-            $('#countdownSection').hide();
-            self.startNextTrial();
-        }, 3000);
-    }
-    else {
-        $('#countdownSection').show();
-        $('#countdown').text("preloading task");
-        setTimeout(function () {
-            $('#countdownSection').hide();
-            self.startNextTrial();
-        }, 500);
-    }
 };
+
+Player.prototype.recordData = function() {
+
+    // record variables at end of trial:
+    var recData = new RecData();
+
+    // still hard coded variables
+    this.currentTask.trialTypeIdVar().recValue = ko.observable(this.currentTrialIdx); // condition? needs to be correctly computed
+    this.currentTask.trialUniqueIdVar().recValue = ko.observable(this.currentTrialIdx); // trial id
+    this.currentTask.trialOrderVar().recValue = ko.observable(this.trialIter); // trial iteration in current session
+
+    recData.addRecording(this.currentTask.trialTypeIdVar());
+    recData.addRecording(this.currentTask.trialOrderVar());
+    recData.addRecording(this.currentTask.trialUniqueIdVar());
+
+    // new, dynamic verison
+    for (var i=0; i<this.variablesToRecord.length; i++){
+        recData.addRecording(this.variablesToRecord[i]);
+    }
+
+    // server command
+    var recordedData = { // isn't taskNr missing here?
+        blockNr: this.currentBlockIdx,
+        trialNr: this.trialIter,
+        recData: recData.toJS()
+    };
+    $.post('/record', recordedData);
+};
+
 
 Player.prototype.startNextTrial = function() {
     var self = this;
@@ -173,41 +211,9 @@ Player.prototype.startNextTrial = function() {
         this.trialIter = 0;
     }
     else {
+        this.recordData();
         // start next trial:
         this.trialIter++;
-
-        // record variables at end of trial:
-        var recData = new recData();
-
-        // record user independent data
-        // Ich bin nicht ganz sicher ob ich die variablen richtig verstehe
-
-        // trialTypeId
-        //var recData = new RecData(this.currentTask.trialTypeIdVar().id(), this.currentTrialIdx);
-        //this.addRecording(this.currentBlockIdx, this.trialIter, recData.toJS());
-
-        this.currentTask.trialTypeIdVar().recValue = this.currentTrialIdx;
-        recData.addRecording(this.currentTask.trialTypeIdVar());
-
-        // trialId
-        //var recData = new RecData(this.currentTask.trialUniqueIdVar().id(), this.currentTrialIdx);
-        //this.addRecording(this.currentBlockIdx, this.trialIter, recData.toJS());
-
-        this.currentTask.trialUniqueIdVar().recValue = this.currentTrialIdx;
-        recData.addRecording(this.currentTask.trialUniqueIdVar());
-
-        // trial presentation order
-        //var recData = new RecData(this.currentTask.trialOrderVar().id(), this.trialIter);
-        //this.addRecording(this.currentBlockIdx, this.trialIter, recData.toJS());
-
-        this.currentTask.trialOrderVar().recValue = this.trialIter;
-        recData.addRecording(this.currentTask.trialOrderVar());
-        
-        for (var i=0; i<this.varablesToRecord.length; i++){
-            recData.addRecording(this.variablesToRecord[i]);
-        }
-
-        this.addRecording(this.currentBlockIdx, this.trialIter, recData.toJS());
     }
 
     if (this.trialIter >= this.randomizedTrials.length) {
@@ -283,6 +289,10 @@ Player.prototype.startNextPageOrFrame = function() {
         case 'PageData':
             console.log("TODO");
             break;
+        case 'EndOfSequence':
+            console.log("starting next trial");
+            this.startNextTrial();
+            break;
         default:
             console.error("type "+ currentElement.type + " is not defined.");
     }
@@ -345,16 +355,7 @@ Player.prototype.startRecordingsOfNewTask = function(newTaskNr, subjectId, sessi
     }
 };
 
-Player.prototype.addRecording = function(blockNr, trialNr, recData) {
-    if (this.experiment.is_recording()) {
-        var recordData = {
-            blockNr: blockNr,
-            trialNr: trialNr,
-            recData: recData
-        };
-        $.post('/record', recordData);
-    }
-};
+
 
 Player.prototype.finishSessionWithError = function(err_msg) {
     console.log("error during experiment...");
@@ -371,7 +372,8 @@ Player.prototype.finishSession = function() {
     console.log("finishExpSession...");
     $.post('/finishExpSession', function( data ) {
         console.log("recording session completed.");
-        $('#endExpSection').show();
+        $('#experimentViewPort').hide();
+        $('#endExpSection').show();  //TODO this doesnt' work
         $('#endExp').click(function(){
             history.go(-1);
         });
