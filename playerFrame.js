@@ -173,46 +173,39 @@ PlayerFrame.prototype.startFrame = function() {
 };
 
 
+PlayerFrame.prototype.finishFrame = function() {
+    console.log('switch frame state from displaying to finished in trialIter '+this.trialIter);
+    this.state = 'finished';
+    clearTimeout(this.frameTimeout);
+
+    for (var i = 0; i<this.onFrameEndCallbacks.length;i++) {
+        this.onFrameEndCallbacks[i]();
+    }
+
+    // setup callacks
+    var events = this.frameData.events();
+    for (var i = 0; i < events.length; i++){
+        var event =  events[i];
+        event.trigger().destroyOnPlayerFrame(this);
+    }
+
+    // remove document event handlers
+    $(document).off("keyup");
+    $(document).off("keydown");
+
+    // empty div and make new frame
+    this.frameDiv.remove();
+};
+
+
 PlayerFrame.prototype.endFrame = function() {
     if (this.state == 'displaying') {
-        console.log('switch frame state from displaying to finished in trialIter '+this.trialIter);
-        this.state = 'finished';
-        clearTimeout(this.frameTimeout);
-
-        for (var i = 0; i<this.onFrameEndCallbacks.length;i++) {
-            this.onFrameEndCallbacks[i]();
-        }
-
-        // setup callacks
-        var events = this.frameData.events();
-        for (var i = 0; i < events.length; i++){
-            var event =  events[i];
-            event.trigger().destroyOnPlayerFrame(this);
-        }
-
-        /**
-        // save all questionaire element data, if there are some: TOTO  depreciated, can be deleted, 
-        var recData = new RecData();
-        for (var i = 0; i<this.elements.length;i++){
-            if (this.elements[i].content) {
-                var content = this.elements[i].content();
-                if (content.answer) {
-                    recData.addRecording(content.variable());
-                }
-            }
-        }
-
-        player.addRecording(player.getBlockId(), player.getTrialId(), recData.toJS());
-         **/
-
-        // remove document event handlers
-        $(document).off("keyup");
-        $(document).off("keydown");
+        
+        this.finishFrame();
 
         // set next frame
         this.player.currentSequence.selectNextElement();
-        // empty div and make new frame
-        this.frameDiv.remove();
+      
         this.player.startNextPageOrFrame();
     }
 };
