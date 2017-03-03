@@ -145,6 +145,7 @@ Player.prototype.startNextTask = function() {
         this.addTrialViews(0, this.currentTask);
 
         self.trialIter = "waitForStart";
+        self.startRecordingsOfNewTask();
 
         if (this.currentTask.displayInitialCountdown()) {
             $('#countdownSection').show();
@@ -175,6 +176,18 @@ Player.prototype.startNextTask = function() {
 
 };
 
+Player.prototype.startRecordingsOfNewTask = function() {
+    if (this.experiment.is_recording()) {
+        var recordData = {
+            blockNr: this.currentBlockIdx,
+            blockId: this.currentBlock.id(),
+            taskNr: this.currentTaskIdx,
+            taskId: this.currentTask.id()
+        };
+        $.post('/recordStartTask', recordData);
+    }
+};
+
 Player.prototype.recordData = function() {
 
     // record variables at end of trial:
@@ -195,12 +208,11 @@ Player.prototype.recordData = function() {
     }
 
     // server command
-    var recordedData = { // isn't taskNr missing here?
-        blockNr: this.currentBlockIdx,
+    var recordedData = {
         trialNr: this.trialIter,
         recData: recData.toJS()
     };
-    $.post('/record', recordedData);
+    $.post('/recordTrial', recordedData);
 };
 
 
@@ -342,19 +354,6 @@ Player.prototype.getTrialId = function () {
 Player.prototype.getBlockId = function () {
     return this.currentBlockIdx;
 };
-
-
-Player.prototype.startRecordingsOfNewTask = function(newTaskNr, subjectId, sessionId, blockId, taskId) {
-    if (this.experiment.is_recording()) {
-        var recordData = {
-            blockNr: blockNr,
-            trialNr: trialNr,
-            recData: recData
-        };
-        $.post('/record', recordData);
-    }
-};
-
 
 
 Player.prototype.finishSessionWithError = function(err_msg) {
