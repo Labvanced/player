@@ -54,17 +54,13 @@ var Player = function() {
             self.experiment = new Experiment().fromJS(data.expData);
             self.experiment.setPointers();
 
-            if (self.experiment.is_recording()){
-                var expPrev =  new ExperimentPreview(self.experiment);
-                var newContent = jQuery('<div/>');
-                newContent.load("/html_views/experimentPreview.html", function () {
-                    newContent.prependTo('#expPreview');
-                    ko.applyBindings(expPrev, newContent[0]);
-                    expPrev.init(950,400);
-                });
-            }
-
-
+            var expPrev =  new ExperimentPreview(self.experiment);
+            var newContent = jQuery('<div/>');
+            newContent.load("/html_views/experimentPreview.html", function () {
+                newContent.prependTo('#expPreview');
+                ko.applyBindings(expPrev, newContent[0]);
+                expPrev.init(950,400);
+            });
 
             console.log("experiment deserialized.");
 
@@ -177,15 +173,13 @@ Player.prototype.startNextTask = function() {
 };
 
 Player.prototype.startRecordingsOfNewTask = function() {
-    if (this.experiment.is_recording()) {
-        var recordData = {
-            blockNr: this.currentBlockIdx,
-            blockId: this.currentBlock.id(),
-            taskNr: this.currentTaskIdx,
-            taskId: this.currentTask.id()
-        };
-        $.post('/recordStartTask', recordData);
-    }
+    var recordData = {
+        blockNr: this.currentBlockIdx,
+        blockId: this.currentBlock.id(),
+        taskNr: this.currentTaskIdx,
+        taskId: this.currentTask.id()
+    };
+    $.post('/recordStartTask', recordData);
 };
 
 Player.prototype.recordData = function() {
