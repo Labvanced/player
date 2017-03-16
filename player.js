@@ -64,7 +64,27 @@ var Player = function() {
 
             console.log("experiment deserialized.");
 
-            self.blocks = self.experiment.exp_data.availableGroups()[self.groupNr].sessions()[self.sessionNr].blocks();
+            var subj_group = self.experiment.exp_data.availableGroups()[self.groupNr];
+            if (!subj_group) {
+                console.log("player error: there is no subject group defined in the experiment.");
+                self.finishSessionWithError("There is no subject group defined in the experiment.");
+                return;
+            }
+
+            var exp_session = subj_group.sessions()[self.sessionNr];
+            if (!exp_session) {
+                console.log("player error: there is no session defined in the subject group in the experiment.");
+                self.finishSessionWithError("there is no session defined in the subject group in the experiment.");
+                return;
+            }
+
+            self.blocks = exp_session.blocks();
+
+            if (self.blocks.length == 0) {
+                console.log("player error: there is no block defined in this experiment session.");
+                self.finishSessionWithError("there is no block defined in this experiment session.");
+                return;
+            }
         });
     });
 
@@ -354,6 +374,7 @@ Player.prototype.finishSessionWithError = function(err_msg) {
     console.log("error during experiment...");
     $.post('/errExpSession', {err_msg: err_msg});
     $('#experimentViewPort').hide();
+    $('#sectionPreload').hide();
     $('#errEndExpSection').show();
     $('#err_msg').text(err_msg);
     $('#errEndExp').click(function(){
