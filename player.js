@@ -54,9 +54,9 @@ var Player = function() {
             self.experiment = new Experiment().fromJS(data.expData);
             self.experiment.setPointers();
 
-            var expPrev =  new ExperimentPreview(self.experiment);
+            var expPrev =  new ExperimentStartupScreen(self.experiment);
             var newContent = jQuery('<div/>');
-            newContent.load("/html_views/experimentPreview.html", function () {
+            newContent.load("/html_views/ExperimentStartupScreen.html", function () {
                 newContent.prependTo('#expPreview');
                 ko.applyBindings(expPrev, newContent[0]);
                 expPrev.init(950,400);
