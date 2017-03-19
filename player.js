@@ -389,7 +389,8 @@ Player.prototype.finishSession = function() {
         $('#experimentViewPort').hide();
         $('#endExpSection').show();  //TODO this doesnt' work
         $('#endExp').click(function(){
-            history.go(-1);
+            window.open("/page/library");
+             // history.go(-1);
         });
     });
 };

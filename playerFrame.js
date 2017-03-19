@@ -83,14 +83,16 @@ PlayerFrame.prototype.startFrame = function() {
 
         this.frameDiv.css('display', 'block');
 
+        /**
         var viewElements = this.frameView.viewElements();
         for (var i = 0; i< viewElements.length; i++){
             if(viewElements[i].dataModel.content){
                 if (viewElements[i].dataModel.content() instanceof VideoElement){
-                    viewElements[i].content.play();
+                    viewElements[i].divContentInside.play();
                 }
             }
         }
+        **/
 
         // if emotion recording is enabled:
         if (this.frameData.parent.parent.webcamEnabled() && this.frameData.emotionEnabled()) {

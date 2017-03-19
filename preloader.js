@@ -70,6 +70,11 @@ function onComplete(event) {
 }
 
 function loadCalibrationScreen(){
+
+    player.startNextBlock();
+
+    // include this once calibration is switched on and working
+    /**
     var pic = document.getElementById("creditCard");
     this.creditWidth = $(pic).width();
     this.creditHeight = $(pic).height();
@@ -86,7 +91,9 @@ function loadCalibrationScreen(){
         $('#calibrateScreen').hide();
         player.startNextBlock();
     });
+
     $('#calibrateScreen').show();
+     **/
 }
 
 function updateSlider(amount){
