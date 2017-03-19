@@ -10,6 +10,7 @@ queue.on("fileload",     onFileLoad);
 queue.on("fileprogress", onFileProgress);
 queue.on("progress",     onProgress);
 
+/**
 var list = [
     {
         id: "1",
@@ -17,6 +18,7 @@ var list = [
     }
 ];
 queue.loadManifest(list);
+ **/
 var reps = 0;
 function getRandomArbitrary(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;

@@ -32,6 +32,9 @@ var Player = function() {
     this.webcamLoaded = false;
     this.variablesToReset = [];
 
+    this.preloadCounter =0;
+    this.contentList = [];
+
     Webcam.on("error", function(err_msg){
         console.log("webcam error: "+err_msg);
         self.finishSessionWithError(err_msg);
@@ -53,6 +56,26 @@ var Player = function() {
             self.groupNr = data.groupNr;
             self.experiment = new Experiment().fromJS(data.expData);
             self.experiment.setPointers();
+
+            // parse images, video and audio elements
+
+
+            var entities = self.experiment.exp_data.entities();
+            for (var i = 0; i<entities.length; i++){
+                var entity = entities[i];
+                if (entity instanceof FrameData){
+                    for (var k = 0; k<entity.elements().length; k++){
+                        var entity2 = entity.elements()[k];
+                        if  (entity2.content() instanceof VideoElement || entity2.content() instanceof ImageElement  || entity2.content() instanceof AudioElement){
+                            var arr =  entity2.content().modifier().ndimModifierTrialTypes;
+                            self.deepDive(arr);
+                        }
+
+                    }
+
+                }
+            }
+            queue.loadManifest(self.contentList);
 
             var expPrev =  new ExperimentStartupScreen(self.experiment);
             var newContent = jQuery('<div/>');
@@ -89,6 +112,34 @@ var Player = function() {
     });
 
 };
+
+
+Player.prototype.deepDive = function(arr){
+
+    if (arr[0].constructor === Array) {
+        // recursive call:
+        for (var t = 0; t < arr.length; t++) {
+            this.deepDive(arr[t]);
+        }
+    }
+    else {
+        for (var t = 0; t < arr.length; t++) {
+            if  (arr[t].modifiedProp.hasOwnProperty("file_id")){
+                this.preloadCounter +=1;
+                var src =  "/files/" + arr[t].modifiedProp.file_id() + "/" + arr[t].modifiedProp.file_orig_name();
+                this.contentList.push({
+                    id: this.preloadCounter.toString(),
+                    src: src
+                })
+
+            }
+
+        }
+
+    }
+}
+
+
 
 
 Player.prototype.startNextBlock = function() {
