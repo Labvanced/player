@@ -85,7 +85,10 @@ var Player = function() {
                                 }
 
                                 var arr =  entity2.content().modifier().ndimModifierTrialTypes;
-                                self.deepDive(arr);
+                                if (arr.length>0){
+                                    self.deepDive(arr);
+                                }
+
                             }
 
                         }
