@@ -57,25 +57,8 @@ var Player = function() {
             self.experiment = new Experiment().fromJS(data.expData);
             self.experiment.setPointers();
 
-            // parse images, video and audio elements
 
 
-            var entities = self.experiment.exp_data.entities();
-            for (var i = 0; i<entities.length; i++){
-                var entity = entities[i];
-                if (entity instanceof FrameData){
-                    for (var k = 0; k<entity.elements().length; k++){
-                        var entity2 = entity.elements()[k];
-                        if  (entity2.content() instanceof VideoElement || entity2.content() instanceof ImageElement  || entity2.content() instanceof AudioElement){
-                            var arr =  entity2.content().modifier().ndimModifierTrialTypes;
-                            self.deepDive(arr);
-                        }
-
-                    }
-
-                }
-            }
-            queue.loadManifest(self.contentList);
 
             var expPrev =  new ExperimentStartupScreen(self.experiment);
             var newContent = jQuery('<div/>');
@@ -83,7 +66,40 @@ var Player = function() {
                 newContent.prependTo('#expPreview');
                 ko.applyBindings(expPrev, newContent[0]);
                 expPrev.init(950,400);
+                // parse images, video and audio elements
+                var entities = self.experiment.exp_data.entities();
+                for (var i = 0; i<entities.length; i++){
+                    var entity = entities[i];
+                    if (entity instanceof FrameData){
+                        for (var k = 0; k<entity.elements().length; k++){
+                            var entity2 = entity.elements()[k];
+                            if  (entity2.content() instanceof VideoElement || entity2.content() instanceof ImageElement  || entity2.content() instanceof AudioElement){
+                                if  (entity2.content().hasOwnProperty("file_id")){
+                                    self.preloadCounter +=1;
+                                    var src =  "/files/" + entity2.content().file_id() + "/" + entity2.content().file_orig_name();
+                                    self.contentList.push({
+                                        id: self.preloadCounter.toString(),
+                                        src: src
+                                    })
+
+                                }
+
+                                var arr =  entity2.content().modifier().ndimModifierTrialTypes;
+                                self.deepDive(arr);
+                            }
+
+                        }
+
+                    }
+                }
+                if (self.contentList.length>0){
+                    queue.loadManifest(self.contentList);
+                }
+                else{
+                    onComplete();
+                }
             });
+
 
             console.log("experiment deserialized.");
 
