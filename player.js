@@ -277,15 +277,6 @@ Player.prototype.recordData = function() {
     // record variables at end of trial:
     var recData = new RecData();
 
-    // still hard coded variables
-    this.currentTask.trialTypeIdVar().recValue = ko.observable(this.currentTrialIdx); // condition? needs to be correctly computed
-    this.currentTask.trialUniqueIdVar().recValue = ko.observable(this.currentTrialIdx); // trial id
-    this.currentTask.trialOrderVar().recValue = ko.observable(this.trialIter); // trial iteration in current session
-
-    recData.addRecording(this.currentTask.trialTypeIdVar());
-    recData.addRecording(this.currentTask.trialOrderVar());
-    recData.addRecording(this.currentTask.trialUniqueIdVar());
-
     // new, dynamic verison
     for (var i=0; i<this.variablesToRecord.length; i++){
         recData.addRecording(this.variablesToRecord[i]);
