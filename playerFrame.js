@@ -41,8 +41,9 @@ PlayerFrame.prototype.init = function() {
             self.mouseY = e.pageY;
     });
 
-    this.frameView = new FrameView(centeredDiv,this.frameData,this,"playerView");
+    this.frameView = new FrameView(centeredDiv,this,"playerView");
     this.frameView.init(this.getViewSize());
+    this.frameView.setDataModel(this.frameData);
     this.state = 'preloaded';
     var offX = (window.innerWidth-this.frameData.frameWidth()*this.frameView.scale())/2 ;
     var offY = (window.innerHeight-this.frameData.frameHeight()*this.frameView.scale())/2;
