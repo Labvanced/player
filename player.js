@@ -4,7 +4,20 @@ var Player = function() {
     var self = this;
 
     //this.expId = location.search.split('id=')[1];
-    this.expId = location.search.split("&")[0].replace("?","").split("=")[1];
+
+    function getParameterByName(name) {
+        name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+        var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+            results = regex.exec(location.search);
+        return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+    }
+
+    this.expId = getParameterByName("id");
+
+    this.runOnlyTaskId = getParameterByName("task");
+    if (this.runOnlyTaskId == "") {
+        this.runOnlyTaskId = false;
+    }
 
     this.experiment = null;
     this.sessionNr = 0;
@@ -57,9 +70,6 @@ var Player = function() {
             self.experiment = new Experiment().fromJS(data.expData);
             self.experiment.setPointers();
 
-
-
-
             var expPrev =  new ExperimentStartupScreen(self.experiment);
             var newContent = jQuery('<div/>');
             newContent.load("/html_views/ExperimentStartupScreen.html", function () {
@@ -106,27 +116,29 @@ var Player = function() {
 
             console.log("experiment deserialized.");
 
-            var subj_group = self.experiment.exp_data.availableGroups()[self.groupNr];
-            if (!subj_group) {
-                console.log("player error: there is no subject group defined in the experiment.");
-                self.finishSessionWithError("There is no subject group defined in the experiment.");
-                return;
+            if (!self.runOnlyTaskId) {
+                var subj_group = self.experiment.exp_data.availableGroups()[self.groupNr];
+                if (!subj_group) {
+                    console.log("player error: there is no subject group defined in the experiment.");
+                    self.finishSessionWithError("There is no subject group defined in the experiment.");
+                    return;
+                }
+
+                var exp_session = subj_group.sessions()[self.sessionNr];
+                if (!exp_session) {
+                    console.log("player error: there is no session defined in the subject group in the experiment.");
+                    self.finishSessionWithError("there is no session defined in the subject group in the experiment.");
+                    return;
+                }
+
+                self.blocks = exp_session.blocks();
+                if (self.blocks.length == 0) {
+                    console.log("player error: there is no block defined in this experiment session.");
+                    self.finishSessionWithError("there is no block defined in this experiment session.");
+                    return;
+                }
             }
 
-            var exp_session = subj_group.sessions()[self.sessionNr];
-            if (!exp_session) {
-                console.log("player error: there is no session defined in the subject group in the experiment.");
-                self.finishSessionWithError("there is no session defined in the subject group in the experiment.");
-                return;
-            }
-
-            self.blocks = exp_session.blocks();
-
-            if (self.blocks.length == 0) {
-                console.log("player error: there is no block defined in this experiment session.");
-                self.finishSessionWithError("there is no block defined in this experiment session.");
-                return;
-            }
         });
     });
 
@@ -156,10 +168,20 @@ Player.prototype.deepDive = function(arr){
         }
 
     }
-}
+};
 
-
-
+Player.prototype.startExperiment = function() {
+    if (this.runOnlyTaskId){
+        // run a test task session:
+        this.currentTaskIdx = NaN;
+        this.currentTask = this.experiment.exp_data.entities.byId[this.runOnlyTaskId];
+        this.startRunningTask();
+    }
+    else {
+        // run a real complete experiment session:
+        this.jumpToNextTask();
+    }
+};
 
 Player.prototype.startNextBlock = function() {
     this.currentBlockIdx++;
@@ -171,15 +193,23 @@ Player.prototype.startNextBlock = function() {
         console.log("starting block "+this.currentBlockIdx);
         this.currentBlock = this.blocks[this.currentBlockIdx];
         this.currentTaskIdx = -1;
-        this.startNextTask();
+        this.jumpToNextTask();
     }
 };
 
-Player.prototype.startNextTask = function() {
-    var self = this;
+Player.prototype.jumpToNextTask = function() {
+    if (this.runOnlyTaskId) {
+        this.finishSession();
+    }
+    else {
+        this.currentTaskIdx++;
+        this.currentTask = this.currentBlock.subTasks()[this.currentTaskIdx];
+        this.startRunningTask();
+    }
+};
 
-    this.currentTaskIdx++;
-    this.currentTask = this.currentBlock.subTasks()[this.currentTaskIdx];
+Player.prototype.startRunningTask = function() {
+    var self = this;
 
     if (this.currentTask){
         // start initialization of trials: Randomization and Preloading:
@@ -193,7 +223,7 @@ Player.prototype.startNextTask = function() {
                 console.log("webcam loaded");
                 self.webcamLoaded = true;
                 setTimeout(function(){
-                    self.startNextTask();
+                    self.jumpToNextTask();
                 }, 1000);
             });
             return;
@@ -263,13 +293,15 @@ Player.prototype.startNextTask = function() {
 };
 
 Player.prototype.startRecordingsOfNewTask = function() {
-    var recordData = {
-        blockNr: this.currentBlockIdx,
-        blockId: this.currentBlock.id(),
-        taskNr: this.currentTaskIdx,
-        taskId: this.currentTask.id()
-    };
-    $.post('/recordStartTask', recordData);
+    if (!this.runOnlyTaskId) {
+        var recordData = {
+            blockNr: this.currentBlockIdx,
+            blockId: this.currentBlock.id(),
+            taskNr: this.currentTaskIdx,
+            taskId: this.currentTask.id()
+        };
+        $.post('/recordStartTask', recordData);
+    }
 };
 
 Player.prototype.recordData = function() {
@@ -314,7 +346,7 @@ Player.prototype.startNextTrial = function() {
             this.webcamLoaded = false;
         }
 
-        self.startNextTask();
+        self.jumpToNextTask();
         return;
     }
 

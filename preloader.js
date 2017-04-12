@@ -73,7 +73,7 @@ function onComplete(event) {
 
 function loadCalibrationScreen(){
 
-    player.startNextBlock();
+    player.startExperiment();
 
     // include this once calibration is switched on and working
     /**
