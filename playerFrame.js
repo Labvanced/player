@@ -41,18 +41,32 @@ PlayerFrame.prototype.init = function() {
             self.mouseY = e.pageY;
     });
 
-    this.frameView = new FrameView(centeredDiv,this,"playerView");
-    this.frameView.init(this.getViewSize());
-    this.frameView.setDataModel(this.frameData);
-    this.state = 'preloaded';
-    var offX = (window.innerWidth-this.frameData.frameWidth()*this.frameView.scale())/2 ;
-    var offY = (window.innerHeight-this.frameData.frameHeight()*this.frameView.scale())/2;
+    if (this.frameData.type == 'FrameData') {
+        this.frameView = new FrameView(centeredDiv,this,"playerView");
+    }
+    else {
+        this.frameView = new PageView(centeredDiv,this,"playerView");
+    }
 
-    $(centeredDiv).css({
-        "position": "absolute",
-        "left": offX,
-        "top": offY
-    });
+    this.frameView.setDataModel(this.frameData);
+    this.frameView.init(this.getViewSize());
+    this.state = 'preloaded';
+
+    if (this.frameData.type == 'FrameData') {
+        var offX = (window.innerWidth - this.frameData.frameWidth() * this.frameView.scale()) / 2;
+        var offY = (window.innerHeight - this.frameData.frameHeight() * this.frameView.scale()) / 2;
+        $(centeredDiv).css({
+            "position": "absolute",
+            "left": offX,
+            "top": offY
+        });
+    }
+    else {
+        $(centeredDiv).css({
+            "width": "100%",
+            "height": "100%"
+        });
+    }
 };
 
 PlayerFrame.prototype.resize = function() {

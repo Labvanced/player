@@ -349,12 +349,8 @@ Player.prototype.startNextTrial = function() {
     // go into trial sequence:
     this.currentSequence = this.currentTask.subSequence();
     this.currentSequence.currSelectedElement(null);
-
-    console.log("start timer to measure display time for next trial...");
-    var start = new Date().getTime();
     this.currentSequence.selectNextElement();
     this.startNextPageOrFrame();
-    console.log("end timer. Display time was " + (new Date().getTime() - start) + " ms");
 
     // preload next trial:
     if (this.trialIter + 1 < this.randomizedTrials.length) {
@@ -374,7 +370,8 @@ Player.prototype.startNextPageOrFrame = function() {
             this.currentFrame.startFrame();
             break;
         case 'PageData':
-            console.log("TODO");
+            this.currentFrame = this.currentTrialFrames[currentElement.id()];
+            this.currentFrame.startFrame();
             break;
         case 'EndOfSequence':
             console.log("starting next trial");
