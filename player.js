@@ -76,14 +76,14 @@ var Player = function() {
                             if  (entity2.content() instanceof VideoElement || entity2.content() instanceof ImageElement  || entity2.content() instanceof AudioElement){
                                 if  (entity2.content().hasOwnProperty("file_id")){
                                     self.preloadCounter +=1;
-                                    var src =  "/files/" + entity2.content().file_id() + "/" + entity2.content().file_orig_name();
-                                    self.contentList.push({
-                                        id: self.preloadCounter.toString(),
-                                        src: src
-                                    })
-
+                                    if (entity2.content().file_id() && entity2.content().file_orig_name()) {
+                                        var src = "/files/" + entity2.content().file_id() + "/" + entity2.content().file_orig_name();
+                                        self.contentList.push({
+                                            id: self.preloadCounter.toString(),
+                                            src: src
+                                        });
+                                    }
                                 }
-
                                 var arr =  entity2.content().modifier().ndimModifierTrialTypes;
                                 if (arr.length>0){
                                     self.deepDive(arr);
