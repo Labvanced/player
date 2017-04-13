@@ -477,7 +477,7 @@ Player.prototype.finishSession = function() {
     $.post('/finishExpSession', function( data ) {
         console.log("recording session completed.");
         $('#experimentViewPort').hide();
-        $('#endExpSection').show();  //TODO this doesnt' work
+        $('#endExpSection').show();
         $('#endExp').click(function(){
             window.open("/page/library");
              // history.go(-1);
