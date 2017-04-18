@@ -179,7 +179,7 @@ Player.prototype.startExperiment = function() {
     }
     else {
         // run a real complete experiment session:
-        this.jumpToNextTask();
+        this.startNextBlock();
     }
 };
 
