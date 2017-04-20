@@ -28,11 +28,11 @@ var PlayerFrame = function(frameData,frameDiv,player) {
 
 PlayerFrame.prototype.init = function() {
     var self = this; 
-    if (this.frameData.bgColorEnabled()) {
-        $(this.frameDiv).css({
-            "background-color": this.frameData.bgColor()
-        });
-    }
+
+    $(this.frameDiv).css({
+        "background-color": this.frameData.bgColor()
+    });
+
     var centeredDiv = $("<div/>");
     $(this.frameDiv).append(centeredDiv);
 
