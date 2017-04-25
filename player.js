@@ -396,6 +396,8 @@ Player.prototype.startNextTrial = function() {
 
 Player.prototype.startNextPageOrFrame = function() {
     var currentElement = this.currentSequence.currSelectedElement();
+    var frameIdx = this.currentSequence.elements().indexOf(currentElement);
+    console.log('starting frame nr: '+frameIdx +' in trial nr: '+this.trialIter);
     switch (currentElement.type) {
         case 'FrameData':
             this.currentFrame = this.currentTrialFrames[currentElement.id()];

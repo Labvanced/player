@@ -82,8 +82,8 @@ PlayerFrame.prototype.getFrameTime = function() {
 PlayerFrame.prototype.startFrame = function() {
     var self = this;
 
-    if (this.state == 'preloaded') {
-        console.log('starting frame in trialIter '+this.trialIter);
+    if (this.state == 'preloaded' || this.state == 'finished') {
+
         this.state = 'displaying';
         this.setTimeOut();
         this.startedTime = Date.now();
@@ -98,16 +98,6 @@ PlayerFrame.prototype.startFrame = function() {
 
         this.frameDiv.css('display', 'block');
 
-        /**
-        var viewElements = this.frameView.viewElements();
-        for (var i = 0; i< viewElements.length; i++){
-            if(viewElements[i].dataModel.content){
-                if (viewElements[i].dataModel.content() instanceof VideoElement){
-                    viewElements[i].divContentInside.play();
-                }
-            }
-        }
-        **/
 
         // if emotion recording is enabled:
         if (this.frameData.parent.parent.webcamEnabled() && this.frameData.emotionEnabled()) {
@@ -211,7 +201,9 @@ PlayerFrame.prototype.finishFrame = function() {
     $(document).off("keydown");
 
     // empty div and make new frame
-    this.frameDiv.remove();
+
+    this.frameDiv.css('display', 'none');
+   // this.frameDiv.remove();
 };
 
 
