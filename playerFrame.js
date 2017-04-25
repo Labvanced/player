@@ -217,12 +217,18 @@ PlayerFrame.prototype.finishFrame = function() {
 
 PlayerFrame.prototype.endFrame = function() {
     if (this.state == 'displaying') {
-        
         this.finishFrame();
-
         // set next frame
         this.player.currentSequence.selectNextElement();
-      
+        this.player.startNextPageOrFrame();
+    }
+};
+
+PlayerFrame.prototype.endFrameAndGoBack = function() {
+    if (this.state == 'displaying') {
+        this.finishFrame();
+        // set next frame
+        this.player.currentSequence.selectPreviousElement();
         this.player.startNextPageOrFrame();
     }
 };
