@@ -238,6 +238,10 @@ Player.prototype.startRunningTask = function() {
         for (var i=0; i<allFrameDataInTrial.length; i++){
             var allVariablesInFrame = allFrameDataInTrial[i].localWorkspaceVars();
             for (var j=0; j<allVariablesInFrame.length; j++){
+                // if variable was not initialized then do it now:
+                if (allVariablesInFrame[j].value()==null) {
+                    allVariablesInFrame[j].resetValue();
+                }
                 if (allVariablesInFrame[j].resetAtTrialStart()) {
                     var id = allVariablesInFrame[j].id();
                     if (!variablesToResetById.hasOwnProperty(id)) {
@@ -245,7 +249,7 @@ Player.prototype.startRunningTask = function() {
                         this.variablesToReset.push(allVariablesInFrame[j]);
                     }
                 }
-                if (allVariablesInFrame[j].recordAtTrialEnd()) {
+                if (allVariablesInFrame[j].isRecorded()) {
                     var id = allVariablesInFrame[j].id();
                     if (!variablesToRecordById.hasOwnProperty(id)) {
                         variablesToRecordById[id] = true;
