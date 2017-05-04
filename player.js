@@ -255,7 +255,7 @@ Player.prototype.startRunningTask = function() {
             }
         }
 
-        this.randomizedTrials = this.currentTask.getRandomizedTrials();
+        this.randomizedTrials = this.currentTask.doTrialRandomization();
 
         console.log("randomization finished... start first trial initialization...");
         this.addTrialViews(0, this.currentTask);
