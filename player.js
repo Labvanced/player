@@ -240,7 +240,7 @@ Player.prototype.startRunningTask = function() {
             for (var j=0; j<allVariablesInFrame.length; j++){
                 // if variable was not initialized then do it now:
                 if (allVariablesInFrame[j].value()==null) {
-                    allVariablesInFrame[j].resetValue();
+                    allVariablesInFrame[j].initValue();
                 }
                 if (allVariablesInFrame[j].resetAtTrialStart()) {
                     var id = allVariablesInFrame[j].id();
@@ -361,7 +361,7 @@ Player.prototype.startNextTrial = function() {
 
     // reset variables at start of trial:
     for (var i=0; i<this.variablesToReset.length; i++){
-        this.variablesToReset[i].resetValue();
+        this.variablesToReset[i].resetValueToStartValue();
     }
 
 
@@ -485,9 +485,17 @@ Player.prototype.finishSession = function() {
         $('#experimentViewPort').hide();
         $('#endExpSection').show();
         $('#endExp').click(function(){
-            window.open("/page/library");
-             // history.go(-1);
+            window.location = "/page/library";
         });
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
     });
 };
 
