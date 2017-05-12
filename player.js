@@ -31,8 +31,8 @@ var Player = function() {
     this.currentTask = null;
     this.currentTaskIdx = -1;
 
-    this.currentTrialIdx = null;
-    this.currentTrialSelection = null;
+    this.currentTrialId = null;
+   // this.currentTrialSelection = null;
     this.randomizedTrials = [];
     this.trialIter = "init"; // or "waitForStart" or 0,1,2,..
     this.currentTrialDiv = null;
@@ -233,10 +233,25 @@ Player.prototype.startRunningTask = function() {
         var allFrameDataInTrial = this.currentTask.subSequence().elements();
         this.variablesToReset = [];
         this.variablesToRecord = [];
+        this.factorsVars = [];
         var variablesToResetById = {};
         var variablesToRecordById = {};
+
         for (var i=0; i<allFrameDataInTrial.length; i++){
             var allVariablesInFrame = allFrameDataInTrial[i].localWorkspaceVars();
+
+            // add all factor vars to recordings
+
+            var allEntities = this.experiment.exp_data.entities();
+            for (var i=0; i<allEntities.length; i++){
+                if (allEntities[i].type == "GlobalVar") {
+                    if(allEntities[i].isFactor()){
+                        this.factorsVars.push(allEntities[i]);
+                        allVariablesInFrame.push(allEntities[i]);
+                    }
+                }
+            }
+
             for (var j=0; j<allVariablesInFrame.length; j++){
                 // if variable was not initialized then do it now:
                 if (allVariablesInFrame[j].value()==null) {
@@ -313,6 +328,7 @@ Player.prototype.recordData = function() {
     // record variables at end of trial:
     var recData = new RecData();
 
+
     // new, dynamic verison
     for (var i=0; i<this.variablesToRecord.length; i++){
         recData.addRecording(this.variablesToRecord[i]);
@@ -341,7 +357,7 @@ Player.prototype.startNextTrial = function() {
 
     if (this.trialIter >= this.randomizedTrials.length) {
         // trial loop finished:
-        console.log("trial loop finished");
+        console.log("task finished");
         this.trialIter = "init"; // reset to init so that another trial loop in another block will start from the beginning
 
         if (this.webcamLoaded){
@@ -356,24 +372,19 @@ Player.prototype.startNextTrial = function() {
 
     console.log("start trial iteration " + this.trialIter);
 
-    this.currentTrialIdx = this.randomizedTrials[this.trialIter].trialVariation.trialIdx();
-    console.log("start randomized trial id " + this.currentTrialIdx);
+    this.currentTrialId = this.randomizedTrials[this.trialIter].trialVariation.uniqueId();
+    console.log("start randomized trial id " + this.currentTrialId);
 
     // reset variables at start of trial:
     for (var i=0; i<this.variablesToReset.length; i++){
         this.variablesToReset[i].resetValueToStartValue();
     }
 
-
-    // factors and add trial types
-    this.currentTrialSelection = this.randomizedTrials[this.currentTrialIdx];
-    /*for (var fac = 0; fac < this.currentTrialSelection.factors.length; fac++) {
-        var factorVar = this.experiment.exp_data.entities.byId[this.currentTrialSelection.factors[fac]];
-        var value = factorVar.levels()[this.currentTrialSelection.levels[fac]].name();
-        var recData = new RecData(this.currentTrialSelection.factors[fac], value);
-        factorVar.value(value);
-        this.addRecording(this.currentBlockIdx, this.trialIter, recData.toJS());
-    }*/
+    // set factor values
+    for (var i=0; i<this.factorsVars.length; i++){
+         var factorValue = this.randomizedTrials[this.trialIter].condition.getCurrentValueOfFactor(this.factorsVars[i].id());
+         this.factorsVars[i].value().value(factorValue);
+    }
 
     // select next element from preload
     if (this.currentTrialDiv) {
@@ -454,7 +465,7 @@ Player.prototype.addTrialViews = function (trialIter,trialLoop) {
 
 
 Player.prototype.getRandomizedTrialId = function () {
-    return this.currentTrialIdx;
+    return this.currentTrialId;
 };
 
 Player.prototype.getTrialId = function () {
