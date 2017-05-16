@@ -297,10 +297,10 @@ Player.prototype.startRunningTask = function() {
             }, 3000);
         }
         else {
-            $('#countdownSection').show();
-            $('#countdown').text("preloading task");
+           // $('#countdownSection').show();
+           // $('#countdown').text("preloading task");
             setTimeout(function () {
-                $('#countdownSection').hide();
+               //  $('#countdownSection').hide();
                 self.startNextTrial();
             }, 500);
         }
