@@ -240,18 +240,6 @@ Player.prototype.startRunningTask = function() {
         for (var i=0; i<allFrameDataInTrial.length; i++){
             var allVariablesInFrame = allFrameDataInTrial[i].localWorkspaceVars();
 
-            // add all factor vars to recordings
-
-            var allEntities = this.experiment.exp_data.entities();
-            for (var i=0; i<allEntities.length; i++){
-                if (allEntities[i].type == "GlobalVar") {
-                    if(allEntities[i].isFactor()){
-                        this.factorsVars.push(allEntities[i]);
-                        allVariablesInFrame.push(allEntities[i]);
-                    }
-                }
-            }
-
             for (var j=0; j<allVariablesInFrame.length; j++){
                 // if variable was not initialized then do it now:
                 if (allVariablesInFrame[j].value()==null) {
@@ -270,6 +258,17 @@ Player.prototype.startRunningTask = function() {
                         variablesToRecordById[id] = true;
                         this.variablesToRecord.push(allVariablesInFrame[j]);
                     }
+                }
+            }
+        }
+
+        // add all factor vars to recordings
+        var allEntities = this.experiment.exp_data.entities();
+        for (var i=0; i<allEntities.length; i++){
+            if (allEntities[i].type == "GlobalVar") {
+                if(allEntities[i].isFactor()){
+                    this.factorsVars.push(allEntities[i]);
+                    this.variablesToRecord.push(allEntities[i]);
                 }
             }
         }
