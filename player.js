@@ -64,7 +64,7 @@ var Player = function() {
                 self.finishSessionWithError("This experiment does not exist!");
                 return;
             }
-            console.log("expection.factorseriment spec loaded from server.");
+            console.log("experiment spec loaded from server.");
             self.sessionNr = 0;//data.sessionNr; //TODO: work around for testing: starting always with first session.
             self.groupNr = data.groupNr;
             self.experiment = new Experiment().fromJS(data.expData);
@@ -161,12 +161,9 @@ Player.prototype.deepDive = function(arr){
                 this.contentList.push({
                     id: this.preloadCounter.toString(),
                     src: src
-                })
-
+                });
             }
-
         }
-
     }
 };
 
@@ -187,8 +184,6 @@ Player.prototype.startNextBlock = function() {
     this.currentBlockIdx++;
     if (this.blocks.length <= this.currentBlockIdx){
         console.log("experiment session finished");
-        // TODO store experiment completed flag and end time
-
         this.finishSession();
     }
     else {
@@ -372,8 +367,9 @@ Player.prototype.startNextTrial = function() {
     }
 
     console.log("start trial iteration " + this.trialIter);
+    var trialSelection = this.randomizedTrials[this.trialIter];
 
-    this.currentTrialId = this.randomizedTrials[this.trialIter].trialVariation.uniqueId();
+    this.currentTrialId = trialSelection.trialVariation.uniqueId();
     console.log("start randomized trial id " + this.currentTrialId);
 
     // reset variables at start of trial:
@@ -383,7 +379,7 @@ Player.prototype.startNextTrial = function() {
 
     // set factor values
     for (var i=0; i<this.factorsVars.length; i++){
-         var factorValue = this.randomizedTrials[this.trialIter].condition.getCurrentValueOfFactor(this.factorsVars[i].id());
+         var factorValue = trialSelection.condition.getCurrentValueOfFactor(this.factorsVars[i].id());
          this.factorsVars[i].value().value(factorValue);
     }
 
@@ -395,7 +391,8 @@ Player.prototype.startNextTrial = function() {
     this.currentTrialDiv = this.nextTrialDiv;
 
     // go into trial sequence:
-    this.currentSequence = this.currentTask.subSequence();
+    var factorGroupIdx = this.currentTask.factorGroups().indexOf(trialSelection.factorGroup);
+    this.currentSequence = this.currentTask.subSequencePerFactorGroup()[factorGroupIdx];
     this.currentSequence.currSelectedElement(null);
     this.currentSequence.selectNextElement();
     this.startNextPageOrFrame();
@@ -432,7 +429,7 @@ Player.prototype.startNextPageOrFrame = function() {
     }
 };
 
-Player.prototype.addTrialViews = function (trialIter,trialLoop) {
+Player.prototype.addTrialViews = function (trialIter,task) {
 
     this.nextTrialDiv = $(document.createElement('div'));
     this.nextTrialDiv.css({
@@ -442,9 +439,10 @@ Player.prototype.addTrialViews = function (trialIter,trialLoop) {
     $('#experimentTree').append(this.nextTrialDiv);
     var nextTrialSelection = this.randomizedTrials[trialIter];
 
-    this.nextTrialFrames = {};
+    var factorGroupIdx = task.factorGroups().indexOf(nextTrialSelection.factorGroup);
+    var frameDataArr = task.subSequencePerFactorGroup()[factorGroupIdx].elements();
 
-    var frameDataArr = trialLoop.subSequence().elements();
+    this.nextTrialFrames = {};
     for(var frameIdx =0;frameIdx<frameDataArr.length;frameIdx++){
 
         var frameDiv = $(document.createElement('div'));
