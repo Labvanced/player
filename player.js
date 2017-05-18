@@ -187,6 +187,8 @@ Player.prototype.startNextBlock = function() {
     this.currentBlockIdx++;
     if (this.blocks.length <= this.currentBlockIdx){
         console.log("experiment session finished");
+        // TODO store experiment completed flag and end time
+
         this.finishSession();
     }
     else {
@@ -266,7 +268,7 @@ Player.prototype.startRunningTask = function() {
         var allEntities = this.experiment.exp_data.entities();
         for (var i=0; i<allEntities.length; i++){
             if (allEntities[i].type == "GlobalVar") {
-                if(allEntities[i].isFactor()){
+                if(allEntities[i].isFactor() && allEntities[i].levels().length>1){
                     this.factorsVars.push(allEntities[i]);
                     this.variablesToRecord.push(allEntities[i]);
                 }
