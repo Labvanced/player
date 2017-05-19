@@ -19,6 +19,14 @@ var Player = function() {
         this.runOnlyTaskId = false;
     }
 
+    this.isTestrun = getParameterByName("testrun");
+    if (this.isTestrun == "" || this.isTestrun == "0" || this.isTestrun == "false" || isTestrun==false) {
+        this.isTestrun = false;
+    }
+    else {
+        this.isTestrun = true;
+    }
+
     this.experiment = null;
     this.sessionNr = 0;
     this.groupNr = 0;
@@ -55,7 +63,10 @@ var Player = function() {
 
     console.log("requesting experiment with id "+this.expId+" from server.");
 
-    var parameters = { expId: this.expId };
+    var parameters = {
+        expId: this.expId,
+        isTestrun: this.isTestrun
+    };
 
     createExpDesignComponents(function() {
         $.get('/startExpPlayer', parameters, function(data){
@@ -308,7 +319,7 @@ Player.prototype.startRunningTask = function() {
 };
 
 Player.prototype.startRecordingsOfNewTask = function() {
-    if (!this.runOnlyTaskId) {
+    if (!this.runOnlyTaskId && !this.isTestrun) {
         var recordData = {
             blockNr: this.currentBlockIdx,
             blockId: this.currentBlock.id(),
@@ -320,22 +331,23 @@ Player.prototype.startRecordingsOfNewTask = function() {
 };
 
 Player.prototype.recordData = function() {
+    if (!this.runOnlyTaskId && !this.isTestrun) {
+        // record variables at end of trial:
+        var recData = new RecData();
 
-    // record variables at end of trial:
-    var recData = new RecData();
 
+        // new, dynamic verison
+        for (var i = 0; i < this.variablesToRecord.length; i++) {
+            recData.addRecording(this.variablesToRecord[i]);
+        }
 
-    // new, dynamic verison
-    for (var i=0; i<this.variablesToRecord.length; i++){
-        recData.addRecording(this.variablesToRecord[i]);
+        // server command
+        var recordedData = {
+            trialNr: this.trialIter,
+            recData: recData.toJS()
+        };
+        $.post('/recordTrial', recordedData);
     }
-
-    // server command
-    var recordedData = {
-        trialNr: this.trialIter,
-        recData: recData.toJS()
-    };
-    $.post('/recordTrial', recordedData);
 };
 
 
