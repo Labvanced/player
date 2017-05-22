@@ -20,7 +20,7 @@ var Player = function() {
     }
 
     this.isTestrun = getParameterByName("testrun");
-    if (this.isTestrun == "" || this.isTestrun == "0" || this.isTestrun == "false" || isTestrun==false) {
+    if (this.isTestrun == "" || this.isTestrun == "0" || this.isTestrun == "false" || this.isTestrun==false) {
         this.isTestrun = false;
     }
     else {
