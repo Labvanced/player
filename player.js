@@ -69,17 +69,17 @@ var Player = function() {
     };
 
     createExpDesignComponents(function() {
-        $.get('/startExpPlayer', parameters, function(data){
+        $.post('/startExpPlayer', parameters, function(data){
             if (data.hasOwnProperty('success') && data.success == false) {
                 queue.cancel();
                 self.finishSessionWithError("This experiment does not exist!");
                 return;
             }
             console.log("experiment spec loaded from server.");
-            self.sessionNr = 0;//data.sessionNr; //TODO: work around for testing: starting always with first session.
-            self.groupNr = data.groupNr;
+
             self.experiment = new Experiment().fromJS(data.expData);
             self.experiment.setPointers();
+            console.log("experiment deserialized.");
 
             var expPrev =  new ExperimentStartupScreen(self.experiment);
             var newContent = jQuery('<div/>');
@@ -87,74 +87,91 @@ var Player = function() {
                 newContent.prependTo('#expPreview');
                 ko.applyBindings(expPrev, newContent[0]);
                 expPrev.init(950,400);
-                // parse images, video and audio elements
-                var entities = self.experiment.exp_data.entities();
-                for (var i = 0; i<entities.length; i++){
-                    var entity = entities[i];
-                    if (entity instanceof FrameData){
-                        for (var k = 0; k<entity.elements().length; k++){
-                            var entity2 = entity.elements()[k];
-                            if  (entity2.content() instanceof VideoElement || entity2.content() instanceof ImageElement  || entity2.content() instanceof AudioElement){
-                                if  (entity2.content().hasOwnProperty("file_id")){
-                                    self.preloadCounter +=1;
-                                    if (entity2.content().file_id() && entity2.content().file_orig_name()) {
-                                        var src = "/files/" + entity2.content().file_id() + "/" + entity2.content().file_orig_name();
-                                        self.contentList.push({
-                                            id: self.preloadCounter.toString(),
-                                            src: src
-                                        });
-                                    }
-                                }
-                                var arr =  entity2.content().modifier().ndimModifierTrialTypes;
-                                if (arr.length>0){
-                                    self.deepDive(arr);
-                                }
-
-                            }
-
-                        }
-
-                    }
-                }
-                if (self.contentList.length>0){
-                    queue.loadManifest(self.contentList);
-                }
-                else{
-                    onComplete();
-                }
             });
 
+            self.preloadAllContent();
 
-            console.log("experiment deserialized.");
-
-            if (!self.runOnlyTaskId) {
-                var subj_group = self.experiment.exp_data.availableGroups()[self.groupNr];
-                if (!subj_group) {
-                    console.log("player error: there is no subject group defined in the experiment.");
-                    self.finishSessionWithError("There is no subject group defined in the experiment.");
-                    return;
-                }
-
-                var exp_session = subj_group.sessions()[self.sessionNr];
-                if (!exp_session) {
-                    console.log("player error: there is no session defined in the subject group in the experiment.");
-                    self.finishSessionWithError("there is no session defined in the subject group in the experiment.");
-                    return;
-                }
-
-                self.blocks = exp_session.blocks();
-                if (self.blocks.length == 0) {
-                    console.log("player error: there is no block defined in this experiment session.");
-                    self.finishSessionWithError("there is no block defined in this experiment session.");
-                    return;
-                }
+            if (self.runOnlyTaskId) {
+                self.setSubjectGroupNr(1, 1);
+                return;
             }
+
+            if (self.isTestrun) {
+                var initialTestrunDialog = new InitialTestrunDialog(self.experiment.exp_data);
+                initialTestrunDialog.start(function(groupNr, sessionNr) {
+                    self.setSubjectGroupNr(groupNr, sessionNr);
+                });
+                return;
+            }
+
+            if (data.groupNr) {
+                self.setSubjectGroupNr(data.groupNr, data.sessionNr);
+                return;
+            }
+
+            // if group and session were not already set, start the survey
+            var initialSurvey = new InitialSurveyDialog(self.experiment.exp_data);
+            initialSurvey.start(function(survey_data) {
+                $.post('/startFirstPlayerSession',
+                    {
+                        expId: self.expId,
+                        isTestrun: self.isTestrun,
+                        survey_data: survey_data
+                    },
+                    function(data) {
+                        if (data.hasOwnProperty('success') && data.success == false) {
+                            queue.cancel();
+                            self.finishSessionWithError("Could not initialize first session of experiment!");
+                            return;
+                        }
+                        initialSurvey.closeDialog();
+                        self.setSubjectGroupNr(data.groupNr, data.sessionNr);
+                    }
+                );
+            });
 
         });
     });
 
 };
 
+Player.prototype.preloadAllContent = function() {
+    // parse images, video and audio elements
+    var entities = this.experiment.exp_data.entities();
+    for (var i = 0; i<entities.length; i++){
+        var entity = entities[i];
+        if (entity instanceof FrameData){
+            for (var k = 0; k<entity.elements().length; k++){
+                var entity2 = entity.elements()[k];
+                if  (entity2.content() instanceof VideoElement || entity2.content() instanceof ImageElement  || entity2.content() instanceof AudioElement){
+                    if  (entity2.content().hasOwnProperty("file_id")){
+                        this.preloadCounter +=1;
+                        if (entity2.content().file_id() && entity2.content().file_orig_name()) {
+                            var src = "/files/" + entity2.content().file_id() + "/" + entity2.content().file_orig_name();
+                            this.contentList.push({
+                                id: this.preloadCounter.toString(),
+                                src: src
+                            });
+                        }
+                    }
+                    var arr =  entity2.content().modifier().ndimModifierTrialTypes;
+                    if (arr.length>0){
+                        this.deepDive(arr);
+                    }
+
+                }
+
+            }
+
+        }
+    }
+    if (this.contentList.length>0){
+        queue.loadManifest(this.contentList);
+    }
+    else{
+        onComplete();
+    }
+};
 
 Player.prototype.deepDive = function(arr){
 
@@ -176,6 +193,35 @@ Player.prototype.deepDive = function(arr){
             }
         }
     }
+};
+
+Player.prototype.setSubjectGroupNr = function(groupNr, sessionNr){
+    this.groupNr = groupNr;
+    this.sessionNr = sessionNr;
+
+    console.log("groupNr="+groupNr+ " sessionNr="+sessionNr);
+
+    var subj_group = this.experiment.exp_data.availableGroups()[this.groupNr-1];
+    if (!subj_group) {
+        console.log("player error: there is no subject group defined in the experiment.");
+        this.finishSessionWithError("There is no subject group defined in the experiment.");
+        return;
+    }
+
+    var exp_session = subj_group.sessions()[this.sessionNr-1];
+    if (!exp_session) {
+        console.log("player error: there is no session defined in the subject group in the experiment.");
+        this.finishSessionWithError("there is no session defined in the subject group in the experiment.");
+        return;
+    }
+
+    this.blocks = exp_session.blocks();
+    if (this.blocks.length == 0) {
+        console.log("player error: there is no block defined in this experiment session.");
+        this.finishSessionWithError("there is no block defined in this experiment session.");
+        return;
+    }
+
 };
 
 Player.prototype.startExperiment = function() {
@@ -391,6 +437,7 @@ Player.prototype.startNextTrial = function() {
 
     // set factor values
     for (var i=0; i<this.factorsVars.length; i++){
+        // TODO: this.factorsVars is not needed, because we could also just do this directly by reading out the factors that are within the condition:
          var factorValue = trialSelection.condition.getCurrentValueOfFactor(this.factorsVars[i].id());
          this.factorsVars[i].value().value(factorValue);
     }
