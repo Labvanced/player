@@ -225,6 +225,14 @@ PlayerFrame.prototype.endFrameAndGoBack = function() {
     }
 };
 
+PlayerFrame.prototype.goToCustomFrame = function(customFrame) {
+    if (this.state == 'displaying') {
+        this.finishFrame();
+        this.player.currentSequence.selectCustomElement(customFrame);
+        this.player.startNextPageOrFrame();
+    }
+};
+
 
 PlayerFrame.prototype.getViewSize = function() {
     var width = window.innerWidth;
