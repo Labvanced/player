@@ -13,10 +13,19 @@ var Player = function() {
     }
 
     this.expId = getParameterByName("id");
+    this.guid = getParameterByName("guid");
 
     this.runOnlyTaskId = getParameterByName("task");
     if (this.runOnlyTaskId == "") {
         this.runOnlyTaskId = false;
+    }
+    this.runOnlyGroupNr = getParameterByName("group");
+    if (this.runOnlyGroupNr == "") {
+        this.runOnlyGroupNr = false;
+    }
+    this.runOnlySessionNr = getParameterByName("session");
+    if (this.runOnlySessionNr == "") {
+        this.runOnlySessionNr = false;
     }
 
     this.isTestrun = getParameterByName("testrun");
@@ -28,6 +37,7 @@ var Player = function() {
     }
 
     this.subject_code = getParameterByName("subject_code");
+    this.token = getParameterByName("token");
 
     this.experiment = null;
     this.sessionNr = 0;
@@ -120,12 +130,18 @@ var Player = function() {
                         survey_data: survey_data
                     },
                     function(data) {
+                        initialSurvey.closeDialog();
                         if (data.hasOwnProperty('success') && data.success == false) {
                             queue.cancel();
-                            self.finishSessionWithError("Could not initialize first session of experiment!");
+
+                            if (data.msg == "no matching subject group") {
+                                self.finishSessionWithError("There is no matching subject group defined which matches your criteria.");
+                            }
+                            else {
+                                self.finishSessionWithError("Could not initialize first session of experiment. Error Message: " + data.msg);
+                            }
                             return;
                         }
-                        initialSurvey.closeDialog();
                         self.setSubjectGroupNr(data.groupNr, data.sessionNr);
                     }
                 );
