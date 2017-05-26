@@ -27,6 +27,8 @@ var Player = function() {
         this.isTestrun = true;
     }
 
+    this.subject_code = getParameterByName("subject_code");
+
     this.experiment = null;
     this.sessionNr = 0;
     this.groupNr = 0;
@@ -40,7 +42,6 @@ var Player = function() {
     this.currentTaskIdx = -1;
 
     this.currentTrialId = null;
-   // this.currentTrialSelection = null;
     this.randomizedTrials = [];
     this.trialIter = "init"; // or "waitForStart" or 0,1,2,..
     this.currentTrialDiv = null;
@@ -48,7 +49,6 @@ var Player = function() {
     this.currentSequence = null;
 
     this.currentFrame = null;
-    this.currentFrameIdx = -1
 
     this.webcamLoaded = false;
     this.variablesToReset = [];
@@ -116,6 +116,7 @@ var Player = function() {
                     {
                         expId: self.expId,
                         isTestrun: self.isTestrun,
+                        subject_code: this.subject_code,
                         survey_data: survey_data
                     },
                     function(data) {
