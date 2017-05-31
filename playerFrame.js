@@ -17,6 +17,7 @@ var PlayerFrame = function(frameData,frameDiv,player) {
     this.mouseX = null;
     this.mouseY = null;
 
+    this.onFrameStartCallbacks = [];
     this.onFrameEndCallbacks = [];
 
     window.addEventListener('resize', function() {
@@ -95,6 +96,9 @@ PlayerFrame.prototype.startFrame = function() {
             event.trigger().setupOnPlayerFrame(this);
         }
 
+        for (var i = 0; i<this.onFrameStartCallbacks.length;i++) {
+            this.onFrameStartCallbacks[i]();
+        }
 
         this.frameDiv.css('display', 'block');
 
