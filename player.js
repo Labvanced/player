@@ -1,5 +1,51 @@
 // copyright by Caspar Goeke and Holger Finger
 
+
+function is_nwjs(){
+    try{
+        return (typeof require('nw.gui') !== "undefined");
+    } catch (e){
+        return false;
+    }
+}
+
+var playerAjaxPost;
+if (is_nwjs) {
+
+    // replace server routes with alternatives for offline version:
+    playerAjaxPost = function(route, parameters, callback) {
+        if (route=="/startExpPlayer") {
+            // TODO create subject_code
+            $.get("exp.json", function(expJSON) {
+                callback({
+                    expData: JSON.parse(expJSON),
+                    groupNr: 1,
+                    sessionNr: 1
+                });
+            });
+        }
+        if (route=="/startFirstPlayerSession") {
+
+        }
+        if (route=="/recordStartTask") {
+            // TODO just store the json
+        }
+        if (route=="/recordTrial") {
+            // TODO just store the json
+        }
+        if (route=="/errExpSession") {
+
+        }
+        if (route=="/finishExpSession") {
+            var win = nw.Window.get();
+            win.close();
+        }
+    };
+}
+else {
+    playerAjaxPost = $.post;
+}
+
 var Player = function() {
     var self = this;
 
@@ -79,7 +125,7 @@ var Player = function() {
     };
 
     createExpDesignComponents(function() {
-        $.post('/startExpPlayer', parameters, function(data){
+        playerAjaxPost('/startExpPlayer', parameters, function(data){
             if (data.hasOwnProperty('success') && data.success == false) {
                 queue.cancel();
                 self.finishSessionWithError("This experiment does not exist!");
@@ -122,7 +168,7 @@ var Player = function() {
             // if group and session were not already set, start the survey
             var initialSurvey = new InitialSurveyDialog(self.experiment.exp_data);
             initialSurvey.start(function(survey_data) {
-                $.post('/startFirstPlayerSession',
+                playerAjaxPost('/startFirstPlayerSession',
                     {
                         expId: self.expId,
                         isTestrun: self.isTestrun,
@@ -367,10 +413,10 @@ Player.prototype.startRunningTask = function() {
             }, 3000);
         }
         else {
-           // $('#countdownSection').show();
-           // $('#countdown').text("preloading task");
+            // $('#countdownSection').show();
+            // $('#countdown').text("preloading task");
             setTimeout(function () {
-               //  $('#countdownSection').hide();
+                //  $('#countdownSection').hide();
                 self.startNextTrial();
             }, 500);
         }
@@ -389,7 +435,7 @@ Player.prototype.startRecordingsOfNewTask = function() {
             taskNr: this.currentTaskIdx,
             taskId: this.currentTask.id()
         };
-        $.post('/recordStartTask', recordData);
+        playerAjaxPost('/recordStartTask', recordData);
     }
 };
 
@@ -409,7 +455,7 @@ Player.prototype.recordData = function() {
             trialNr: this.trialIter,
             recData: recData.toJS()
         };
-        $.post('/recordTrial', recordedData);
+        playerAjaxPost('/recordTrial', recordedData);
     }
 };
 
@@ -455,8 +501,8 @@ Player.prototype.startNextTrial = function() {
     // set factor values
     for (var i=0; i<this.factorsVars.length; i++){
         // TODO: this.factorsVars is not needed, because we could also just do this directly by reading out the factors that are within the condition:
-         var factorValue = trialSelection.condition.getCurrentValueOfFactor(this.factorsVars[i].id());
-         this.factorsVars[i].value().value(factorValue);
+        var factorValue = trialSelection.condition.getCurrentValueOfFactor(this.factorsVars[i].id());
+        this.factorsVars[i].value().value(factorValue);
     }
 
     // select next element from preload
@@ -554,7 +600,7 @@ Player.prototype.getBlockId = function () {
 
 Player.prototype.finishSessionWithError = function(err_msg) {
     console.log("error during experiment...");
-    $.post('/errExpSession', {err_msg: err_msg});
+    playerAjaxPost('/errExpSession', {err_msg: err_msg});
     $('#experimentViewPort').hide();
     $('#sectionPreload').hide();
     $('#errEndExpSection').show();
@@ -566,7 +612,7 @@ Player.prototype.finishSessionWithError = function(err_msg) {
 
 Player.prototype.finishSession = function() {
     console.log("finishExpSession...");
-    $.post('/finishExpSession', function( data ) {
+    playerAjaxPost('/finishExpSession', function( data ) {
         console.log("recording session completed.");
         $('#experimentViewPort').hide();
         $('#endExpSection').show();
