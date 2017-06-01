@@ -10,7 +10,7 @@ function is_nwjs(){
 }
 
 var playerAjaxPost;
-if (is_nwjs) {
+if (is_nwjs()) {
 
     // replace server routes with alternatives for offline version:
     playerAjaxPost = function(route, parameters, callback) {
