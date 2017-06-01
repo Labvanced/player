@@ -87,6 +87,11 @@ var Player = function() {
     this.subject_code = getParameterByName("subject_code");
     this.token = getParameterByName("token");
 
+    // if only testing a specific task, then don't record:
+    if (this.runOnlyTaskId) {
+        this.isTestrun = true;
+    }
+
     this.experiment = null;
     this.sessionNr = 0;
     this.groupNr = 0;
@@ -225,7 +230,7 @@ var Player = function() {
                 playerAjaxPost('/startFirstPlayerSession',
                     {
                         expId: self.expId,
-                        subject_code: this.subject_code,
+                        subject_code: self.subject_code,
                         survey_data: initialSurvey.getSurveyData()
                     },
                     function(data) {
@@ -245,7 +250,7 @@ var Player = function() {
                     }
                 );
             }
-            if (!initialSurvey.requiredGender() && !initialSurvey.requiredAge() && !initialSurvey.requiredCountry() && !initialSurvey.requiredLanguage() && !initialSurvey.requiredLanguage()) {
+            if (!initialSurvey.requiredGender() && !initialSurvey.requiredAge() && !initialSurvey.requiredCountry() && !initialSurvey.requiredLanguage() && !initialSurvey.requiredEmail()) {
                 // if nothing is required just skip the survey:
                 submitSurvey();
             }
@@ -674,23 +679,23 @@ Player.prototype.finishSessionWithError = function(err_msg) {
 
 Player.prototype.finishSession = function() {
     console.log("finishExpSession...");
-    playerAjaxPost('/finishExpSession', function( data ) {
-        console.log("recording session completed.");
-        $('#experimentViewPort').hide();
-        $('#endExpSection').show();
-        $('#endExp').click(function(){
-            window.location = "/page/library";
-        });
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) {
-            document.webkitExitFullscreen();
-        } else if (document.mozCancelFullScreen) {
-            document.mozCancelFullScreen();
-        } else if (document.msExitFullscreen) {
-            document.msExitFullscreen();
-        }
+    if (!this.isTestrun) {
+        playerAjaxPost('/finishExpSession');
+    }
+    $('#experimentViewPort').hide();
+    $('#endExpSection').show();
+    $('#endExp').click(function(){
+        window.location = "/page/library";
     });
+    if (document.exitFullscreen) {
+        document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+    } else if (document.mozCancelFullScreen) {
+        document.mozCancelFullScreen();
+    } else if (document.msExitFullscreen) {
+        document.msExitFullscreen();
+    }
 };
 
 Player.prototype.init = function() {
