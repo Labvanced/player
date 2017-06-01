@@ -25,20 +25,36 @@ if (is_nwjs()) {
             });
         }
         if (route=="/startFirstPlayerSession") {
-
+            if (callback) {
+                callback();
+            }
+        }
+        if (route=="/startFirstPlayerSessionFixGroup") {
+            if (callback) {
+                callback();
+            }
         }
         if (route=="/recordStartTask") {
             // TODO just store the json
+            if (callback) {
+                callback();
+            }
         }
         if (route=="/recordTrial") {
             // TODO just store the json
+            if (callback) {
+                callback();
+            }
         }
         if (route=="/errExpSession") {
-
+            if (callback) {
+                callback();
+            }
         }
         if (route=="/finishExpSession") {
             var win = nw.Window.get();
             win.close();
+            callback();
         }
     };
 }
@@ -92,6 +108,12 @@ var Player = function() {
         this.isTestrun = true;
     }
 
+    // in offline version always ask for subject data:
+    if (is_nwjs()) {
+        this.askSubjData = true;
+        console.log("starting in offline mode.");
+    }
+
     this.experiment = null;
     this.sessionNr = 0;
     this.groupNr = 0;
@@ -124,7 +146,7 @@ var Player = function() {
         self.finishSessionWithError(err_msg);
     });
 
-    console.log("requesting experiment with id "+this.expId+" from server.");
+    console.log("requesting experiment with id "+this.expId+" from server with askSubjData="+this.askSubjData+ " subject_code="+this.subject_code);
 
     var parameters = {
         expId: this.expId,
@@ -193,7 +215,7 @@ var Player = function() {
                                         survey_data: initialSurvey.getSurveyData(),
                                         groupNr: groupNr
                                     },
-                                    function (data) {
+                                    function () {
                                         initialSurvey.closeDialog();
                                     }
                                 );
