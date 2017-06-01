@@ -73,7 +73,10 @@ var Player = function() {
     if (this.runOnlySessionNr == "") {
         this.runOnlySessionNr = false;
     }
-
+    this.askSubjData = getParameterByName("ask");
+    if (this.askSubjData == "") {
+        this.askSubjData = false;
+    }
     this.isTestrun = getParameterByName("testrun");
     if (this.isTestrun == "" || this.isTestrun == "0" || this.isTestrun == "false" || this.isTestrun==false) {
         this.isTestrun = false;
@@ -81,7 +84,6 @@ var Player = function() {
     else {
         this.isTestrun = true;
     }
-
     this.subject_code = getParameterByName("subject_code");
     this.token = getParameterByName("token");
 
@@ -121,7 +123,10 @@ var Player = function() {
 
     var parameters = {
         expId: this.expId,
-        isTestrun: this.isTestrun
+        isTestrun: this.isTestrun,
+        subject_code: this.subject_code,
+        token: this.token,
+        askSubjData: this.askSubjData
     };
 
     createExpDesignComponents(function() {
@@ -152,28 +157,76 @@ var Player = function() {
                 return;
             }
 
-            if (self.isTestrun) {
-                var initialTestrunDialog = new InitialTestrunDialog(self.experiment.exp_data);
-                initialTestrunDialog.start(function(groupNr, sessionNr) {
+            if (self.isTestrun || self.askSubjData) {
+                // player was started by the experimenter, so we ask for subject code, group, session:
+                var initialSubjectDialog = new InitialSubjectDialog(self.experiment.exp_data);
+                if (self.runOnlyGroupNr) {
+                    initialSubjectDialog.selectedSubjectGroup(self.runOnlyGroupNr);
+                }
+                if (self.runOnlySessionNr) {
+                    initialSubjectDialog.selectedSessionNr(self.runOnlySessionNr);
+                }
+                initialSubjectDialog.subjectCode(self.subject_code);
+                initialSubjectDialog.start(function() {
+                    self.subject_code = initialSubjectDialog.subjectCode();
+                    var groupNr = initialSubjectDialog.selectedGroupNr();
+                    var sessionNr = initialSubjectDialog.selectedSessionNr();
                     self.setSubjectGroupNr(groupNr, sessionNr);
+
+                    if (initialSubjectDialog.includeInitialSurvey()) {
+
+                        var initialSurvey = new InitialSurveyDialog(self.experiment.exp_data);
+                        initialSurvey.start(function() {
+                            if (self.isTestrun) {
+                                initialSurvey.closeDialog();
+                            }
+                            else {
+                                playerAjaxPost('/startFirstPlayerSessionFixGroup',
+                                    {
+                                        expId: self.expId,
+                                        subject_code: self.subject_code,
+                                        survey_data: initialSurvey.getSurveyData(),
+                                        groupNr: groupNr
+                                    },
+                                    function (data) {
+                                        initialSurvey.closeDialog();
+                                    }
+                                );
+                            }
+                        });
+                    }
+                    else {
+                        if (!self.isTestrun) {
+                            playerAjaxPost('/startFirstPlayerSessionFixGroup',
+                                {
+                                    expId: self.expId,
+                                    subject_code: self.subject_code,
+                                    survey_data: null,
+                                    groupNr: groupNr
+                                },
+                                function (data) {
+                                }
+                            );
+                        }
+                    }
+
                 });
                 return;
             }
 
-            if (data.groupNr) {
+            if (data.groupNr && data.sessionNr) {
                 self.setSubjectGroupNr(data.groupNr, data.sessionNr);
                 return;
             }
 
             // if group and session were not already set, start the survey
             var initialSurvey = new InitialSurveyDialog(self.experiment.exp_data);
-            initialSurvey.start(function(survey_data) {
+            function submitSurvey() {
                 playerAjaxPost('/startFirstPlayerSession',
                     {
                         expId: self.expId,
-                        isTestrun: self.isTestrun,
                         subject_code: this.subject_code,
-                        survey_data: survey_data
+                        survey_data: initialSurvey.getSurveyData()
                     },
                     function(data) {
                         initialSurvey.closeDialog();
@@ -191,7 +244,16 @@ var Player = function() {
                         self.setSubjectGroupNr(data.groupNr, data.sessionNr);
                     }
                 );
-            });
+            }
+            if (!initialSurvey.requiredGender() && !initialSurvey.requiredAge() && !initialSurvey.requiredCountry() && !initialSurvey.requiredLanguage() && !initialSurvey.requiredLanguage()) {
+                // if nothing is required just skip the survey:
+                submitSurvey();
+            }
+            else {
+                initialSurvey.start(function (survey_data) {
+                    submitSurvey();
+                });
+            }
 
         });
     });
