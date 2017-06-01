@@ -11,50 +11,123 @@ function is_nwjs(){
 
 var playerAjaxPost;
 if (is_nwjs()) {
+    var win = nw.Window.get();
+    var db = win.db;
+
+    var exp_subject_id = null;
+    var rec_session_id = null;
+    var rec_task_id = null;
+    var sessionNr = null;
 
     // replace server routes with alternatives for offline version:
-    playerAjaxPost = function(route, parameters, callback) {
+    playerAjaxPost = function(route, p, callback) {
+
+
         if (route=="/startExpPlayer") {
-            // TODO create subject_code
             $.get("exp.json", function(expJSON) {
                 callback({
-                    expData: JSON.parse(expJSON),
-                    groupNr: 1,
-                    sessionNr: 1
+                    expData: JSON.parse(expJSON)
                 });
             });
         }
+
+
         if (route=="/startFirstPlayerSession") {
             if (callback) {
                 callback();
             }
         }
+
+
         if (route=="/startFirstPlayerSessionFixGroup") {
-            if (callback) {
-                callback();
-            }
+            sessionNr = 1;
+            var exp_subject_data = {
+                exp_id: p.expId,
+                subject_code: p.subject_code,
+                survey_data: p.survey_data,
+                groupNr: p.groupNr
+            };
+            db.exp_subjects.add(exp_subject_data).then(function(new_id){
+                exp_subject_id = new_id;
+                var rec_session_data = {
+                    exp_subject_id: exp_subject_id,
+                    session_nr: sessionNr,
+                    start_time: new Date()
+                };
+                return db.rec_sessions.add(rec_session_data);
+            }).then(function(new_id){
+                rec_session_id = new_id;
+                callback({
+                    success: true,
+                    groupNr: p.groupNr,
+                    sessionNr: sessionNr
+                });
+            }).catch(function(error) {
+                alert ("Ooops: " + error);
+            });
         }
+
+
         if (route=="/recordStartTask") {
-            // TODO just store the json
-            if (callback) {
-                callback();
-            }
+            var rec_task_data = {
+                rec_session_id: rec_session_id,
+                block_nr: p.blockNr,
+                block_id: p.blockId,
+                task_nr: p.taskNr,
+                task_id: p.taskId,
+                start_time: new Date()
+            };
+            db.rec_task.add(rec_task_data).then (function(new_id){
+                rec_task_id = new_id;
+                if (callback) {
+                    callback({
+                        success: true
+                    });
+                }
+            }).catch(function(error) {
+                alert ("Ooops: " + error);
+            });
         }
+
+
         if (route=="/recordTrial") {
-            // TODO just store the json
-            if (callback) {
-                callback();
-            }
+            var rec_trial_data = {
+                rec_task_id: rec_task_id,
+                trial_nr: p.trialNr,
+                rec_data: p.recData
+            };
+            db.rec_trial.put(rec_trial_data).then(function(){
+                if (callback) {
+                    callback({
+                        success: true
+                    });
+                }
+            }).catch(function(error) {
+                alert ("Ooops: " + error);
+            });
         }
+
+
         if (route=="/errExpSession") {
-            if (callback) {
-                callback();
-            }
+
         }
+
+
         if (route=="/finishExpSession") {
-            var win = nw.Window.get();
+            // add end time to session:
+            var rec_session_changes = {
+                end_time: new Date()
+            };
+            db.rec_sessions.update(rec_session_id, rec_session_changes);
+
+            // update last completed session number:
+            var exp_subject_changes = {
+                last_completed_session_nr: sessionNr
+            };
+            db.exp_subjects.update(exp_subject_id, exp_subject_changes);
+
+            // close window:
             win.close();
-            callback();
         }
     };
 }
@@ -168,6 +241,10 @@ var Player = function() {
             self.experiment = new Experiment().fromJS(data.expData);
             self.experiment.setPointers();
             console.log("experiment deserialized.");
+
+            if (!self.expId) {
+                self.expId = self.experiment.exp_id();
+            }
 
             var expPrev =  new ExperimentStartupScreen(self.experiment);
             var newContent = jQuery('<div/>');
@@ -524,7 +601,9 @@ Player.prototype.startRecordingsOfNewTask = function() {
             taskNr: this.currentTaskIdx,
             taskId: this.currentTask.id()
         };
-        playerAjaxPost('/recordStartTask', recordData);
+        playerAjaxPost('/recordStartTask', recordData, function(result) {
+
+        });
     }
 };
 
@@ -544,7 +623,9 @@ Player.prototype.recordData = function() {
             trialNr: this.trialIter,
             recData: recData.toJS()
         };
-        playerAjaxPost('/recordTrial', recordedData);
+        playerAjaxPost('/recordTrial', recordedData, function(result) {
+
+        });
     }
 };
 
