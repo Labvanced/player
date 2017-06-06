@@ -233,7 +233,7 @@ var Player = function() {
         playerAjaxPost('/startExpPlayer', parameters, function(data){
             if (data.hasOwnProperty('success') && data.success == false) {
                 queue.cancel();
-                self.finishSessionWithError("This experiment does not exist!");
+                self.finishSessionWithError("Error: "+data.msg);
                 return;
             }
             console.log("experiment spec loaded from server.");
