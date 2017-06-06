@@ -40,7 +40,7 @@ if (is_nwjs()) {
 
 
         if (route=="/startFirstPlayerSessionFixGroup") {
-            sessionNr = 1;
+            sessionNr = p.sessionNr;
             var exp_subject_data = {
                 exp_id: p.expId,
                 subject_code: p.subject_code,
@@ -290,7 +290,8 @@ var Player = function() {
                                         expId: self.expId,
                                         subject_code: self.subject_code,
                                         survey_data: initialSurvey.getSurveyData(),
-                                        groupNr: groupNr
+                                        groupNr: groupNr,
+                                        sessionNr: sessionNr
                                     },
                                     function () {
                                         initialSurvey.closeDialog();
@@ -306,7 +307,8 @@ var Player = function() {
                                     expId: self.expId,
                                     subject_code: self.subject_code,
                                     survey_data: null,
-                                    groupNr: groupNr
+                                    groupNr: groupNr,
+                                    sessionNr: sessionNr
                                 },
                                 function (data) {
                                 }
