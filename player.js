@@ -22,6 +22,25 @@ if (is_nwjs()) {
     // replace server routes with alternatives for offline version:
     playerAjaxPost = function(route, p, callback) {
 
+        // Convert Javascript date to Pg YYYY-MM-DD HH:MI:SS-08
+        function pgFormatDate(date) {
+            function zeroPad(d) {
+                return ("0" + d).slice(-2);
+            }
+            var timeZoneOffsetInHours = date.getTimezoneOffset() / 60;
+            var dayString = [date.getUTCFullYear(), zeroPad(date.getMonth() + 1), zeroPad(date.getDate())].join("-");
+            var timeString = [zeroPad(date.getHours()), zeroPad(date.getMinutes()), zeroPad(date.getSeconds())].join(":");
+            if (timeZoneOffsetInHours>0) {
+                timeZoneOffsetInHours = "+"+zeroPad(timeZoneOffsetInHours);
+            }
+            else if (timeZoneOffsetInHours<0) {
+                timeZoneOffsetInHours = "-"+zeroPad(-timeZoneOffsetInHours);
+            }
+            else {
+                timeZoneOffsetInHours = "+00";
+            }
+            return dayString+" "+timeString+timeZoneOffsetInHours;
+        }
 
         if (route=="/startExpPlayer") {
             $.get("exp.json", function(expJSON) {
@@ -45,14 +64,14 @@ if (is_nwjs()) {
                 exp_id: p.expId,
                 subject_code: p.subject_code,
                 survey_data: p.survey_data,
-                groupNr: p.groupNr
+                group_nr: p.groupNr
             };
             db.exp_subjects.add(exp_subject_data).then(function(new_id){
                 exp_subject_id = new_id;
                 var rec_session_data = {
                     exp_subject_id: exp_subject_id,
                     session_nr: sessionNr,
-                    start_time: new Date()
+                    start_time: pgFormatDate(new Date())
                 };
                 return db.rec_sessions.add(rec_session_data);
             }).then(function(new_id){
@@ -75,7 +94,7 @@ if (is_nwjs()) {
                 block_id: p.blockId,
                 task_nr: p.taskNr,
                 task_id: p.taskId,
-                start_time: new Date()
+                start_time: pgFormatDate(new Date())
             };
             db.rec_task.add(rec_task_data).then (function(new_id){
                 rec_task_id = new_id;
@@ -116,7 +135,7 @@ if (is_nwjs()) {
         if (route=="/finishExpSession") {
             // add end time to session:
             var rec_session_changes = {
-                end_time: new Date()
+                end_time: pgFormatDate(new Date())
             };
             db.rec_sessions.update(rec_session_id, rec_session_changes);
 
