@@ -64,7 +64,9 @@ if (is_nwjs()) {
                 exp_id: p.expId,
                 subject_code: p.subject_code,
                 survey_data: p.survey_data,
-                group_nr: p.groupNr
+                group_nr: p.groupNr,
+                last_completed_session_nr: 0,
+                add_time: pgFormatDate(new Date())
             };
             db.exp_subjects.add(exp_subject_data).then(function(new_id){
                 exp_subject_id = new_id;
