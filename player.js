@@ -84,21 +84,6 @@ if (is_nwjs()) {
             });
         }
 
-        if (route=="/recordSessionVariables") {
-            var rec_session_data = {
-                rec_data_session: p.recDataSession
-            };
-            db.rec_sessions.update(rec_session_id, rec_session_data).then(function(){
-                if (callback) {
-                    callback({
-                        success: true
-                    });
-                }
-            }).catch(function(error) {
-                alert ("Ooops: " + error);
-            });
-        }
-
         if (route=="/recordStartTask") {
             var rec_task_data = {
                 rec_session_id: rec_session_id,
@@ -262,7 +247,8 @@ var Player = function() {
         isTestrun: this.isTestrun,
         subject_code: this.subject_code,
         token: this.token,
-        askSubjData: this.askSubjData
+        askSubjData: this.askSubjData,
+        sessionStartTime: this.sessionStartTime
     };
 
     createExpDesignComponents(function() {
@@ -327,7 +313,8 @@ var Player = function() {
                                         subject_code: self.subject_code,
                                         survey_data: initialSurvey.getSurveyData(),
                                         groupNr: groupNr,
-                                        sessionNr: sessionNr
+                                        sessionNr: sessionNr,
+                                        sessionStartTime: self.sessionStartTime
                                     },
                                     function () {
                                         initialSurvey.closeDialog();
@@ -344,7 +331,8 @@ var Player = function() {
                                     subject_code: self.subject_code,
                                     survey_data: null,
                                     groupNr: groupNr,
-                                    sessionNr: sessionNr
+                                    sessionNr: sessionNr,
+                                    sessionStartTime: self.sessionStartTime
                                 },
                                 function (data) {
                                 }
@@ -368,7 +356,8 @@ var Player = function() {
                     {
                         expId: self.expId,
                         subject_code: self.subject_code,
-                        survey_data: initialSurvey.getSurveyData()
+                        survey_data: initialSurvey.getSurveyData(),
+                        sessionStartTime: self.sessionStartTime
                     },
                     function(data) {
                         initialSurvey.closeDialog();
@@ -500,8 +489,6 @@ Player.prototype.setSubjectGroupNr = function(groupNr, sessionNr){
 };
 
 Player.prototype.startExperiment = function() {
-    this.recordSessionVariables();
-
     if (this.runOnlyTaskId){
         // run a test task session:
         this.currentTaskIdx = NaN;
@@ -651,24 +638,6 @@ Player.prototype.startRunningTask = function() {
         this.startNextBlock();
     }
 
-};
-
-Player.prototype.recordSessionVariables = function() {
-    if (!this.runOnlyTaskId && !this.isTestrun) {
-
-        this.experiment.exp_data.varGroupName();
-
-        var recordData = {
-            session_nr: this.experiment.exp_data.varSessionNr().value().value(),
-            session_name: this.experiment.exp_data.varSessionName().value().value(),
-            session_id: this.experiment.exp_data.varSessionNr().value().value(),
-            start_time: this.experiment.exp_data.varSessionTimeStamp().value().value(),
-            end_time: this.experiment.exp_data.varSessionTimeStampEnd().value().value(),
-        };
-        playerAjaxPost('/recordSessionVariables', recordData, function(result) {
-
-        });
-    }
 };
 
 Player.prototype.startRecordingsOfNewTask = function() {
