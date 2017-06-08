@@ -9,6 +9,26 @@ function is_nwjs(){
     }
 }
 
+// Convert Javascript date to Pg YYYY-MM-DD HH:MI:SS-08
+function pgFormatDate(date) {
+    function zeroPad(d) {
+        return ("0" + d).slice(-2);
+    }
+    var timeZoneOffsetInHours = date.getTimezoneOffset() / 60;
+    var dayString = [date.getUTCFullYear(), zeroPad(date.getMonth() + 1), zeroPad(date.getDate())].join("-");
+    var timeString = [zeroPad(date.getHours()), zeroPad(date.getMinutes()), zeroPad(date.getSeconds())].join(":");
+    if (timeZoneOffsetInHours>0) {
+        timeZoneOffsetInHours = "+"+zeroPad(timeZoneOffsetInHours);
+    }
+    else if (timeZoneOffsetInHours<0) {
+        timeZoneOffsetInHours = "-"+zeroPad(-timeZoneOffsetInHours);
+    }
+    else {
+        timeZoneOffsetInHours = "+00";
+    }
+    return dayString+" "+timeString+timeZoneOffsetInHours;
+}
+
 var playerAjaxPost;
 if (is_nwjs()) {
     var win = nw.Window.get();
@@ -22,26 +42,6 @@ if (is_nwjs()) {
     // replace server routes with alternatives for offline version:
     playerAjaxPost = function(route, p, callback) {
 
-        // Convert Javascript date to Pg YYYY-MM-DD HH:MI:SS-08
-        function pgFormatDate(date) {
-            function zeroPad(d) {
-                return ("0" + d).slice(-2);
-            }
-            var timeZoneOffsetInHours = date.getTimezoneOffset() / 60;
-            var dayString = [date.getUTCFullYear(), zeroPad(date.getMonth() + 1), zeroPad(date.getDate())].join("-");
-            var timeString = [zeroPad(date.getHours()), zeroPad(date.getMinutes()), zeroPad(date.getSeconds())].join(":");
-            if (timeZoneOffsetInHours>0) {
-                timeZoneOffsetInHours = "+"+zeroPad(timeZoneOffsetInHours);
-            }
-            else if (timeZoneOffsetInHours<0) {
-                timeZoneOffsetInHours = "-"+zeroPad(-timeZoneOffsetInHours);
-            }
-            else {
-                timeZoneOffsetInHours = "+00";
-            }
-            return dayString+" "+timeString+timeZoneOffsetInHours;
-        }
-
         if (route=="/startExpPlayer") {
             $.get("exp.json", function(expJSON) {
                 callback({
@@ -50,15 +50,13 @@ if (is_nwjs()) {
             });
         }
 
-
         if (route=="/startFirstPlayerSession") {
             if (callback) {
                 callback();
             }
         }
 
-
-        if (route=="/startFirstPlayerSessionFixGroup") {
+        if (route=="/startPlayerSession") {
             sessionNr = p.sessionNr;
             var exp_subject_data = {
                 exp_id: p.expId,
@@ -79,15 +77,27 @@ if (is_nwjs()) {
             }).then(function(new_id){
                 rec_session_id = new_id;
                 callback({
-                    success: true,
-                    groupNr: p.groupNr,
-                    sessionNr: sessionNr
+                    success: true
                 });
             }).catch(function(error) {
                 alert ("Ooops: " + error);
             });
         }
 
+        if (route=="/recordSessionVariables") {
+            var rec_session_data = {
+                rec_data_session: p.recDataSession
+            };
+            db.rec_sessions.update(rec_session_id, rec_session_data).then(function(){
+                if (callback) {
+                    callback({
+                        success: true
+                    });
+                }
+            }).catch(function(error) {
+                alert ("Ooops: " + error);
+            });
+        }
 
         if (route=="/recordStartTask") {
             var rec_task_data = {
@@ -96,7 +106,7 @@ if (is_nwjs()) {
                 block_id: p.blockId,
                 task_nr: p.taskNr,
                 task_id: p.taskId,
-                start_time: pgFormatDate(new Date())
+                start_time: p.start_time
             };
             db.rec_task.add(rec_task_data).then (function(new_id){
                 rec_task_id = new_id;
@@ -109,7 +119,6 @@ if (is_nwjs()) {
                 alert ("Ooops: " + error);
             });
         }
-
 
         if (route=="/recordTrial") {
             var rec_trial_data = {
@@ -128,16 +137,14 @@ if (is_nwjs()) {
             });
         }
 
-
         if (route=="/errExpSession") {
 
         }
 
-
         if (route=="/finishExpSession") {
             // add end time to session:
             var rec_session_changes = {
-                end_time: pgFormatDate(new Date())
+                end_time: p.end_time
             };
             db.rec_sessions.update(rec_session_id, rec_session_changes);
 
@@ -146,6 +153,9 @@ if (is_nwjs()) {
                 last_completed_session_nr: sessionNr
             };
             db.exp_subjects.update(exp_subject_id, exp_subject_changes);
+
+            // update list of recordings:
+            win.refreshList();
 
             // close window:
             win.close();
@@ -212,6 +222,9 @@ var Player = function() {
     this.sessionNr = 0;
     this.groupNr = 0;
 
+    // the following three variables will be set by function setSubjectGroupNr():
+    this.subj_group = null;
+    this.exp_session = null;
     this.blocks = null;
 
     this.currentBlock = null;
@@ -234,6 +247,8 @@ var Player = function() {
 
     this.preloadCounter =0;
     this.contentList = [];
+
+    this.sessionStartTime = pgFormatDate(new Date());
 
     Webcam.on("error", function(err_msg){
         console.log("webcam error: "+err_msg);
@@ -306,7 +321,7 @@ var Player = function() {
                                 initialSurvey.closeDialog();
                             }
                             else {
-                                playerAjaxPost('/startFirstPlayerSessionFixGroup',
+                                playerAjaxPost('/startPlayerSession',
                                     {
                                         expId: self.expId,
                                         subject_code: self.subject_code,
@@ -323,7 +338,7 @@ var Player = function() {
                     }
                     else {
                         if (!self.isTestrun) {
-                            playerAjaxPost('/startFirstPlayerSessionFixGroup',
+                            playerAjaxPost('/startPlayerSession',
                                 {
                                     expId: self.expId,
                                     subject_code: self.subject_code,
@@ -453,30 +468,40 @@ Player.prototype.setSubjectGroupNr = function(groupNr, sessionNr){
 
     console.log("groupNr="+groupNr+ " sessionNr="+sessionNr);
 
-    var subj_group = this.experiment.exp_data.availableGroups()[this.groupNr-1];
-    if (!subj_group) {
+    this.subj_group = this.experiment.exp_data.availableGroups()[this.groupNr-1];
+    if (!this.subj_group) {
         console.log("player error: there is no subject group defined in the experiment.");
         this.finishSessionWithError("There is no subject group defined in the experiment.");
         return;
     }
 
-    var exp_session = subj_group.sessions()[this.sessionNr-1];
-    if (!exp_session) {
+    this.exp_session = this.subj_group.sessions()[this.sessionNr-1];
+    if (!this.exp_session) {
         console.log("player error: there is no session defined in the subject group in the experiment.");
         this.finishSessionWithError("there is no session defined in the subject group in the experiment.");
         return;
     }
 
-    this.blocks = exp_session.blocks();
+    this.blocks = this.exp_session.blocks();
     if (this.blocks.length == 0) {
         console.log("player error: there is no block defined in this experiment session.");
         this.finishSessionWithError("there is no block defined in this experiment session.");
         return;
     }
 
+    // initialize variables that are session specific:
+    this.experiment.exp_data.varSubjectCode().value().value(this.subject_code);
+    this.experiment.exp_data.varSubjectNr().value().value(0); // TODO
+    this.experiment.exp_data.varGroupName().value().value(this.subj_group.name());
+    this.experiment.exp_data.varSessionTimeStamp().value().value(this.sessionStartTime);
+    this.experiment.exp_data.varSessionTimeStampEnd().value().value(null); // this variable makes no sense to use? can only be set at the end...
+    this.experiment.exp_data.varSessionName().value().value(this.exp_session.name());
+    this.experiment.exp_data.varSessionNr().value().value(this.sessionNr);
 };
 
 Player.prototype.startExperiment = function() {
+    this.recordSessionVariables();
+
     if (this.runOnlyTaskId){
         // run a test task session:
         this.currentTaskIdx = NaN;
@@ -568,6 +593,11 @@ Player.prototype.startRunningTask = function() {
             }
         }
 
+        // add trial id and nr variable to recordings:
+        this.variablesToRecord.push(this.experiment.exp_data.varTrialId());
+        this.variablesToRecord.push(this.experiment.exp_data.varTrialNr());
+        this.variablesToRecord.push(this.experiment.exp_data.varConditionId());
+
         // add all factor vars to recordings
         var allEntities = this.experiment.exp_data.entities();
         for (var i=0; i<allEntities.length; i++){
@@ -579,6 +609,13 @@ Player.prototype.startRunningTask = function() {
             }
         }
 
+        // initialize variables that are task specific:
+        this.experiment.exp_data.varBlockName().value().value(this.currentBlock.name());
+        this.experiment.exp_data.varBlockNr().value().value(this.currentBlockIdx+1);
+        this.experiment.exp_data.varTaskName().value().value(this.currentTask.name());
+        this.experiment.exp_data.varTaskNr().value().value(this.currentTaskIdx+1);
+
+        // start randomization:
         this.randomizedTrials = this.currentTask.doTrialRandomization();
 
         console.log("randomization finished... start first trial initialization...");
@@ -616,13 +653,35 @@ Player.prototype.startRunningTask = function() {
 
 };
 
+Player.prototype.recordSessionVariables = function() {
+    if (!this.runOnlyTaskId && !this.isTestrun) {
+
+        this.experiment.exp_data.varGroupName();
+
+        var recordData = {
+            session_nr: this.experiment.exp_data.varSessionNr().value().value(),
+            session_name: this.experiment.exp_data.varSessionName().value().value(),
+            session_id: this.experiment.exp_data.varSessionNr().value().value(),
+            start_time: this.experiment.exp_data.varSessionTimeStamp().value().value(),
+            end_time: this.experiment.exp_data.varSessionTimeStampEnd().value().value(),
+        };
+        playerAjaxPost('/recordSessionVariables', recordData, function(result) {
+
+        });
+    }
+};
+
 Player.prototype.startRecordingsOfNewTask = function() {
     if (!this.runOnlyTaskId && !this.isTestrun) {
+        // record variables at start of task:
         var recordData = {
-            blockNr: this.currentBlockIdx,
+            blockNr: this.experiment.exp_data.varBlockNr().value().value(),
             blockId: this.currentBlock.id(),
-            taskNr: this.currentTaskIdx,
-            taskId: this.currentTask.id()
+            blockName: this.experiment.exp_data.varBlockName().value().value(),
+            taskNr: this.experiment.exp_data.varTaskNr().value().value(),
+            taskId: this.currentTask.id(),
+            taskName: this.experiment.exp_data.varTaskName().value().value(),
+            start_time: pgFormatDate(new Date())
         };
         playerAjaxPost('/recordStartTask', recordData, function(result) {
 
@@ -634,7 +693,6 @@ Player.prototype.recordData = function() {
     if (!this.runOnlyTaskId && !this.isTestrun) {
         // record variables at end of trial:
         var recData = new RecData();
-
 
         // new, dynamic verison
         for (var i = 0; i < this.variablesToRecord.length; i++) {
@@ -685,6 +743,11 @@ Player.prototype.startNextTrial = function() {
 
     this.currentTrialId = trialSelection.trialVariation.uniqueId();
     console.log("start randomized trial id " + this.currentTrialId);
+
+    // set some predefined variables for this trial:
+    this.experiment.exp_data.varTrialId().value().value(this.currentTrialId);
+    this.experiment.exp_data.varTrialNr().value().value(this.trialIter+1);
+    this.experiment.exp_data.varConditionId().value().value(1); // TODO set condition id
 
     // reset variables at start of trial:
     for (var i=0; i<this.variablesToReset.length; i++){
@@ -806,7 +869,9 @@ Player.prototype.finishSessionWithError = function(err_msg) {
 Player.prototype.finishSession = function() {
     console.log("finishExpSession...");
     if (!this.isTestrun) {
-        playerAjaxPost('/finishExpSession');
+        playerAjaxPost('/finishExpSession', {
+            end_time: pgFormatDate(new Date())
+        });
     }
     $('#experimentViewPort').hide();
     $('#endExpSection').show();
