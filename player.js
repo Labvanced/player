@@ -79,6 +79,10 @@ if (is_nwjs()) {
                 callback({
                     success: true
                 });
+
+                // update list of recordings:
+                win.refreshList();
+
             }).catch(function(error) {
                 alert ("Ooops: " + error);
             });
