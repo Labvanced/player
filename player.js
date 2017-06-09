@@ -597,7 +597,9 @@ Player.prototype.startRunningTask = function() {
         }
 
         // initialize variables that are task specific:
-        this.experiment.exp_data.varBlockName().value().value(this.currentBlock.name());
+        if (this.currentBlock) {
+            this.experiment.exp_data.varBlockName().value().value(this.currentBlock.name());
+        }
         this.experiment.exp_data.varBlockNr().value().value(this.currentBlockIdx+1);
         this.experiment.exp_data.varTaskName().value().value(this.currentTask.name());
         this.experiment.exp_data.varTaskNr().value().value(this.currentTaskIdx+1);
