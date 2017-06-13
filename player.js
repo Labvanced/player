@@ -268,6 +268,8 @@ var Player = function() {
             self.experiment.setPointers();
             console.log("experiment deserialized.");
 
+            self.experiment.exp_data.initVars();
+
             if (!self.expId) {
                 self.expId = self.experiment.exp_id();
             }
