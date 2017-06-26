@@ -97,13 +97,12 @@ function updateSlider(amount){
 }
 
 function onError(event) {
-  // console.log('Error', event);
+    // console.log('Error', event);
 }
 
 var preloadedObjectUrlsById = {};
 
 function onFileLoad(event) {
-    console.log('File loaded', event);
     var item = event.item; // A reference to the item that was passed in to the LoadQueue
     var type = item.type;
 
@@ -118,15 +117,15 @@ function onFileLoad(event) {
 }
 
 function onFileProgress(event) {
-  //console.log('File progress', event);
+    //console.log('File progress', event);
 }
 
 function onProgress(event) {
-  var progress = Math.round(event.loaded * 100);
-  
-  //console.log('General progress', Math.round(event.loaded) * 100, event);
-  $progress.text(progress + "%");
-  $progressbar.css({
-    'width': progress + "%"
-  });
+    var progress = Math.round(event.loaded * 100);
+
+    //console.log('General progress', Math.round(event.loaded) * 100, event);
+    $progress.text(progress + "%");
+    $progressbar.css({
+        'width': progress + "%"
+    });
 }
