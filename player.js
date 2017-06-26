@@ -234,9 +234,6 @@ var Player = function() {
     this.webcamLoaded = false;
     this.variablesToReset = [];
 
-    this.preloadCounter =0;
-    this.contentList = [];
-
     this.sessionStartTime = pgFormatDate(new Date());
 
     Webcam.on("error", function(err_msg){
@@ -398,6 +395,35 @@ var Player = function() {
 };
 
 Player.prototype.preloadAllContent = function() {
+
+    var contentList = [];
+    var contentListById = {};
+
+    function deepDive(arr) {
+        var t;
+        if (arr[0].constructor === Array) {
+            // recursive call:
+            for (t = 0; t < arr.length; t++) {
+                deepDive(arr[t]);
+            }
+        }
+        else {
+            for (t = 0; t < arr.length; t++) {
+                if (arr[t].modifiedProp.hasOwnProperty("file_id")) {
+                    var src = "/files/" + arr[t].modifiedProp.file_id() + "/" + arr[t].modifiedProp.file_orig_name();
+                    var fileSpec = {
+                        id: arr[t].modifiedProp.file_id(),
+                        src: src
+                    };
+                    if (!contentListById.hasOwnProperty(fileSpec.id)) {
+                        contentList.push(fileSpec);
+                        contentListById[fileSpec.id] = fileSpec;
+                    }
+                }
+            }
+        }
+    }
+
     // parse images, video and audio elements
     var entities = this.experiment.exp_data.entities();
     for (var i = 0; i<entities.length; i++){
@@ -407,18 +433,21 @@ Player.prototype.preloadAllContent = function() {
                 var entity2 = entity.elements()[k];
                 if  (entity2.content() instanceof VideoElement || entity2.content() instanceof ImageElement  || entity2.content() instanceof AudioElement){
                     if  (entity2.content().hasOwnProperty("file_id")){
-                        this.preloadCounter +=1;
                         if (entity2.content().file_id() && entity2.content().file_orig_name()) {
                             var src = "/files/" + entity2.content().file_id() + "/" + entity2.content().file_orig_name();
-                            this.contentList.push({
-                                id: this.preloadCounter.toString(),
+                            var fileSpec = {
+                                id: entity2.content().file_id(),
                                 src: src
-                            });
+                            };
+                            if (!contentListById.hasOwnProperty(fileSpec.id)) {
+                                contentList.push(fileSpec);
+                                contentListById[fileSpec.id] = fileSpec;
+                            }
                         }
                     }
                     var arr =  entity2.content().modifier().ndimModifierTrialTypes;
                     if (arr.length>0){
-                        this.deepDive(arr);
+                        deepDive(arr);
                     }
 
                 }
@@ -427,33 +456,11 @@ Player.prototype.preloadAllContent = function() {
 
         }
     }
-    if (this.contentList.length>0){
-        queue.loadManifest(this.contentList);
+    if (contentList.length>0){
+        queue.loadManifest(contentList);
     }
     else{
         onComplete();
-    }
-};
-
-Player.prototype.deepDive = function(arr){
-
-    if (arr[0].constructor === Array) {
-        // recursive call:
-        for (var t = 0; t < arr.length; t++) {
-            this.deepDive(arr[t]);
-        }
-    }
-    else {
-        for (var t = 0; t < arr.length; t++) {
-            if  (arr[t].modifiedProp.hasOwnProperty("file_id")){
-                this.preloadCounter +=1;
-                var src =  "/files/" + arr[t].modifiedProp.file_id() + "/" + arr[t].modifiedProp.file_orig_name();
-                this.contentList.push({
-                    id: this.preloadCounter.toString(),
-                    src: src
-                });
-            }
-        }
     }
 };
 
