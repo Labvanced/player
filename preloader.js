@@ -1,4 +1,4 @@
-var queue        = new createjs.LoadQueue(),
+var queue        = new createjs.LoadQueue(true),
     $state       = $("#state"),
     $progress    = $("#progress"),
     $progressbar = $("#progressbar .bar");
@@ -10,15 +10,6 @@ queue.on("fileload",     onFileLoad);
 queue.on("fileprogress", onFileProgress);
 queue.on("progress",     onProgress);
 
-/**
-var list = [
-    {
-        id: "1",
-        src: "/assets/img/scicovery/design_rec_analyze.png"
-    }
-];
-queue.loadManifest(list);
- **/
 var reps = 0;
 function getRandomArbitrary(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -109,8 +100,21 @@ function onError(event) {
   // console.log('Error', event);
 }
 
+var preloadedObjectUrlsById = {};
+
 function onFileLoad(event) {
-  // console.log('File loaded', event);
+    console.log('File loaded', event);
+    var item = event.item; // A reference to the item that was passed in to the LoadQueue
+    var type = item.type;
+
+    // Add any images to the page body.
+    if (type == createjs.LoadQueue.IMAGE || type == createjs.LoadQueue.VIDEO || type == createjs.LoadQueue.SOUND) {
+        var objectUrl = (window.URL || window.webkitURL).createObjectURL(event.rawResult);
+        preloadedObjectUrlsById[event.item.id] = objectUrl;
+    }
+    else {
+        console.log("other content");
+    }
 }
 
 function onFileProgress(event) {
