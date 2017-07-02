@@ -22,9 +22,12 @@ var PlayerFrame = function(frameData,frameDiv,player) {
     this.onFrameStartCallbacks = [];
     this.onFrameEndCallbacks = [];
 
-    window.addEventListener('resize', function() {
+    // the following is stored to later remove the event listener:
+    this.resizeEventListener = function() {
         self.resize();
-    }, false);
+    };
+
+    window.addEventListener('resize', this.resizeEventListener, false);
 
 
 };
@@ -69,6 +72,14 @@ PlayerFrame.prototype.init = function() {
             "width": "100%",
             "height": "100%"
         });
+    }
+};
+
+PlayerFrame.prototype.dispose = function() {
+    window.removeEventListener('resize', this.resizeEventListener , false);
+
+    if (typeof this.frameView.dispose === "function") {
+        this.frameView.dispose();
     }
 };
 

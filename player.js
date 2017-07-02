@@ -749,6 +749,11 @@ Player.prototype.startNextTrial = function() {
     if (this.currentTrialDiv) {
         this.currentTrialDiv.remove();
     }
+    for( var oldTrialFrameKeys in this.currentTrialFrames ) {
+        if (this.currentTrialFrames.hasOwnProperty(oldTrialFrameKeys)) {
+            this.currentTrialFrames[oldTrialFrameKeys].dispose();
+        }
+    }
     this.currentTrialFrames = this.nextTrialFrames;
     this.currentTrialDiv = this.nextTrialDiv;
 
