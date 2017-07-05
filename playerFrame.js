@@ -217,7 +217,7 @@ PlayerFrame.prototype.finishFrame = function() {
         this.onFrameEndCallbacks[i]();
     }
 
-    // setup callacks
+    // destroy event listeners of triggers
     var events = this.frameData.events();
     for (var i = 0; i < events.length; i++){
         var event =  events[i];
