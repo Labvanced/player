@@ -52,49 +52,14 @@ function onComplete(event) {
             // TODO: this check is not working yet:
             var fullscreenEnabled = document.fullscreenEnabled || document.mozFullScreenEnabled || document.webkitFullscreenEnabled;
             if (fullscreenEnabled){
-                loadCalibrationScreen();
+                player.startExperiment();
             }
         },5000);
 
 
     });
-
-
 }
 
-function loadCalibrationScreen(){
-
-    player.startExperiment();
-
-    // include this once calibration is switched on and working
-    /**
-    var pic = document.getElementById("creditCard");
-    this.creditWidth = $(pic).width();
-    this.creditHeight = $(pic).height();
-    $( "#slide" ).slider({
-        value: 30,
-        min: 50,
-        step: 1,
-        max: 300,
-        slide: function( event, ui ) {
-            updateSlider(ui.value);
-        }
-    });
-    $('#confirmCalib').click(function () {
-        $('#calibrateScreen').hide();
-        player.startNextBlock();
-    });
-
-    $('#calibrateScreen').show();
-     **/
-}
-
-function updateSlider(amount){
-    var pic = document.getElementById("creditCard");
-    this.factor = amount/100;
-    pic.style.width = this.creditWidth * this.factor +'px';
-    pic.style.height = this.creditHeight * this.factor +'px';
-}
 
 function onError(event) {
     // console.log('Error', event);

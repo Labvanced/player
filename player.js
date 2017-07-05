@@ -233,6 +233,7 @@ var Player = function() {
 
     this.webcamLoaded = false;
     this.variablesToReset = [];
+    this.PixelDensityPerMM = null; // in pixel per mm
 
     this.sessionStartTime = pgFormatDate(new Date());
 
@@ -501,16 +502,91 @@ Player.prototype.setSubjectGroupNr = function(groupNr, sessionNr){
     this.experiment.exp_data.varSessionNr().value().value(this.sessionNr);
 };
 
+Player.prototype.runCalibration = function(callback) {
+    var self = this;
+
+    var picWidthHeightRatio = 85.60 / 53.98;
+    var displayDiagInPx = Math.sqrt(screen.width*screen.width + screen.height*screen.height);
+    var convertInchToMM = 0.0393700787402;
+
+    $( "#creditCard" ).resizable({
+        aspectRatio: picWidthHeightRatio,
+        handles: { 'e': '.ui-resizable-e'},
+        resize: function(event, ui){
+            var creditWidthInPixel = ui.size.width;
+            self.PixelDensityPerMM = creditWidthInPixel / 85.60;
+
+            // set number input:
+            var displayDiagInMM = displayDiagInPx / self.PixelDensityPerMM;
+            var displayDiagInInch = displayDiagInMM * convertInchToMM;
+            $("#calibrationInput").val(displayDiagInInch);
+
+            console.log("creditWidthInPixel=" + creditWidthInPixel + " PixelDensityPerMM="+self.PixelDensityPerMM);
+        }
+    });
+
+    function numberInputChanged() {
+        var displayDiagInInch = $("#calibrationInput").val();
+        var displayDiagInMM = displayDiagInInch / convertInchToMM; // converting inch to mm
+        self.PixelDensityPerMM = displayDiagInPx / displayDiagInMM;
+
+        // set size of image:
+        var creditWidthInPixel = self.PixelDensityPerMM * 85.60;
+        $( "#creditCard" ).width(creditWidthInPixel);
+        $( "#creditCard" ).height(creditWidthInPixel / picWidthHeightRatio);
+
+        console.log("displayDiagInPx="+displayDiagInPx+" displayDiagInMM="+displayDiagInMM+" PixelDensityPerMM="+self.PixelDensityPerMM);
+    }
+    $("#calibrationInput").on('change keyup mouseup', numberInputChanged);
+
+    // initialize size of picture:
+    numberInputChanged();
+
+    $('#confirmCalib').click(function () {
+        $("#calibrationInput").off('change keyup mouseup', numberInputChanged);
+        $('#calibrateScreen').hide();
+        callback();
+    });
+    $('#calibrateScreen').show();
+};
+
 Player.prototype.startExperiment = function() {
+    var self = this;
     if (this.runOnlyTaskId){
         // run a test task session:
         this.currentTaskIdx = NaN;
         this.currentTask = this.experiment.exp_data.entities.byId[this.runOnlyTaskId];
-        this.startRunningTask();
+        if (this.currentTask.zoomMode() === "visualDegree" || this.currentTask.zoomMode() === "millimeter") {
+            // first run calibration:
+            this.runCalibration(function() {
+                self.startRunningTask();
+            });
+        }
+        else {
+            this.startRunningTask();
+        }
     }
     else {
         // run a real complete experiment session:
-        this.startNextBlock();
+        var needsCalibration = false;
+        for (var blockIdx = 0; blockIdx < this.blocks.length; blockIdx++) {
+            var block = this.blocks[blockIdx];
+            for (var taskIdx = 0; taskIdx < block.tasks.length; taskIdx++) {
+                var task = block.tasks[taskIdx];
+                if (task.zoomMode() === "visualDegree" || task.zoomMode() === "millimeter") {
+                    needsCalibration = true;
+                }
+            }
+        }
+        if (needsCalibration) {
+            // first run calibration:
+            this.runCalibration(function() {
+                self.startNextBlock();
+            });
+        }
+        else {
+            this.startNextBlock();
+        }
     }
 };
 
