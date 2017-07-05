@@ -45,7 +45,7 @@ PlayerFrame.prototype.init = function() {
     }
     else{
         $(this.frameDiv).css({
-            "cursor": 'pointer'
+            "cursor": 'default'
         });
     }
 
