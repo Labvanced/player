@@ -38,6 +38,16 @@ PlayerFrame.prototype.init = function() {
     $(this.frameDiv).css({
         "background-color": this.frameData.bgColor()
     });
+    if (this.frameData.hideMouse()){
+        $(this.frameDiv).css({
+            "cursor": 'none'
+        });
+    }
+    else{
+        $(this.frameDiv).css({
+            "cursor": 'pointer'
+        });
+    }
 
     var centeredDiv = $("<div/>");
     $(this.frameDiv).append(centeredDiv);
@@ -66,6 +76,7 @@ PlayerFrame.prototype.init = function() {
             "left": offX,
             "top": offY
         });
+
     }
     else {
         $(centeredDiv).css({
