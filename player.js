@@ -570,9 +570,9 @@ Player.prototype.startExperiment = function() {
         // run a real complete experiment session:
         var needsCalibration = false;
         for (var blockIdx = 0; blockIdx < this.blocks.length; blockIdx++) {
-            var block = this.blocks[blockIdx];
-            for (var taskIdx = 0; taskIdx < block.tasks.length; taskIdx++) {
-                var task = block.tasks[taskIdx];
+            var subTasks = this.blocks[blockIdx].subTasks();
+            for (var taskIdx = 0; taskIdx < subTasks.length; taskIdx++) {
+                var task = subTasks[taskIdx];
                 if (task.zoomMode() === "visualDegree" || task.zoomMode() === "millimeter") {
                     needsCalibration = true;
                 }
