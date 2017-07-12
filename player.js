@@ -228,6 +228,7 @@ var Player = function() {
     this.currentTrialDiv = null;
     this.currentTrialFrames = null;
     this.currentSequence = null;
+    this.nextSequence = null;
 
     this.currentFrame = null;
 
@@ -834,8 +835,8 @@ Player.prototype.startNextTrial = function() {
     this.currentTrialDiv = this.nextTrialDiv;
 
     // go into trial sequence:
-    var factorGroupIdx = this.currentTask.factorGroups().indexOf(trialSelection.factorGroup);
-    this.currentSequence = this.currentTask.subSequencePerFactorGroup()[factorGroupIdx];
+    this.currentSequence = this.nextSequence;
+    this.nextSequence = null;
     this.currentSequence.currSelectedElement(null);
     this.currentSequence.selectNextElement();
     this.startNextPageOrFrame();
@@ -846,8 +847,6 @@ Player.prototype.startNextTrial = function() {
             self.addTrialViews(self.trialIter + 1, self.currentTask);
         }, 1);
     }
-
-
 };
 
 Player.prototype.startNextPageOrFrame = function() {
@@ -883,9 +882,9 @@ Player.prototype.addTrialViews = function (trialIter,task) {
     var nextTrialSelection = this.randomizedTrials[trialIter];
 
     var factorGroupIdx = task.factorGroups().indexOf(nextTrialSelection.factorGroup);
-    var copiedSequence = task.subSequencePerFactorGroup()[factorGroupIdx].getDeepCopyForPlayer();
-    copiedSequence.selectTrialType(nextTrialSelection);
-    var frameDataArr = copiedSequence.elements();
+    this.nextSequence = task.subSequencePerFactorGroup()[factorGroupIdx].getDeepCopyForPlayer();
+    this.nextSequence.selectTrialType(nextTrialSelection);
+    var frameDataArr = this.nextSequence.elements();
 
     this.nextTrialFrames = {};
     for(var frameIdx =0;frameIdx<frameDataArr.length;frameIdx++){
