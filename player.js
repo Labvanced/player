@@ -883,7 +883,9 @@ Player.prototype.addTrialViews = function (trialIter,task) {
     var nextTrialSelection = this.randomizedTrials[trialIter];
 
     var factorGroupIdx = task.factorGroups().indexOf(nextTrialSelection.factorGroup);
-    var frameDataArr = task.subSequencePerFactorGroup()[factorGroupIdx].elements();
+    var copiedSequence = task.subSequencePerFactorGroup()[factorGroupIdx].getDeepCopyForPlayer();
+    copiedSequence.selectTrialType(nextTrialSelection);
+    var frameDataArr = copiedSequence.elements();
 
     this.nextTrialFrames = {};
     for(var frameIdx =0;frameIdx<frameDataArr.length;frameIdx++){
@@ -898,7 +900,7 @@ Player.prototype.addTrialViews = function (trialIter,task) {
 
         var playerFrame = new PlayerFrame(frameDataArr[frameIdx],frameDiv,this);
         playerFrame.trialIter = trialIter;
-        playerFrame.frameData.selectTrialType(nextTrialSelection);
+        //playerFrame.frameData.selectTrialType(nextTrialSelection);
         playerFrame.init();
         this.nextTrialFrames[frameDataArr[frameIdx].id()] = playerFrame;
     }

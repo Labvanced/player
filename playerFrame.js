@@ -5,7 +5,7 @@ var PlayerFrame = function(frameData,frameDiv,player) {
 
     var self = this;
 
-    this.frameData = frameData.getDeepCopy();
+    this.frameData = frameData;//.getDeepCopy();
     this.frameData.playerFrame = this;
 
     this.frameDiv  = frameDiv;
