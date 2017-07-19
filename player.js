@@ -622,6 +622,9 @@ Player.prototype.jumpToNextTask = function() {
         this.finishSession();
     }
     else {
+        // TODO: clean up of preloaded trials of old task.
+        this.cleanUpCurrentTask();
+
         this.currentTaskIdx++;
         this.currentTask = this.currentBlock.subTasks()[this.currentTaskIdx];
         this.startRunningTask();
@@ -783,6 +786,37 @@ Player.prototype.recordData = function() {
     }
 };
 
+Player.prototype.cleanUpCurrentTask = function() {
+    this.cleanUpCurrentTrial();
+
+    // if there is still some trial of the current task preloaded, then switch to it and clean it up:
+    if (this.nextTrialFrames) {
+        this.switchToNextPreloadedTrial();
+        this.cleanUpCurrentTrial();
+    }
+};
+
+Player.prototype.cleanUpCurrentTrial = function() {
+    if (this.currentTrialDiv) {
+        this.currentTrialDiv.remove();
+    }
+    for( var oldTrialFrameKeys in this.currentTrialFrames ) {
+        if (this.currentTrialFrames.hasOwnProperty(oldTrialFrameKeys)) {
+            this.currentTrialFrames[oldTrialFrameKeys].dispose();
+        }
+    }
+};
+
+Player.prototype.switchToNextPreloadedTrial = function() {
+    // select next element from preload
+    this.currentTrialFrames = this.nextTrialFrames;
+    this.currentTrialDiv = this.nextTrialDiv;
+    this.currentSequence = this.nextSequence;
+
+    this.nextTrialFrames = null;
+    this.nextTrialDiv = null;
+    this.nextSequence = null;
+};
 
 Player.prototype.startNextTrial = function() {
     var self = this;
@@ -834,21 +868,10 @@ Player.prototype.startNextTrial = function() {
         this.factorsVars[i].value().value(factorValue);
     }
 
-    // select next element from preload
-    if (this.currentTrialDiv) {
-        this.currentTrialDiv.remove();
-    }
-    for( var oldTrialFrameKeys in this.currentTrialFrames ) {
-        if (this.currentTrialFrames.hasOwnProperty(oldTrialFrameKeys)) {
-            this.currentTrialFrames[oldTrialFrameKeys].dispose();
-        }
-    }
-    this.currentTrialFrames = this.nextTrialFrames;
-    this.currentTrialDiv = this.nextTrialDiv;
+    this.cleanUpCurrentTrial();
+    this.switchToNextPreloadedTrial();
 
     // go into trial sequence:
-    this.currentSequence = this.nextSequence;
-    this.nextSequence = null;
     this.currentSequence.currSelectedElement(null);
     this.currentSequence.selectNextElement();
     this.startNextPageOrFrame();

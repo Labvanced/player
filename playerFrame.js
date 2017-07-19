@@ -113,7 +113,7 @@ PlayerFrame.prototype.startFrame = function() {
         this.setTimeOut();
         this.startedTime = Date.now();
 
-        // setup callacks
+        // setup callbacks:
         var events = this.frameData.events();
         for (var i = 0; i < events.length; i++){
             var event =  events[i];
