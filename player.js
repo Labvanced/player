@@ -196,6 +196,18 @@ var Player = function() {
     this.subject_code = getParameterByName("subject_code");
     this.token = getParameterByName("token");
 
+    // Jump to text task when pressing CNTL + Q
+    // TODO might be useful to disable this in some routes
+    function KeyPress(e) {
+        var evtobj = window.event? event : e
+        if (evtobj.keyCode == 81 && evtobj.ctrlKey){
+            self.currentFrame.finishFrame();
+            self.recordData();
+            self.jumpToNextTask();
+        }
+    }
+    document.onkeydown = KeyPress;
+
     // if only testing a specific task, then don't record:
     if (this.runOnlyTaskId) {
         this.isTestrun = true;
