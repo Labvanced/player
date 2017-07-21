@@ -88,6 +88,7 @@ PlayerFrame.prototype.init = function() {
 
 PlayerFrame.prototype.dispose = function() {
     window.removeEventListener('resize', this.resizeEventListener , false);
+    this.resizeEventListener = null;
 
     if (typeof this.frameView.dispose === "function") {
         this.frameView.dispose();
