@@ -212,7 +212,20 @@ PlayerFrame.prototype.startFrame = function() {
 PlayerFrame.prototype.finishFrame = function() {
     console.log('switch frame state from displaying to finished in trialIter '+this.trialIter);
     this.state = 'finished';
+
+    // clear setTimeouts
     clearTimeout(this.frameTimeout);
+
+    // loop through all events and remove remaining set-Timeout callbacks
+    for (var i = 0; i<this.frameData.events().length;i++) {
+        var event = this.frameData.events()[i];
+        for (var k = 0; k<event.actions().length;k++) {
+            var action = event.actions()[k];
+            if (action instanceof ActionDelayedActions){
+                clearTimeout(action.timeoutFcn);
+            }
+        }
+    }
 
     for (var i = 0; i<this.onFrameEndCallbacks.length;i++) {
         this.onFrameEndCallbacks[i]();
