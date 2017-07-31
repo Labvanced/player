@@ -498,14 +498,31 @@ Player.prototype.setSubjectGroupNr = function(groupNr, sessionNr){
         return;
     }
 
-    this.blocks = this.exp_session.blocks();
-    if (this.blocks.length == 0) {
+
+    if (this.exp_session.blocks().length == 0) {
         console.log("player error: there is no block defined in this experiment session.");
         this.finishSessionWithError("there is no block defined in this experiment session.");
         return;
     }
 
-    // initialize variables that are session specific:
+    // randomize Block Order
+    if (this.exp_session.blockRandomization()=="permutation"){
+        var n = this.exp_session.blocks().length;
+        var perm = [];
+        for (var i = 0; i<n; i++){
+            perm.push(i);
+        }
+        this.exp_session.blocks()[0].subTasks()[0].reshuffle(perm);
+
+        var newArr = [];
+        for (var i = 0; i<n; i++){
+            newArr.push(this.exp_session.blocks()[perm[i]])
+        }
+        this.exp_session.blocks(newArr);
+    }
+    this.blocks = this.exp_session.blocks();
+
+    // initialize variables tsdhat are session specific:
     this.experiment.exp_data.varSubjectCode().value().value(this.subject_code);
     this.experiment.exp_data.varSubjectNr().value().value(0); // TODO
     this.experiment.exp_data.varGroupName().value().value(this.subj_group.name());
