@@ -224,9 +224,6 @@ PlayerFrame.prototype.finishFrame = function() {
             if (action instanceof ActionDelayedActions){
                 clearTimeout(action.timeoutFcn);
             }
-            if (action instanceof ActionControlTimer){
-                action.pause();
-            }
         }
     }
 
