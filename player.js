@@ -18,10 +18,11 @@ function pgFormatDate(date) {
     var dayString = [date.getUTCFullYear(), zeroPad(date.getMonth() + 1), zeroPad(date.getDate())].join("-");
     var timeString = [zeroPad(date.getHours()), zeroPad(date.getMinutes()), zeroPad(date.getSeconds())].join(":");
     if (timeZoneOffsetInHours>0) {
-        timeZoneOffsetInHours = "+"+zeroPad(timeZoneOffsetInHours);
+        // WARNING: according to javascript spec's, the timezone has inverted sign, so we invert + to - and - to +
+        timeZoneOffsetInHours = "-"+zeroPad(timeZoneOffsetInHours);
     }
     else if (timeZoneOffsetInHours<0) {
-        timeZoneOffsetInHours = "-"+zeroPad(-timeZoneOffsetInHours);
+        timeZoneOffsetInHours = "+"+zeroPad(-timeZoneOffsetInHours);
     }
     else {
         timeZoneOffsetInHours = "+00";
@@ -71,7 +72,7 @@ if (is_nwjs()) {
                 var rec_session_data = {
                     exp_subject_id: exp_subject_id,
                     session_nr: sessionNr,
-                    start_time: pgFormatDate(new Date())
+                    start_time: null
                 };
                 return db.rec_sessions.add(rec_session_data);
             }).then(function(new_id){
@@ -86,6 +87,14 @@ if (is_nwjs()) {
             }).catch(function(error) {
                 alert ("Ooops: " + error);
             });
+        }
+
+        if (route=="/setPlayerSessionStartedTime") {
+            // set start time of session:
+            var rec_session_changes = {
+                start_time: p.start_time
+            };
+            db.rec_sessions.update(rec_session_id, rec_session_changes);
         }
 
         if (route=="/recordStartTask") {
@@ -262,8 +271,7 @@ var Player = function() {
         isTestrun: this.isTestrun,
         subject_code: this.subject_code,
         token: this.token,
-        askSubjData: this.askSubjData,
-        sessionStartTime: this.sessionStartTime
+        askSubjData: this.askSubjData
     };
 
     createExpDesignComponents(function() {
@@ -330,8 +338,7 @@ var Player = function() {
                                         subject_code: self.subject_code,
                                         survey_data: initialSurvey.getSurveyData(),
                                         groupNr: groupNr,
-                                        sessionNr: sessionNr,
-                                        sessionStartTime: self.sessionStartTime
+                                        sessionNr: sessionNr
                                     },
                                     function () {
                                         initialSurvey.closeDialog();
@@ -348,8 +355,7 @@ var Player = function() {
                                     subject_code: self.subject_code,
                                     survey_data: null,
                                     groupNr: groupNr,
-                                    sessionNr: sessionNr,
-                                    sessionStartTime: self.sessionStartTime
+                                    sessionNr: sessionNr
                                 },
                                 function (data) {
                                 }
@@ -373,8 +379,7 @@ var Player = function() {
                     {
                         expId: self.expId,
                         subject_code: self.subject_code,
-                        survey_data: initialSurvey.getSurveyData(),
-                        sessionStartTime: self.sessionStartTime
+                        survey_data: initialSurvey.getSurveyData()
                     },
                     function(data) {
                         initialSurvey.closeDialog();
@@ -608,6 +613,15 @@ Player.prototype.startExperiment = function() {
                 }
             }
         }
+        playerAjaxPost(
+            '/setPlayerSessionStartedTime',
+            {
+                start_time: this.sessionStartTime
+            },
+            function(result) {
+                console.log('recorded session start time');
+            }
+        );
         if (needsCalibration) {
             // first run calibration:
             this.runCalibration(function() {
