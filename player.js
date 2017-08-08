@@ -750,6 +750,10 @@ Player.prototype.startRunningTask = function() {
         self.startRecordingsOfNewTask();
 
         if (this.currentTask.displayInitialCountdown()) {
+            $('#experimentViewPort').css({
+                "cursor": 'none'
+            });
+
             $('#countdownSection').show();
             $('#countdown').text("3");
             setTimeout(function () {
@@ -760,6 +764,9 @@ Player.prototype.startRunningTask = function() {
             }, 2000);
             setTimeout(function () {
                 $('#countdownSection').hide();
+                $('#experimentViewPort').css({
+                    "cursor": 'default'
+                });
                 self.startNextTrial();
             }, 3000);
         }
