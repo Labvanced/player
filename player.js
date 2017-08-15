@@ -150,6 +150,7 @@ if (is_nwjs()) {
             var exp_subject_changes = {
                 last_completed_session_nr: sessionNr
             };
+
             db.exp_subjects.update(exp_subject_id, exp_subject_changes);
 
             // update list of recordings:
@@ -527,7 +528,7 @@ Player.prototype.setSubjectGroupNr = function(groupNr, sessionNr){
     }
     this.blocks = this.exp_session.blocks();
 
-    // initialize variables tsdhat are session specific:
+    // initialize variables that are session specific:
     this.experiment.exp_data.varSubjectCode().value().value(this.subject_code);
     this.experiment.exp_data.varSubjectNr().value().value(0); // TODO
     this.experiment.exp_data.varGroupName().value().value(this.subj_group.name());
@@ -1008,9 +1009,17 @@ Player.prototype.finishSessionWithError = function(err_msg) {
 Player.prototype.finishSession = function() {
     console.log("finishExpSession...");
     if (!this.isTestrun) {
+        var currentDate = new Date();
+        var newDateStart = new Date();
+        var newDateEnd = new Date();
+        var sessionTimeData= this.experiment.exp_data.availableGroups()[ this.groupNr-1].sessionTimeData()[this.sessionNr];
+        var nextStartWindow = this.determineNextSessionStartWindow(newDateStart,newDateEnd,currentDate,sessionTimeData);
         playerAjaxPost('/finishExpSession', {
-            end_time: pgFormatDate(new Date())
+            end_time: pgFormatDate(currentDate),
+            nextStartTime: pgFormatDate(nextStartWindow.start),
+            nextEndTime: pgFormatDate(nextStartWindow.end)
         });
+
     }
     $('#experimentViewPort').hide();
     $('#endExpSection').show();
@@ -1027,6 +1036,194 @@ Player.prototype.finishSession = function() {
         document.msExitFullscreen();
     }
 };
+
+
+Player.prototype.determineNextSessionStartWindow = function(startDate,endDate,currentDate,sessionTimeData) {
+
+    var nextStartWindow = {
+        start: null,
+        end: null
+    };
+
+    if (sessionTimeData){
+        if (sessionTimeData.startCondition()=="specific"){
+
+            if (sessionTimeData.startTime() && sessionTimeData.endTime() && sessionTimeData.startDay() && sessionTimeData.endDay()){
+
+                var startMinute = parseInt(sessionTimeData.startTime().substring(3,5));
+                startDate.setMinutes(startMinute);
+                var startHour = parseInt(sessionTimeData.startTime().substring(0,2));
+                startDate.setHours(startHour);
+                var startDay = parseInt(sessionTimeData.startDay().substring(8,10));
+                startDate.setDate(startDay);
+                var startMonth = parseInt(sessionTimeData.startDay().substring(5,7))-1;
+                startDate.setMonth(startMonth);
+                var startYear = parseInt(sessionTimeData.startDay().substring(0,4));
+                startDate.setFullYear(startYear);
+
+                var endMinute = parseInt(sessionTimeData.endTime().substring(3,5));
+                endDate.setMinutes(endMinute);
+                var endHour = parseInt(sessionTimeData.endTime().substring(0,2));
+                endDate.setHours(endHour);
+                var endDay = parseInt(sessionTimeData.endDay().substring(8,10));
+                endDate.setDate(endDay);
+                var endMonth = parseInt(sessionTimeData.endDay().substring(5,7))-1;
+                endDate.setMonth(endMonth);
+                var endYear = parseInt(sessionTimeData.endDay().substring(0,4));
+                endDate.setFullYear(endYear);
+            }
+            else{
+                console.log("error: cannot calculate session start time because fields are not set")
+            }
+
+        }
+        else if (sessionTimeData.startCondition()=="periodic"){
+
+            if (sessionTimeData.startTime() && sessionTimeData.endTime() && sessionTimeData.startDay() && sessionTimeData.endDay() && sessionTimeData.startInterval()){
+
+                var startMinute = parseInt(sessionTimeData.startTime().substring(3,5));
+                startDate.setMinutes(startMinute);
+                var startHour = parseInt(sessionTimeData.startTime().substring(0,2));
+                startDate.setHours(startHour);
+                var startDay = parseInt(sessionTimeData.startDay().substring(8,10));
+                startDate.setDate(startDay);
+                var startMonth = parseInt(sessionTimeData.startDay().substring(5,7))-1;
+                startDate.setMonth(startMonth);
+                var startYear = parseInt(sessionTimeData.startDay().substring(0,4));
+                startDate.setFullYear(startYear);
+
+                var endMinute = parseInt(sessionTimeData.endTime().substring(3,5));
+                endDate.setMinutes(endMinute);
+                var endHour = parseInt(sessionTimeData.endTime().substring(0,2));
+                endDate.setHours(endHour);
+                var endDay = parseInt(sessionTimeData.endDay().substring(8,10));
+                endDate.setDate(endDay);
+                var endMonth = parseInt(sessionTimeData.endDay().substring(5,7))-1;
+                endDate.setMonth(endMonth);
+                var endYear = parseInt(sessionTimeData.endDay().substring(0,4));
+                endDate.setFullYear(endYear);
+
+
+                var timeDifference =  currentDate-startDate;
+                while (timeDifference >0){
+                // start date is in the past, need to update to find the next start period
+                    if (sessionTimeData.startInterval() == 'every day'){
+                        startDate.setDate(startDate.getDate()+1);
+                        endDate.setDate(endDate.getDate()+1);
+                    }
+                    else if(sessionTimeData.startInterval() == 'every week'){
+                        startDate.setDate(startDate.getDate()+7);
+                        endDate.setDate(endDate.getDate()+7);
+                    }
+                    else if(sessionTimeData.startInterval() == 'every month'){
+                        startDate.setMonth(startDate.setMonth()+1);
+                        endDate.setMonth(endDate.setMonth()+1);
+                    }
+                    timeDifference =  currentDate-startDate;
+                }
+
+            }
+            else{
+                console.log("error: cannot calculate session start time because fields are not set")
+            }
+
+        }
+
+        else if (sessionTimeData.startCondition()=="connectSession"){
+
+            if (sessionTimeData.startTime() && sessionTimeData.endTime() && sessionTimeData.maximalDaysAfterLast() && sessionTimeData.minimalDaysAfterLast()){
+                var plusMinStart = parseInt(sessionTimeData.startTime().substring(3,5));
+                startDate.setMinutes(startDate.getMinutes() +plusMinStart);
+                var plusHourStart = parseInt(sessionTimeData.startTime().substring(0,2));
+                startDate.setHours(startDate.getHours() +plusHourStart);
+                var plusDaysStart = parseInt( sessionTimeData.minimalDaysAfterLast());
+                startDate.setDate(startDate.getDate() +plusDaysStart);
+
+                var plusMinEnd = parseInt(sessionTimeData.endTime().substring(3,5));
+                endDate.setMinutes(endDate.getMinutes() +plusMinEnd);
+                var plusHoursEnd = parseInt(sessionTimeData.endTime().substring(0,2));
+                endDate.setHours(endDate.getHours() +plusHoursEnd);
+                var plusDaysEnd = parseInt( sessionTimeData.maximalDaysAfterLast());
+                endDate.setDate(endDate.getDate() +plusDaysEnd);
+
+            }
+            else{
+                console.log("error: cannot calculate session start time because fields are not set.")
+            }
+
+
+        }
+
+        else if (sessionTimeData.startCondition()=="anytime"){
+
+        }
+
+        if (endDate-startDate>=0){
+            nextStartWindow.start = startDate;
+            nextStartWindow.end = endDate
+        }
+        else{
+            console.log("error: allowed start time is later than end time.")
+        }
+
+    }
+    else {
+        // last session reached
+        // TODO starting from the beginning OR not
+    }
+    return nextStartWindow
+
+};
+
+
+Player.prototype.getDifferenceBetweenDates = function(dateEarlier,dateLater) {
+
+    var diff_in_ms = dateLater-dateEarlier;
+
+    var one_day_in_ms=1000*60*60*24;
+    var one_hour_in_ms=1000*60*60;
+    var one_min_in_ms=1000*60;
+
+    if (diff_in_ms >0){
+        var nrDays = Math.floor(diff_in_ms /one_day_in_ms);
+        var remainder = diff_in_ms-(one_day_in_ms*nrDays);
+        var nrHours =  Math.floor(remainder / one_hour_in_ms);
+        var remainder2 = remainder - (one_hour_in_ms*nrHours);
+        var nrMinutes =  Math.floor(remainder2 / one_min_in_ms);
+
+        var part1= ''; var part2= ''; var part3= '';
+        if (nrDays >1){
+            part1 = nrDays+'days  ';
+        }
+        else if(nrDays ==1) {
+            part1 = nrDays+'day  ';
+        }
+
+        if (nrHours >1){
+             part2 = nrHours+'hours  ';
+        }
+        else if(nrHours ==1){
+             part2 = nrHours+'hour  ';
+        }
+
+        if (nrMinutes >1){
+             part3 = nrMinutes+'minutes';
+        }
+        else if(nrMinutes ==1){
+             part3 = nrMinutes+'minute';
+        }
+
+        var timeText = part1 +part2 +part3;
+        return [nrDays,nrHours,nrMinutes,timeText];
+    }
+    else{
+        return [0,0,0,'now'];
+    }
+
+
+};
+
+
 
 Player.prototype.init = function() {
     var self = this;
