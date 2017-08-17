@@ -1014,10 +1014,20 @@ Player.prototype.finishSession = function() {
         var newDateEnd = new Date();
         var sessionTimeData= this.experiment.exp_data.availableGroups()[ this.groupNr-1].sessionTimeData()[this.sessionNr];
         var nextStartWindow = this.determineNextSessionStartWindow(newDateStart,newDateEnd,currentDate,sessionTimeData);
+
+        var nextStartTime = null;
+        if (nextStartWindow.start) {
+            nextStartTime = pgFormatDate(nextStartWindow.start)
+        }
+        var nextEndTime = null;
+        if (nextStartWindow.start) {
+            nextEndTime = pgFormatDate(nextStartWindow.end)
+        }
+
         playerAjaxPost('/finishExpSession', {
             end_time: pgFormatDate(currentDate),
-            nextStartTime: pgFormatDate(nextStartWindow.start),
-            nextEndTime: pgFormatDate(nextStartWindow.end)
+            nextStartTime: nextStartTime,
+            nextEndTime: nextEndTime
         });
 
     }
