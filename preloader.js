@@ -44,11 +44,11 @@ function onComplete(event) {
     $progressbar.addClass("complete");
     $('#stillLoading').hide();
 
-    if (currentDate>=nextStartWindow.end){
-        // last start window in the past
-        $('#sessionOver').show();
-    }
-    else if (currentDate>=nextStartWindow.start && currentDate<=nextStartWindow.end)  {
+    // if (currentDate>=nextStartWindow.end){
+    //     // last start window in the past
+    //     $('#sessionOver').show();
+    // }
+    // else if (currentDate>=nextStartWindow.start && currentDate<=nextStartWindow.end)  {
         // currently running
         $('#readyToStart').show();
         $('#startExp').click(function(){
@@ -71,48 +71,48 @@ function onComplete(event) {
             },5000);
 
         });
-    }
-    else if (currentDate<nextStartWindow.start){
-        // running in the future
-        var timeToWait = player.getDifferenceBetweenDates(currentDate,nextStartWindow.start);
-
-
-        $('#timeToNextSession').text(timeToWait[3]);
-        $('#sessionNotReady').show();
-
-        $('#calcStartingTime').click(function(){
-            var currentDate = new Date();
-            var timeToWait =  player.getDifferenceBetweenDates(currentDate,nextStartWindow.start);
-            $('#timeToNextSession').text(timeToWait[3]);
-
-            if (timeToWait[3]== 'ready'){
-                $("#sessionNotReady").hide();
-                $('#readyToStart').show();
-                $('#startExp').click(function(){
-                    launchIntoFullscreen(document.documentElement);
-
-                    $('#sectionPreload').html("<h1>Starting Experiment...</h1>");
-                    $('#sectionPreload').css("text-align","center");
-
-                    $("#startExpSection").hide();
-
-                    // wait for five seconds:
-                    setTimeout(function(){
-                        $("#sectionPreload").hide();
-
-                        // TODO: this check is not working yet:
-                        var fullscreenEnabled = document.fullscreenEnabled || document.mozFullScreenEnabled || document.webkitFullscreenEnabled;
-                        if (fullscreenEnabled){
-                            player.startExperiment();
-                        }
-                    },5000);
-
-                });
-            }
-
-        });
-
-    }
+    // }
+    // else if (currentDate<nextStartWindow.start){
+    //     // running in the future
+    //     var timeToWait = player.getDifferenceBetweenDates(currentDate,nextStartWindow.start);
+    //
+    //
+    //     $('#timeToNextSession').text(timeToWait[3]);
+    //     $('#sessionNotReady').show();
+    //
+    //     $('#calcStartingTime').click(function(){
+    //         var currentDate = new Date();
+    //         var timeToWait =  player.getDifferenceBetweenDates(currentDate,nextStartWindow.start);
+    //         $('#timeToNextSession').text(timeToWait[3]);
+    //
+    //         if (timeToWait[3]== 'ready'){
+    //             $("#sessionNotReady").hide();
+    //             $('#readyToStart').show();
+    //             $('#startExp').click(function(){
+    //                 launchIntoFullscreen(document.documentElement);
+    //
+    //                 $('#sectionPreload').html("<h1>Starting Experiment...</h1>");
+    //                 $('#sectionPreload').css("text-align","center");
+    //
+    //                 $("#startExpSection").hide();
+    //
+    //                 // wait for five seconds:
+    //                 setTimeout(function(){
+    //                     $("#sectionPreload").hide();
+    //
+    //                     // TODO: this check is not working yet:
+    //                     var fullscreenEnabled = document.fullscreenEnabled || document.mozFullScreenEnabled || document.webkitFullscreenEnabled;
+    //                     if (fullscreenEnabled){
+    //                         player.startExperiment();
+    //                     }
+    //                 },5000);
+    //
+    //             });
+    //         }
+    //
+    //     });
+    //
+    // }
 
 }
 
