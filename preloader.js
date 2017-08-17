@@ -38,7 +38,7 @@ function onComplete(event) {
     var currentDate = new Date();
     var newDateStart = new Date();
     var newDateEnd = new Date();
-    var sessionTimeData= player.experiment.exp_data.availableGroups()[ player.groupNr].sessionTimeData()[player.sessionNr];
+    var sessionTimeData= player.experiment.exp_data.availableGroups()[ player.groupNr-1].sessionTimeData()[player.sessionNr-1];
     var nextStartWindow = player.determineNextSessionStartWindow(newDateStart,newDateEnd,currentDate,sessionTimeData);
 
     $progressbar.addClass("complete");
@@ -49,7 +49,7 @@ function onComplete(event) {
         $('#sessionOver').show();
     }
     else if (currentDate>=nextStartWindow.start && currentDate<=nextStartWindow.end)  {
-       // currently running
+        // currently running
         $('#readyToStart').show();
         $('#startExp').click(function(){
             launchIntoFullscreen(document.documentElement);
