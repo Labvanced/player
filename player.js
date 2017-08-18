@@ -232,6 +232,7 @@ var Player = function() {
     this.experiment = null;
     this.sessionNr = 0;
     this.groupNr = 0;
+    this.nextStartWindow = null;
 
     // the following three variables will be set by function setSubjectGroupNr():
     this.subj_group = null;
@@ -302,10 +303,12 @@ var Player = function() {
                 expPrev.init(950,400);
             });
 
-            self.preloadAllContent();
+          //  self.preloadAllContent();
 
             if (self.runOnlyTaskId) {
                 self.setSubjectGroupNr(1, 1);
+                self.calculateStartWindow("current");
+                self.preloadAllContent();
                 return;
             }
 
@@ -324,6 +327,9 @@ var Player = function() {
                     var groupNr = initialSubjectDialog.selectedGroupNr();
                     var sessionNr = initialSubjectDialog.selectedSessionNr();
                     self.setSubjectGroupNr(groupNr, sessionNr);
+                    self.calculateStartWindow("current");
+                    self.preloadAllContent();
+
 
                     if (initialSubjectDialog.includeInitialSurvey()) {
 
@@ -370,6 +376,8 @@ var Player = function() {
 
             if (data.groupNr && data.sessionNr) {
                 self.setSubjectGroupNr(data.groupNr, data.sessionNr);
+                self.calculateStartWindow("current");
+                self.preloadAllContent();
                 return;
             }
 
@@ -396,6 +404,9 @@ var Player = function() {
                             return;
                         }
                         self.setSubjectGroupNr(data.groupNr, data.sessionNr);
+                        self.calculateStartWindow("current");
+                        self.preloadAllContent();
+
                     }
                 );
             }
@@ -1009,23 +1020,23 @@ Player.prototype.finishSessionWithError = function(err_msg) {
 Player.prototype.finishSession = function() {
     console.log("finishExpSession...");
     if (!this.isTestrun) {
-        var currentDate = new Date();
-        var newDateStart = new Date();
-        var newDateEnd = new Date();
-        var sessionTimeData= this.experiment.exp_data.availableGroups()[ this.groupNr-1].sessionTimeData()[this.sessionNr];
-        var nextStartWindow = this.determineNextSessionStartWindow(newDateStart,newDateEnd,currentDate,sessionTimeData);
+        this.calculateStartWindow("next");
 
         var nextStartTime = null;
-        if (nextStartWindow.start) {
-            nextStartTime = pgFormatDate(nextStartWindow.start)
+        if (this.nextStartWindow.start) {
+            nextStartTime = pgFormatDate(this.nextStartWindow.start)
         }
         var nextEndTime = null;
-        if (nextStartWindow.start) {
-            nextEndTime = pgFormatDate(nextStartWindow.end)
+        if (this.nextStartWindow.start) {
+            nextEndTime = pgFormatDate(this.nextStartWindow.end)
+        }
+        var currentDate = null;
+        if (this.nextStartWindow.current) {
+            currentDate = pgFormatDate(this.nextStartWindow.current)
         }
 
         playerAjaxPost('/finishExpSession', {
-            end_time: pgFormatDate(currentDate),
+            end_time: currentDate,
             nextStartTime: nextStartTime,
             nextEndTime: nextEndTime
         });
@@ -1048,11 +1059,33 @@ Player.prototype.finishSession = function() {
 };
 
 
+Player.prototype.calculateStartWindow = function(currentOrNext) {
+    if (currentOrNext == "current"){
+        var sessionNr = this.sessionNr-1;
+        var newDateStart = new Date();
+        var currentDate = new Date();
+        var newDateEnd = new Date();
+    }
+    else if (currentOrNext == "next"){
+        var sessionNr = this.sessionNr;
+        var currentDate = new Date();
+        var newDateStart = new Date();
+        var newDateEnd = new Date();
+    }
+
+    var sessionTimeData= this.experiment.exp_data.availableGroups()[ this.groupNr-1].sessionTimeData()[sessionNr];
+    this.nextStartWindow = this.determineNextSessionStartWindow(newDateStart,newDateEnd,currentDate,sessionTimeData);
+};
+
+
+
+
 Player.prototype.determineNextSessionStartWindow = function(startDate,endDate,currentDate,sessionTimeData) {
 
     var nextStartWindow = {
-        start: null,
-        end: null
+        start: startDate,
+        end: endDate,
+        current: currentDate
     };
 
     if (sessionTimeData){
