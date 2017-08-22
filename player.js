@@ -455,7 +455,48 @@ Player.prototype.preloadAllContent = function() {
         }
     }
 
-    // parse images, video and audio elements
+    // parse images, video and audio elements only for current group and session
+    var blocks = this.experiment.exp_data.availableGroups()[this.groupNr-1].sessions()[this.sessionNr-1].blocks();
+    for (var i = 0; i<blocks.length; i++){
+        var subTasks = blocks[i].subTasks();
+        for (var j = 0; j<subTasks.length; j++) {
+            var subSequences = subTasks[j].subSequencePerFactorGroup();
+            for (var l = 0; l<subSequences.length;l++) {
+                var elements = subSequences[l].elements();
+                for (var m= 0; m<elements.length;m++) {
+                    var entity = elements[m];
+                    if (entity instanceof FrameData) {
+                        for (var k = 0; k < entity.elements().length; k++) {
+                            var entity2 = entity.elements()[k];
+                            if (entity2.content() instanceof VideoElement || entity2.content() instanceof ImageElement || entity2.content() instanceof AudioElement) {
+                                if (entity2.content().hasOwnProperty("file_id")) {
+                                    if (entity2.content().file_id() && entity2.content().file_orig_name()) {
+                                        var src = "/files/" + entity2.content().file_id() + "/" + entity2.content().file_orig_name();
+                                        var fileSpec = {
+                                            id: entity2.content().file_id(),
+                                            src: src
+                                        };
+                                        if (!contentListById.hasOwnProperty(fileSpec.id)) {
+                                            contentList.push(fileSpec);
+                                            contentListById[fileSpec.id] = fileSpec;
+                                        }
+                                    }
+                                }
+                                var arr = entity2.content().modifier().ndimModifierTrialTypes;
+                                if (arr.length > 0) {
+                                    deepDive(arr);
+                                }
+                            }
+                        }
+                    }
+
+                }
+            }
+        }
+
+    }
+
+    /**
     var entities = this.experiment.exp_data.entities();
     for (var i = 0; i<entities.length; i++){
         var entity = entities[i];
@@ -487,6 +528,7 @@ Player.prototype.preloadAllContent = function() {
 
         }
     }
+     **/
     if (contentList.length>0){
         queue.loadManifest(contentList);
     }
