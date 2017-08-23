@@ -639,6 +639,7 @@ Player.prototype.runCalibration = function(callback) {
     $('#calibrateScreen').show();
 };
 
+
 Player.prototype.setupPlayerDesign = function() {
 
     $('#experimentViewPort').css({
