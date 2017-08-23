@@ -639,7 +639,20 @@ Player.prototype.runCalibration = function(callback) {
     $('#calibrateScreen').show();
 };
 
+Player.prototype.setupPlayerDesign = function() {
+
+    $('#experimentViewPort').css({
+        "background-color": this.experiment.exp_data.studySettings.bgColor()
+    });
+
+};
+
+
 Player.prototype.startExperiment = function() {
+
+
+    this.setupPlayerDesign();
+
     var self = this;
     if (this.runOnlyTaskId){
         // run a test task session:
