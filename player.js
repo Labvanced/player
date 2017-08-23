@@ -644,7 +644,6 @@ Player.prototype.setupPlayerDesign = function() {
     $('#experimentViewPort').css({
         "background-color": this.experiment.exp_data.studySettings.bgColor()
     });
-
 };
 
 
