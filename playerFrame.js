@@ -216,17 +216,6 @@ PlayerFrame.prototype.finishFrame = function() {
     // clear setTimeouts
     clearTimeout(this.frameTimeout);
 
-    // loop through all events and remove remaining set-Timeout callbacks
-    for (var i = 0; i<this.frameData.events().length;i++) {
-        var event = this.frameData.events()[i];
-        for (var k = 0; k<event.actions().length;k++) {
-            var action = event.actions()[k];
-            if (action instanceof ActionDelayedActions){
-                clearTimeout(action.timeoutFcn);
-            }
-        }
-    }
-
     for (var i = 0; i<this.onFrameEndCallbacks.length;i++) {
         this.onFrameEndCallbacks[i]();
     }
@@ -234,8 +223,7 @@ PlayerFrame.prototype.finishFrame = function() {
     // destroy event listeners of triggers
     var events = this.frameData.events();
     for (var i = 0; i < events.length; i++){
-        var event =  events[i];
-        event.trigger().destroyOnPlayerFrame(this);
+        events[i].destroyOnPlayerFrame(this);
     }
 
     // remove document event handlers
