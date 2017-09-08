@@ -51,8 +51,15 @@ function onComplete(event) {
         $('#startExp').click(function(){
             launchIntoFullscreen(document.documentElement);
 
-            $('#sectionPreload').html("<h1>Starting Experiment...</h1>");
-            $('#sectionPreload').css("text-align","center");
+            $('#sectionPreload').css({
+                position:"absolute",
+                margin: "0 auto",
+                height:"100%",
+                width:"100%",
+                left:"40%",
+                top:"50%"
+        });
+            $('#sectionPreload').html("<div style='font-size: xx-large;'>Starting Experiment...</div>");
 
             $("#startExpSection").hide();
 
@@ -61,7 +68,7 @@ function onComplete(event) {
                 $("#sectionPreload").hide();
 
                 // TODO: this check is not working yet:
-                var fullscreenEnabled = document.fullscreenEnabled || document.mozFullScreenEnabled || document.webkitFullscreenEnabled;
+                var fullscreenEnabled = document.fullscreenEnabled || document.mozFullScreenEnabled || document.webkitFullscreenEnabled || document.msFullscreenEnabled;
                 if (fullscreenEnabled){
                     player.startExperiment();
                 }
