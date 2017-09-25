@@ -303,8 +303,6 @@ var Player = function() {
                 expPrev.init(950,400);
             });
 
-          //  self.preloadAllContent();
-
             if (self.runOnlyTaskId) {
                 self.setSubjectGroupNr(1, 1);
                 self.calculateStartWindow("current");
@@ -312,70 +310,15 @@ var Player = function() {
                 return;
             }
 
-            if (self.isTestrun || self.askSubjData) {
-                // player was started by the experimenter, so we ask for subject code, group, session:
-                var initialSubjectDialog = new InitialSubjectDialog(self.experiment.exp_data);
-                if (self.runOnlyGroupNr) {
-                    initialSubjectDialog.selectedSubjectGroup(self.runOnlyGroupNr);
-                }
-                if (self.runOnlySessionNr) {
-                    initialSubjectDialog.selectedSessionNr(self.runOnlySessionNr);
-                }
-                initialSubjectDialog.subjectCode(self.subject_code);
-                initialSubjectDialog.start(function() {
-                    self.subject_code = initialSubjectDialog.subjectCode();
-                    var groupNr = initialSubjectDialog.selectedGroupNr();
-                    var sessionNr = initialSubjectDialog.selectedSessionNr();
-                    self.setSubjectGroupNr(groupNr, sessionNr);
-                    self.calculateStartWindow("current");
-                    self.preloadAllContent();
-
-
-                    if (initialSubjectDialog.includeInitialSurvey()) {
-
-                        var initialSurvey = new InitialSurveyDialog(self.experiment.exp_data);
-                        initialSurvey.start(function() {
-                            if (self.isTestrun) {
-                                initialSurvey.closeDialog();
-                            }
-                            else {
-                                playerAjaxPost('/startPlayerSession',
-                                    {
-                                        expId: self.expId,
-                                        subject_code: self.subject_code,
-                                        survey_data: initialSurvey.getSurveyData(),
-                                        groupNr: groupNr,
-                                        sessionNr: sessionNr
-                                    },
-                                    function () {
-                                        initialSurvey.closeDialog();
-                                    }
-                                );
-                            }
-                        });
-                    }
-                    else {
-                        if (!self.isTestrun) {
-                            playerAjaxPost('/startPlayerSession',
-                                {
-                                    expId: self.expId,
-                                    subject_code: self.subject_code,
-                                    survey_data: null,
-                                    groupNr: groupNr,
-                                    sessionNr: sessionNr
-                                },
-                                function (data) {
-                                }
-                            );
-                        }
-                    }
-
-                });
+            if (self.runOnlyGroupNr && self.runOnlySessionNr) {
+                self.setSubjectGroupNr(self.runOnlyGroupNr, self.runOnlySessionNr);
+                self.calculateStartWindow("current");
+                self.preloadAllContent();
                 return;
             }
 
-            if (data.groupNr && data.sessionNr) {
-                self.setSubjectGroupNr(data.groupNr, data.sessionNr);
+            if (self.runOnlyGroupNr) {
+                self.setSubjectGroupNr(self.runOnlyGroupNr, 1);
                 self.calculateStartWindow("current");
                 self.preloadAllContent();
                 return;
@@ -388,7 +331,8 @@ var Player = function() {
                     {
                         expId: self.expId,
                         subject_code: self.subject_code,
-                        survey_data: initialSurvey.getSurveyData()
+                        survey_data: initialSurvey.getSurveyData(),
+                        isTestrun: self.isTestrun
                     },
                     function(data) {
                         initialSurvey.closeDialog();
@@ -680,15 +624,17 @@ Player.prototype.startExperiment = function() {
                 }
             }
         }
-        playerAjaxPost(
-            '/setPlayerSessionStartedTime',
-            {
-                start_time: this.sessionStartTime
-            },
-            function(result) {
-                console.log('recorded session start time');
-            }
-        );
+        if (!self.isTestrun) {
+            playerAjaxPost(
+                '/setPlayerSessionStartedTime',
+                {
+                    start_time: this.sessionStartTime
+                },
+                function (result) {
+                    console.log('recorded session start time');
+                }
+            );
+        }
         if (needsCalibration) {
             // first run calibration:
             this.runCalibration(function() {
