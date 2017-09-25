@@ -1,0 +1,91 @@
+
+<div id="singleStudy_load">
+    <div class="container-fluid">
+        <div class="row ssp">
+            <!--StudyContent-->
+            <div class="col-md-12 text-center ">
+                <div class="row ">
+                    <div class="col-md-2 ssp-link mg-t-50">
+                        <a href="../editors/participation.html" class="ssp-link-back"></aclass><img width="24px" src="/resources/shapes/dark/left-arrow-1.svg"><span>Library</span> </a>
+                    </div>
+                    <div class="col-md-8 ssp-img">
+                        <img class="round-image" width="50%" style="max-width: 220px;"  src="/resources/placeholder/study1.jpg">
+                    </div>
+                </div>
+
+
+
+                <div class="row mg-t-50">
+
+
+                    <!--Study Description-->
+                    <div class="col-md-6 col-md-offset-3 col-lg-4 col-lg-offset-4  ">
+                        <div class="ssp-description">
+                        <h5 class="pt-studyname pointer"><a>Study Name</a></h5>
+
+                            <!--1. Fragenbeantworten - Experiment kann im Hintergrund geladen werden - muss aber nicht sichtbar sein-->
+                            <!--Questionnaire-->
+                            <div class="row ssp-questionaire">
+                                <p class="text-medium">Please fill out the fields below.</p>
+                                <div class="">
+
+                                    <div class="ssp-question ">
+                                        <span><label>Subject Code:</label>
+                                        <input type="text">
+                                    </div>
+                                    <div class="ssp-question">
+                                        <span><label>Age:</label></span>
+                                        <input type="number">
+                                    </div>
+                                    <div class="ssp-question">
+                                        <span><label>Group:</label></span>
+                                        <select>
+                                            <option>Group 1</option>
+                                            <option>Group 2</option>
+                                        </select>
+                                    </div>
+                                    <div class="ssp-question">
+                                        <span><label>Session:</label></span>
+                                        <select>
+                                            <option>Session 1</option>
+                                            <option>Session 2</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button class="btn-regular btn-green mg-20">Submit</button>
+                            </div>
+
+                            <!--2.Loading - wenn Fragen beantwortet wurden, Experiment aber noch nicht fertig geladen hat (Fragebogen ausblenden) -->
+                            <!--Loading -->
+                            <div class="row">
+                                <div class="study-loader"></div>
+                                <p class="text-bold lightblue">85%</p>
+                                <p class="text-medium">Loading, please wait.</p>
+                                <p class="text-regular">This might take a while.</p>
+                            </div>
+                            <!--3.Start -wenn Experiment fertig geladen wurde -->
+                            <!--Start -->
+                            <div>
+                                <button class="btn-regular btn-lightblue mg-20">Start</button>
+                                <p class="text-medium">This will enter the fullscreenmode.</p>
+                                <p class="text-regular">You can leave it with <b>ESC</b> or <b>RETURN</b>.</p>
+                            </div>
+
+                        </div>
+                    </div>
+
+
+
+
+
+                </div>
+
+
+            </div>
+
+
+        </div>
+
+
+    </div>
+</div>
