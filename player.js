@@ -959,7 +959,7 @@ Player.prototype.startNextTrial = function() {
     // set some predefined variables for this trial:
     this.experiment.exp_data.varTrialId().value().value(this.currentTrialId);
     this.experiment.exp_data.varTrialNr().value().value(this.trialIter+1);
-    this.experiment.exp_data.varConditionId().value().value(1); // TODO set condition id
+    this.experiment.exp_data.varConditionId().value().value(trialSelection.condition.conditionIdx()); // TODO set condition id
 
     // reset variables at start of trial:
     for (var i=0; i<this.variablesToReset.length; i++){
