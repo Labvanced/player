@@ -261,6 +261,8 @@ var Player = function() {
 
     this.sessionStartTime = pgFormatDate(new Date());
 
+    this.preloaderCompleted = ko.observable(false);
+
     Webcam.on("error", function(err_msg){
         console.log("webcam error: "+err_msg);
         self.finishSessionWithError(err_msg);
@@ -300,69 +302,8 @@ var Player = function() {
             newContent.load("/html_views/ExperimentStartupScreen.html", function () {
                 newContent.prependTo('#expPreview');
                 ko.applyBindings(expPrev, newContent[0]);
-                expPrev.init(950,400);
+                expPrev.init();
             });
-
-            if (self.runOnlyTaskId) {
-                self.setSubjectGroupNr(1, 1);
-                self.calculateStartWindow("current");
-                self.preloadAllContent();
-                return;
-            }
-
-            if (self.runOnlyGroupNr && self.runOnlySessionNr) {
-                self.setSubjectGroupNr(self.runOnlyGroupNr, self.runOnlySessionNr);
-                self.calculateStartWindow("current");
-                self.preloadAllContent();
-                return;
-            }
-
-            if (self.runOnlyGroupNr) {
-                self.setSubjectGroupNr(self.runOnlyGroupNr, 1);
-                self.calculateStartWindow("current");
-                self.preloadAllContent();
-                return;
-            }
-
-            // if group and session were not already set, start the survey
-            var initialSurvey = new InitialSurveyDialog(self.experiment.exp_data);
-            function submitSurvey() {
-                playerAjaxPost('/startFirstPlayerSession',
-                    {
-                        expId: self.expId,
-                        subject_code: self.subject_code,
-                        survey_data: initialSurvey.getSurveyData(),
-                        isTestrun: self.isTestrun
-                    },
-                    function(data) {
-                        initialSurvey.closeDialog();
-                        if (data.hasOwnProperty('success') && data.success == false) {
-                            queue.cancel();
-
-                            if (data.msg == "no matching subject group") {
-                                self.finishSessionWithError("There is no matching subject group defined which matches your criteria.");
-                            }
-                            else {
-                                self.finishSessionWithError("Could not initialize first session of experiment. Error Message: " + data.msg);
-                            }
-                            return;
-                        }
-                        self.setSubjectGroupNr(data.groupNr, data.sessionNr);
-                        self.calculateStartWindow("current");
-                        self.preloadAllContent();
-
-                    }
-                );
-            }
-            if (!initialSurvey.requiredGender() && !initialSurvey.requiredAge() && !initialSurvey.requiredCountry() && !initialSurvey.requiredLanguage() && !initialSurvey.requiredEmail()) {
-                // if nothing is required just skip the survey:
-                submitSurvey();
-            }
-            else {
-                initialSurvey.start(function (survey_data) {
-                    submitSurvey();
-                });
-            }
 
         });
     });
@@ -533,6 +474,8 @@ Player.prototype.setSubjectGroupNr = function(groupNr, sessionNr){
     this.experiment.exp_data.varSessionTimeStampEnd().value().value(null); // this variable makes no sense to use? can only be set at the end...
     this.experiment.exp_data.varSessionName().value().value(this.exp_session.name());
     this.experiment.exp_data.varSessionNr().value().value(this.sessionNr);
+
+    this.calculateStartWindow("current");
 };
 
 Player.prototype.runCalibration = function(callback) {
