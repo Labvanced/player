@@ -168,7 +168,7 @@ else {
 var Player = function() {
     var self = this;
 
-    //this.expId = location.search.split('id=')[1];
+    this.playerPreloader = new PlayerPreloader(this);
 
     function getParameterByName(name) {
         name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
@@ -283,7 +283,7 @@ var Player = function() {
     createExpDesignComponents(function() {
         playerAjaxPost('/startExpPlayer', parameters, function(data){
             if (data.hasOwnProperty('success') && data.success == false) {
-                queue.cancel();
+                self.playerPreloader.cancel();
                 self.finishSessionWithError("Error: "+data.msg);
                 return;
             }
@@ -473,44 +473,11 @@ Player.prototype.preloadAllContent = function() {
 
     }
 
-    /**
-    var entities = this.experiment.exp_data.entities();
-    for (var i = 0; i<entities.length; i++){
-        var entity = entities[i];
-        if (entity instanceof FrameData){
-            for (var k = 0; k<entity.elements().length; k++){
-                var entity2 = entity.elements()[k];
-                if  (entity2.content() instanceof VideoElement || entity2.content() instanceof ImageElement  || entity2.content() instanceof AudioElement){
-                    if  (entity2.content().hasOwnProperty("file_id")){
-                        if (entity2.content().file_id() && entity2.content().file_orig_name()) {
-                            var src = "/files/" + entity2.content().file_id() + "/" + entity2.content().file_orig_name();
-                            var fileSpec = {
-                                id: entity2.content().file_id(),
-                                src: src
-                            };
-                            if (!contentListById.hasOwnProperty(fileSpec.id)) {
-                                contentList.push(fileSpec);
-                                contentListById[fileSpec.id] = fileSpec;
-                            }
-                        }
-                    }
-                    var arr =  entity2.content().modifier().ndimModifierTrialTypes;
-                    if (arr.length>0){
-                        deepDive(arr);
-                    }
-
-                }
-
-            }
-
-        }
-    }
-     **/
     if (contentList.length>0){
-        queue.loadManifest(contentList);
+        this.playerPreloader.start(contentList);
     }
     else{
-        onComplete();
+        this.preloaderCompleted(true);
     }
 };
 
