@@ -263,6 +263,8 @@ var Player = function() {
 
     this.preloaderCompleted = ko.observable(false);
 
+    this.staticStrings = ko.observable(Player.prototype.staticTranslations["English"]);
+
     Webcam.on("error", function(err_msg){
         console.log("webcam error: "+err_msg);
         self.finishSessionWithError(err_msg);
@@ -309,6 +311,75 @@ var Player = function() {
     });
 
 };
+
+Player.prototype.staticTranslations = {
+    English: {
+        library: "Library",
+        langSelect: "This study is available in multiple languages.",
+        studyLanguage: "Study Language:",
+        continue: "Continue",
+        submit: "Submit",
+        initialSurvey: "Please fill out the fields below (required fields are marked with *):",
+        yourGender: "Gender",
+        yourGenderMale: "Male",
+        yourGenderFemale: "Female",
+        yourAge: "Your Age",
+        years: "years",
+        yourCountry: "Country of Origin",
+        yourFirstLang: "First Language",
+        yourEmail: "Email",
+        errorGender: "Gender missing",
+        errorAge: "Age missing",
+        errorCountry: "Country missing",
+        errorLanguage: "Language missing",
+        errorEmail: "Email missing",
+        errorSessionNotReady: "You can currently not take part in this experiment because this study can only be started at certain times.",
+        errorSessionStartIn: "You can start this session in",
+        refresh: "Refresh",
+        errorSessionOver: "You can currently not take part in this experiment because there is no starting time window defined for this study.",
+        loading1: "Loading experiment...",
+        loading2: "Loading, please wait",
+        loading3: "This might take a while.",
+        loadingComplete: "Loading Complete!",
+        canStart: "You can now start the experiment. This will switch your browser into fullscreen mode.",
+        keepFullscreen: "Please note that during the experiment you should never press escape or use the \"backward button in your browser.",
+        start: "Start"
+    },
+    German: {
+        library: "Experimente",
+        langSelect: "Diese Studie ist in mehreren Sprachen verfügbar.",
+        studyLanguage: "Studiensprache:",
+        continue: "Weiter",
+        submit: "Ok",
+        initialSurvey: "Bitte füllen Sie die untenstehenden Felder aus (Pflichtfelder sind mit * gekennzeichnet):",
+        yourGender: "Geschlecht",
+        yourGenderMale: "Männlich",
+        yourGenderFemale: "Weiblich",
+        yourAge: "Dein Alter",
+        years: "Jahre",
+        yourCountry: "Herkunftsland",
+        yourFirstLang: "Muttersprache",
+        yourEmail: "Email",
+        errorGender: "Geschlecht fehlt",
+        errorAge: "Age fehlt",
+        errorCountry: "Herkunftsland fehlt",
+        errorLanguage: "Muttersprache fehlt",
+        errorEmail: "Email fehlt",
+        errorSessionNotReady: "Sie können derzeit nicht an diesem Experiment teilnehmen, da diese Studie nur zu bestimmten Zeiten gestartet werden kann.",
+        errorSessionStartIn: "Sie können diese Sitzung starten in",
+        refresh: "Refresh",
+        errorSessionOver: "You can currently not take part in this experiment because there is no starting time window defined for this study.",
+        loading1: "Lade experiment...",
+        loading2: "Lade, bitte warten",
+        loading3: "Dies kann eine Weile dauern.",
+        loadingComplete: "Fertig geladen!",
+        canStart: "Sie können nun das Experiment starten. Dies schaltet Ihren Browser in den Vollbildmodus um.",
+        keepFullscreen: "Bitte beachten Sie, dass Sie während des Experiments niemals die Flucht drücken oder die Schaltfläche Zurück in Ihrem Browser verwenden sollten.",
+        start: "Start"
+    }
+};
+
+
 
 Player.prototype.preloadAllContent = function() {
 
