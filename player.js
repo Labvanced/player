@@ -295,6 +295,9 @@ var Player = function() {
 
             self.experiment.exp_data.initVars();
 
+            // init default language:
+            self.updateLanguage();
+
             if (!self.expId) {
                 self.expId = self.experiment.exp_id();
             }
@@ -343,7 +346,10 @@ Player.prototype.staticTranslations = {
         loadingComplete: "Loading Complete!",
         canStart: "You can now start the experiment. This will switch your browser into fullscreen mode.",
         keepFullscreen: "Please note that during the experiment you should never press escape or use the \"backward button in your browser.",
-        start: "Start"
+        start: "Start",
+        playerErrorNoSubjGroup: "Error: there is no subject group defined in the experiment.",
+        playerErrorNoSession: "Error: there is no session defined in the subject group in the experiment.",
+        playerErrorNoBlock: "Error: there is no block defined in this experiment session."
     },
     German: {
         library: "Experimente",
@@ -375,11 +381,26 @@ Player.prototype.staticTranslations = {
         loadingComplete: "Fertig geladen!",
         canStart: "Sie können nun das Experiment starten. Dies schaltet Ihren Browser in den Vollbildmodus um.",
         keepFullscreen: "Bitte beachten Sie, dass Sie während des Experiments niemals die Flucht drücken oder die Schaltfläche Zurück in Ihrem Browser verwenden sollten.",
-        start: "Start"
+        start: "Start",
+        playerErrorNoSubjGroup: "Fehler: Im Experiment ist keine Versuchspersonengruppe definiert.",
+        playerErrorNoSession: "Fehler: in der Versuchspersonengruppe ist keine Experimentssitzung definiert.",
+        playerErrorNoBlock: "Fehler: In dieser Experimentssitzung ist kein Versuchsblock definiert."
     }
 };
 
 
+Player.prototype.updateLanguage = function() {
+    var langIdx = this.experiment.exp_data.currentLanguage();
+    var langStr = this.experiment.exp_data.translatedLanguages()[langIdx];
+
+    // use static translations if they exist for the selected language or otherwise use english for static texts:
+    if (Player.prototype.staticTranslations.hasOwnProperty(langStr)) {
+        player.staticStrings(Player.prototype.staticTranslations[langStr]);
+    }
+    else {
+        player.staticStrings(Player.prototype.staticTranslations["English"]);
+    }
+};
 
 Player.prototype.preloadAllContent = function() {
 
@@ -501,22 +522,22 @@ Player.prototype.setSubjectGroupNr = function(groupNr, sessionNr){
 
     this.subj_group = this.experiment.exp_data.availableGroups()[this.groupNr-1];
     if (!this.subj_group) {
-        console.log("player error: there is no subject group defined in the experiment.");
-        this.finishSessionWithError("There is no subject group defined in the experiment.");
+        console.log(player.staticStrings().playerErrorNoSubjGroup);
+        this.finishSessionWithError(player.staticStrings().playerErrorNoSubjGroup);
         return;
     }
 
     this.exp_session = this.subj_group.sessions()[this.sessionNr-1];
     if (!this.exp_session) {
-        console.log("player error: there is no session defined in the subject group in the experiment.");
-        this.finishSessionWithError("there is no session defined in the subject group in the experiment.");
+        console.log(player.staticStrings().playerErrorNoSession);
+        this.finishSessionWithError(player.staticStrings().playerErrorNoSession);
         return;
     }
 
 
     if (this.exp_session.blocks().length == 0) {
-        console.log("player error: there is no block defined in this experiment session.");
-        this.finishSessionWithError("there is no block defined in this experiment session.");
+        console.log(player.staticStrings().playerErrorNoBlock);
+        this.finishSessionWithError(player.staticStrings().playerErrorNoBlock);
         return;
     }
 
