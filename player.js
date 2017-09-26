@@ -280,6 +280,11 @@ var Player = function() {
         askSubjData: this.askSubjData
     };
 
+    ko.applyBindings(this, $("#calibrateScreen")[0]);
+    ko.applyBindings(this, $("#endExpSection")[0]);
+    ko.applyBindings(this, $("#errEndExpSection")[0]);
+    ko.applyBindings(this, $("#countdownSection")[0]);
+
     createExpDesignComponents(function() {
         playerAjaxPost('/startExpPlayer', parameters, function(data){
             if (data.hasOwnProperty('success') && data.success == false) {
@@ -322,6 +327,7 @@ Player.prototype.staticTranslations = {
         studyLanguage: "Study Language:",
         continue: "Continue",
         submit: "Submit",
+        confirm: "Confirm",
         initialSurvey: "Please fill out the fields below (required fields are marked with *):",
         yourGender: "Gender",
         yourGenderMale: "Male",
@@ -349,7 +355,18 @@ Player.prototype.staticTranslations = {
         start: "Start",
         playerErrorNoSubjGroup: "Error: there is no subject group defined in the experiment.",
         playerErrorNoSession: "Error: there is no session defined in the subject group in the experiment.",
-        playerErrorNoBlock: "Error: there is no block defined in this experiment session."
+        playerErrorNoBlock: "Error: there is no block defined in this experiment session.",
+        startingExp: "Starting Experiment...",
+        startingIn: "Starting in ",
+        calibrateIntro: "You have the following two options to calibrate your screen size:",
+        calibrateMethod1: "1) Specify your screen size manually if you know the size of your monitor.",
+        calibrateScreenSize: "Screen size (diagonal):",
+        calibrateInches: "inches",
+        calibrateMsgOr: "OR",
+        calibrateMethod2: "2) Use a standardized ID card (85.60 × 53.98 mm) or any other card of the same size against the screen and try to match the size of the displayed card. " +
+            "You can change the size of the image by dragging the arrow. The calibration is correct if the image is no longer visible and the image exactly matches the size of the card.",
+        endExpMsg: "Thank you! The experiment session is finished.",
+        goToLib: "Go to experiment library"
     },
     German: {
         library: "Experimente",
@@ -357,6 +374,7 @@ Player.prototype.staticTranslations = {
         studyLanguage: "Studiensprache:",
         continue: "Weiter",
         submit: "Ok",
+        confirm: "Bestätigen",
         initialSurvey: "Bitte füllen Sie die untenstehenden Felder aus (Pflichtfelder sind mit * gekennzeichnet):",
         yourGender: "Geschlecht",
         yourGenderMale: "Männlich",
@@ -373,7 +391,7 @@ Player.prototype.staticTranslations = {
         errorEmail: "Email fehlt",
         errorSessionNotReady: "Sie können derzeit nicht an diesem Experiment teilnehmen, da diese Studie nur zu bestimmten Zeiten gestartet werden kann.",
         errorSessionStartIn: "Sie können diese Sitzung starten in",
-        refresh: "Refresh",
+        refresh: "Aktualisieren",
         errorSessionOver: "Sie können derzeit nicht an diesem Experiment teilnehmen, da für diese Studie kein Startzeitfenster definiert ist.",
         loading1: "Lade experiment...",
         loading2: "Lade, bitte warten",
@@ -384,7 +402,18 @@ Player.prototype.staticTranslations = {
         start: "Start",
         playerErrorNoSubjGroup: "Fehler: Im Experiment ist keine Versuchspersonengruppe definiert.",
         playerErrorNoSession: "Fehler: in der Versuchspersonengruppe ist keine Experimentssitzung definiert.",
-        playerErrorNoBlock: "Fehler: In dieser Experimentssitzung ist kein Versuchsblock definiert."
+        playerErrorNoBlock: "Fehler: In dieser Experimentssitzung ist kein Versuchsblock definiert.",
+        startingExp: "Experiment wird gestarted...",
+        startingIn: "Start in ",
+        calibrateIntro: "Sie haben die folgenden zwei Optionen, um Ihre Bildschirmgröße zu kalibrieren:",
+        calibrateMethod1: "1) Geben Sie Ihre Bildschirmgröße manuell an, wenn Sie die Größe Ihres Monitors kennen.",
+        calibrateScreenSize: "Bildschirmgröße (Diagonal):",
+        calibrateInches: "Inch",
+        calibrateMsgOr: "ODER",
+        calibrateMethod2: "2) Halten Sie einen standardisierten Ausweis (85.60 × 53.98 mm) oder eine andere Karte der gleichen Größe gegen den Bildschirm und versuchen Sie, die Größe der angezeigten Karte anzupassen. " +
+            "Sie können die Größe des Bildes durch Ziehen des Pfeils ändern. Die Kalibrierung ist korrekt, wenn das Bild nicht mehr sichtbar ist und das Bild genau der Größe der Karte entspricht.",
+        endExpMsg: "Vielen Dank! Die Experimentssitzung ist beendet.",
+        goToLib: "Gehe zur Experiment-Bibliothek"
     }
 };
 
