@@ -270,7 +270,7 @@ var Player = function() {
         self.finishSessionWithError(err_msg);
     });
 
-    console.log("requesting experiment with id "+this.expId+" from server with askSubjData="+this.askSubjData+ " subject_code="+this.subject_code);
+    //console.log("requesting experiment with id "+this.expId+" from server with askSubjData="+this.askSubjData+ " subject_code="+this.subject_code);
 
     var parameters = {
         expId: this.expId,
