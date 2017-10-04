@@ -403,7 +403,7 @@ Player.prototype.staticTranslations = {
         playerErrorNoSubjGroup: "Fehler: Im Experiment ist keine Versuchspersonengruppe definiert.",
         playerErrorNoSession: "Fehler: in der Versuchspersonengruppe ist keine Experimentssitzung definiert.",
         playerErrorNoBlock: "Fehler: In dieser Experimentssitzung ist kein Versuchsblock definiert.",
-        startingExp: "Experiment wird gestarted...",
+        startingExp: "Experiment wird gestartet...",
         startingIn: "Start in ",
         calibrateIntro: "Sie haben die folgenden zwei Optionen, um Ihre Bildschirmgröße zu kalibrieren:",
         calibrateMethod1: "1) Geben Sie Ihre Bildschirmgröße manuell an, wenn Sie die Größe Ihres Monitors kennen.",
