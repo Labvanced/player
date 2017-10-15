@@ -682,7 +682,7 @@ Player.prototype.startNextBlock = function() {
     this.currentBlockIdx++;
     if (this.blocks.length <= this.currentBlockIdx){
         console.log("experiment session finished");
-        this.finishSession();
+        this.finishSession(true);
     }
     else {
         console.log("starting block "+this.currentBlockIdx);
@@ -694,7 +694,7 @@ Player.prototype.startNextBlock = function() {
 
 Player.prototype.jumpToNextTask = function() {
     if (this.runOnlyTaskId) {
-        this.finishSession();
+        this.finishSession(true);
     }
     else {
         // TODO: clean up of preloaded trials of old task.
@@ -1049,7 +1049,7 @@ Player.prototype.finishSessionWithError = function(err_msg) {
     });
 };
 
-Player.prototype.finishSession = function() {
+Player.prototype.finishSession = function(showEndPage) {
     console.log("finishExpSession...");
     if (!this.isTestrun) {
         this.calculateStartWindow("next");
@@ -1074,8 +1074,11 @@ Player.prototype.finishSession = function() {
         });
 
     }
-    $('#experimentViewPort').hide();
-    $('#endExpSection').show();
+    if (showEndPage){
+        $('#experimentViewPort').hide();
+        $('#endExpSection').show();
+    }
+
     $('#endExp').click(function(){
         window.location = "/page/library";
     });
