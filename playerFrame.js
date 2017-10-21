@@ -99,6 +99,7 @@ PlayerFrame.prototype.resize = function() {
     console.log("warning player size changed!!! TODO: pause experiment...");
     // TODO: pause experiment
     this.frameView.resize(this.getViewSize());
+    this.player.experiment.exp_data.varFullscreenSpec().value().value(false);
 };
 
 PlayerFrame.prototype.getFrameTime = function() {

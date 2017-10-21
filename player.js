@@ -142,7 +142,8 @@ if (is_nwjs()) {
         if (route=="/finishExpSession") {
             // add end time to session:
             var rec_session_changes = {
-                end_time: p.end_time
+                end_time: p.end_time,
+                var_data:p.var_data
             };
             db.rec_sessions.update(rec_session_id, rec_session_changes);
 
@@ -263,6 +264,9 @@ var Player = function() {
 
     this.preloaderCompleted = ko.observable(false);
 
+    this.sessionEndded = false;
+    this.timeControlArray = [];
+
 
     Webcam.on("error", function(err_msg){
         console.log("webcam error: "+err_msg);
@@ -300,6 +304,12 @@ var Player = function() {
 
             self.experiment.exp_data.initVars();
 
+            // record browser and system specs
+            if (!self.runOnlyTaskId && !self.isTestrun) {
+                self.detectBrowserAndSystemSpecs();
+            }
+
+
             // init default language:
             self.experiment.exp_data.updateLanguage();
 
@@ -319,6 +329,103 @@ var Player = function() {
     });
 
 };
+
+Player.prototype.detectBrowserAndSystemSpecs = function() {
+    var nVer = navigator.appVersion;
+    var nAgt = navigator.userAgent;
+    var browserName  = navigator.appName;
+    var fullVersion  = ''+parseFloat(navigator.appVersion);
+    var majorVersion = parseInt(navigator.appVersion,10);
+    var nameOffset,verOffset,ix;
+
+    // In Opera, the true version is after "Opera" or after "Version"
+    if ((verOffset=nAgt.indexOf("Opera"))!=-1) {
+        browserName = "Opera";
+        fullVersion = nAgt.substring(verOffset+6);
+        if ((verOffset=nAgt.indexOf("Version"))!=-1)
+            fullVersion = nAgt.substring(verOffset+8);
+    }
+// In MSIE, the true version is after "MSIE" in userAgent
+    else if ((verOffset=nAgt.indexOf("MSIE"))!=-1) {
+        browserName = "Microsoft Internet Explorer";
+        fullVersion = nAgt.substring(verOffset+5);
+    }
+// In Chrome, the true version is after "Chrome"
+    else if ((verOffset=nAgt.indexOf("Chrome"))!=-1) {
+        browserName = "Chrome";
+        fullVersion = nAgt.substring(verOffset+7);
+    }
+// In Safari, the true version is after "Safari" or after "Version"
+    else if ((verOffset=nAgt.indexOf("Safari"))!=-1) {
+        browserName = "Safari";
+        fullVersion = nAgt.substring(verOffset+7);
+        if ((verOffset=nAgt.indexOf("Version"))!=-1)
+            fullVersion = nAgt.substring(verOffset+8);
+    }
+// In Firefox, the true version is after "Firefox"
+    else if ((verOffset=nAgt.indexOf("Firefox"))!=-1) {
+        browserName = "Firefox";
+        fullVersion = nAgt.substring(verOffset+8);
+    }
+// In most other browsers, "name/version" is at the end of userAgent
+    else if ( (nameOffset=nAgt.lastIndexOf(' ')+1) <
+        (verOffset=nAgt.lastIndexOf('/')) )
+    {
+        browserName = nAgt.substring(nameOffset,verOffset);
+        fullVersion = nAgt.substring(verOffset+1);
+        if (browserName.toLowerCase()==browserName.toUpperCase()) {
+            browserName = navigator.appName;
+        }
+    }
+// trim the fullVersion string at semicolon/space if present
+    if ((ix=fullVersion.indexOf(";"))!=-1)
+        fullVersion=fullVersion.substring(0,ix);
+    if ((ix=fullVersion.indexOf(" "))!=-1)
+        fullVersion=fullVersion.substring(0,ix);
+
+    majorVersion = parseInt(''+fullVersion,10);
+    if (isNaN(majorVersion)) {
+        fullVersion  = ''+parseFloat(navigator.appVersion);
+        majorVersion = parseInt(navigator.appVersion,10);
+    }
+    var OSName="Unknown OS";
+    if (navigator.appVersion.indexOf("Win")!=-1){
+        OSName="Windows";
+    }
+    if (navigator.appVersion.indexOf("Mac")!=-1){
+        OSName="MacOS";
+    }
+    if (navigator.appVersion.indexOf("X11")!=-1){
+        OSName="UNIX";
+    }
+    if (navigator.appVersion.indexOf("Linux")!=-1){
+        OSName="Linux";
+    }
+
+
+    this.experiment.exp_data.varBrowserSpec().value().value(browserName);
+    this.experiment.exp_data.varBrowserVersionSpec().value().value(fullVersion);
+    this.experiment.exp_data.varSystemSpec().value().value(OSName);
+};
+
+
+Player.prototype.timeMeasureControl = function() {
+
+    var self = this;
+    var desiredDelayInMs = 100;
+    var distanceBetweenMeasures = 5000;
+
+    setInterval(function(){
+        var oldTime = new Date().getTime();
+        setTimeout(function() {
+            var newTime = new Date().getTime();
+            var timeDifference = newTime-oldTime;
+            self.timeControlArray.push(timeDifference);
+        },desiredDelayInMs)
+    },distanceBetweenMeasures);
+
+};
+
 
 Player.prototype.preloadAllContent = function() {
 
@@ -514,6 +621,7 @@ Player.prototype.setupPlayerDesign = function() {
 
 Player.prototype.startExperiment = function() {
 
+    this.timeMeasureControl();
 
     this.setupPlayerDesign();
 
@@ -729,7 +837,7 @@ Player.prototype.startRecordingsOfNewTask = function() {
             taskId: this.currentTask.id(),
             taskName: this.experiment.exp_data.varTaskName().value().value(),
             start_time: pgFormatDate(new Date())
-        };
+    };
         playerAjaxPost('/recordStartTask', recordData, function(result) {
 
         });
@@ -927,6 +1035,7 @@ Player.prototype.getBlockId = function () {
 
 
 Player.prototype.finishSessionWithError = function(err_msg) {
+    this.sessionEndded = true;
     console.log("error during experiment...");
     playerAjaxPost('/errExpSession', {err_msg: err_msg});
     $('#experimentViewPort').hide();
@@ -939,8 +1048,30 @@ Player.prototype.finishSessionWithError = function(err_msg) {
 };
 
 Player.prototype.finishSession = function(showEndPage) {
+
+    this.sessionEndded = true;
+
+    var total = 0;
+    for(var i = 0; i < this.timeControlArray.length; i++) {
+        total += this.timeControlArray[i];
+    }
+    var meanDelay = (total / this.timeControlArray.length)-100;
+    var maxDelay = Math.max.apply(null,this.timeControlArray)-100;
+    this.experiment.exp_data.varTimeMeasureSpecMean().value().value(meanDelay);
+    this.experiment.exp_data.varTimeMeasureSpecMax().value().value(maxDelay);
+
+    var var_data = {
+        browserSpec: this.experiment.exp_data.varBrowserSpec().value().toJS(),
+        versionSpec: this.experiment.exp_data.varBrowserVersionSpec().value().toJS(),
+        systemSpec: this.experiment.exp_data.varSystemSpec().value().toJS(),
+        fullscreen: this.experiment.exp_data.varFullscreenSpec().value().toJS(),
+        timeDelayMean: this.experiment.exp_data.varTimeMeasureSpecMean().value().toJS(),
+        timeDelayMax: this.experiment.exp_data.varTimeMeasureSpecMax().value().toJS()
+    };
+
+
     console.log("finishExpSession...");
-    if (!this.isTestrun) {
+    if (!this.runOnlyTaskId && !this.isTestrun) {
         this.calculateStartWindow("next");
 
         var nextStartTime = null;
@@ -959,7 +1090,8 @@ Player.prototype.finishSession = function(showEndPage) {
         playerAjaxPost('/finishExpSession', {
             end_time: currentDate,
             nextStartTime: nextStartTime,
-            nextEndTime: nextEndTime
+            nextEndTime: nextEndTime,
+            var_data: var_data
         });
 
     }
