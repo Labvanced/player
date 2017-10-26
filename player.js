@@ -305,10 +305,7 @@ var Player = function() {
             self.experiment.exp_data.initVars();
 
             // record browser and system specs
-            if (!self.runOnlyTaskId && !self.isTestrun) {
-                self.detectBrowserAndSystemSpecs();
-            }
-
+            self.detectBrowserAndSystemSpecs();
 
             // init default language:
             self.experiment.exp_data.updateLanguage();
@@ -336,8 +333,8 @@ Player.prototype.detectBrowserAndSystemSpecs = function() {
     // screen
     var screenSize = '';
     if (screen.width) {
-        width = (screen.width) ? screen.width : '';
-        height = (screen.height) ? screen.height : '';
+        var width = (screen.width) ? screen.width : '';
+        var height = (screen.height) ? screen.height : '';
         screenSize += '' + width + " x " + height;
     }
 
@@ -517,6 +514,30 @@ Player.prototype.timeMeasureControl = function() {
 };
 
 
+Player.prototype.getAllFramesOrPagesInSession = function() {
+    var allFramesOrPages = [];
+    var blocks = this.experiment.exp_data.availableGroups()[this.groupNr-1].sessions()[this.sessionNr-1].blocks();
+    for (var i = 0; i<blocks.length; i++){
+        var subTasks = blocks[i].subTasks();
+        for (var j = 0; j<subTasks.length; j++) {
+            var subSequences = subTasks[j].subSequencePerFactorGroup();
+            for (var l = 0; l<subSequences.length;l++) {
+                var elements = subSequences[l].elements();
+                for (var m= 0; m<elements.length;m++) {
+                    var entity = elements[m];
+                    if (entity instanceof FrameData) {
+                        allFramesOrPages.push(entity);
+                    }
+                    if (entity instanceof PageData) {
+                        allFramesOrPages.push(entity);
+                    }
+                }
+            }
+        }
+    }
+    return allFramesOrPages;
+};
+
 Player.prototype.preloadAllContent = function() {
 
     var contentList = [];
@@ -551,51 +572,41 @@ Player.prototype.preloadAllContent = function() {
         }
     }
 
-    // parse images, video and audio elements only for current group and session
-    var blocks = this.experiment.exp_data.availableGroups()[this.groupNr-1].sessions()[this.sessionNr-1].blocks();
-    for (var i = 0; i<blocks.length; i++){
-        var subTasks = blocks[i].subTasks();
-        for (var j = 0; j<subTasks.length; j++) {
-            var subSequences = subTasks[j].subSequencePerFactorGroup();
-            for (var l = 0; l<subSequences.length;l++) {
-                var elements = subSequences[l].elements();
-                for (var m= 0; m<elements.length;m++) {
-                    var entity = elements[m];
-                    if (entity instanceof FrameData) {
-                        var contentElements = entity.elements();
-                        for (var k = 0; k < contentElements.length; k++) {
-                            var contentElem = contentElements[k];
-                            if (contentElem.content() instanceof VideoElement || contentElem.content() instanceof ImageElement || contentElem.content() instanceof AudioElement) {
-                                if (contentElem.content().hasOwnProperty("file_id")) {
-                                    if (contentElem.content().file_id() && contentElem.content().file_orig_name()) {
-                                        addToContents(contentElem.content().file_id(), contentElem.content().file_orig_name());
-                                    }
-                                }
-                                var arr = contentElem.content().modifier().ndimModifierTrialTypes;
-                                if (arr.length > 0) {
-                                    deepDive(arr);
-                                }
-                            }
-                        }
+    // parse images, video and audio elements in current session:
+    var allFramesOrPages = this.getAllFramesOrPagesInSession();
+    $.each(allFramesOrPages, function(frameIdx, entity) {
 
-                        var actionsArr = [];
-                        $.each(entity.events(), function(idx, event) {
-                            event.getAllActions(actionsArr);
-                        });
-                        $.each(actionsArr, function(idx, action) {
-                            if (action instanceof ActionLoadFileIds) {
-                                $.each(action.files(), function(fileIdx, fileSpec) {
-                                    addToContents(fileSpec.id, fileSpec.name_original);
-                                });
-                            }
-                        });
+        var contentElements = entity.elements();
+        for (var k = 0; k < contentElements.length; k++) {
+            var contentElem = contentElements[k];
+            if (contentElem.content() instanceof VideoElement ||
+                contentElem.content() instanceof ImageElement ||
+                contentElem.content() instanceof AudioElement) {
+                if (contentElem.content().hasOwnProperty("file_id")) {
+                    if (contentElem.content().file_id() && contentElem.content().file_orig_name()) {
+                        addToContents(contentElem.content().file_id(), contentElem.content().file_orig_name());
                     }
-
+                }
+                var arr = contentElem.content().modifier().ndimModifierTrialTypes;
+                if (arr.length > 0) {
+                    deepDive(arr);
                 }
             }
         }
 
-    }
+        // now also add the fileIds in the actions:
+        var actionsArr = [];
+        $.each(entity.events(), function(idx, event) {
+            event.getAllActions(actionsArr);
+        });
+        $.each(actionsArr, function(idx, action) {
+            if (action instanceof ActionLoadFileIds) {
+                $.each(action.files(), function(fileIdx, fileSpec) {
+                    addToContents(fileSpec.id, fileSpec.name_original);
+                });
+            }
+        });
+    });
 
     if (contentList.length>0){
         this.playerPreloader.start(contentList);
@@ -1210,6 +1221,29 @@ Player.prototype.finishSession = function(showEndPage) {
 
 Player.prototype.startFullscreen = function() {
     var self = this;
+
+    // for compatibility check if safari is used:
+    if (this.experiment.exp_data.varBrowserSpec().value().value() === "Safari"){
+        // check if some KeyboardTrigger has alphanumeric enabled:
+        var alphaNumericEnabled = false;
+        var allFramesOrPages = this.getAllFramesOrPagesInSession();
+        $.each(allFramesOrPages, function(frameIdx, entity) {
+            var actionsArr = [];
+            $.each(entity.events(), function(idx, event) {
+                var trigger = event.trigger();
+                if (trigger instanceof TriggerKeyboard) {
+                    if (trigger.alphaNumericEnabled()) {
+                        alphaNumericEnabled = true;
+                    }
+                }
+            });
+        });
+        if (alphaNumericEnabled) {
+            // do not enter fullscreen mode:
+            return;
+        }
+    }
+
     var element = document.documentElement;
     if(element.requestFullscreen) {
         element.requestFullscreen();
