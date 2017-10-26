@@ -522,6 +522,18 @@ Player.prototype.preloadAllContent = function() {
     var contentList = [];
     var contentListById = {};
 
+    function addToContents(file_id, file_orig_name) {
+        var src = "/files/" + file_id + "/" + file_orig_name;
+        var fileSpec = {
+            id: file_id,
+            src: src
+        };
+        if (!contentListById.hasOwnProperty(fileSpec.id)) {
+            contentList.push(fileSpec);
+            contentListById[fileSpec.id] = fileSpec;
+        }
+    }
+
     function deepDive(arr) {
         var t;
         if (arr[0].constructor === Array) {
@@ -533,15 +545,7 @@ Player.prototype.preloadAllContent = function() {
         else {
             for (t = 0; t < arr.length; t++) {
                 if (arr[t].modifiedProp.hasOwnProperty("file_id")) {
-                    var src = "/files/" + arr[t].modifiedProp.file_id() + "/" + arr[t].modifiedProp.file_orig_name();
-                    var fileSpec = {
-                        id: arr[t].modifiedProp.file_id(),
-                        src: src
-                    };
-                    if (!contentListById.hasOwnProperty(fileSpec.id)) {
-                        contentList.push(fileSpec);
-                        contentListById[fileSpec.id] = fileSpec;
-                    }
+                    addToContents(arr[t].modifiedProp.file_id(), arr[t].modifiedProp.file_orig_name());
                 }
             }
         }
@@ -558,28 +562,33 @@ Player.prototype.preloadAllContent = function() {
                 for (var m= 0; m<elements.length;m++) {
                     var entity = elements[m];
                     if (entity instanceof FrameData) {
-                        for (var k = 0; k < entity.elements().length; k++) {
-                            var entity2 = entity.elements()[k];
-                            if (entity2.content() instanceof VideoElement || entity2.content() instanceof ImageElement || entity2.content() instanceof AudioElement) {
-                                if (entity2.content().hasOwnProperty("file_id")) {
-                                    if (entity2.content().file_id() && entity2.content().file_orig_name()) {
-                                        var src = "/files/" + entity2.content().file_id() + "/" + entity2.content().file_orig_name();
-                                        var fileSpec = {
-                                            id: entity2.content().file_id(),
-                                            src: src
-                                        };
-                                        if (!contentListById.hasOwnProperty(fileSpec.id)) {
-                                            contentList.push(fileSpec);
-                                            contentListById[fileSpec.id] = fileSpec;
-                                        }
+                        var contentElements = entity.elements();
+                        for (var k = 0; k < contentElements.length; k++) {
+                            var contentElem = contentElements[k];
+                            if (contentElem.content() instanceof VideoElement || contentElem.content() instanceof ImageElement || contentElem.content() instanceof AudioElement) {
+                                if (contentElem.content().hasOwnProperty("file_id")) {
+                                    if (contentElem.content().file_id() && contentElem.content().file_orig_name()) {
+                                        addToContents(contentElem.content().file_id(), contentElem.content().file_orig_name());
                                     }
                                 }
-                                var arr = entity2.content().modifier().ndimModifierTrialTypes;
+                                var arr = contentElem.content().modifier().ndimModifierTrialTypes;
                                 if (arr.length > 0) {
                                     deepDive(arr);
                                 }
                             }
                         }
+
+                        var actionsArr = [];
+                        $.each(entity.events(), function(idx, event) {
+                            event.getAllActions(actionsArr);
+                        });
+                        $.each(actionsArr, function(idx, action) {
+                            if (action instanceof ActionLoadFileIds) {
+                                $.each(action.files(), function(fileIdx, fileSpec) {
+                                    addToContents(fileSpec.id, fileSpec.name_original);
+                                });
+                            }
+                        });
                     }
 
                 }
