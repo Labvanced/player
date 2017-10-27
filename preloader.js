@@ -23,6 +23,22 @@ var PlayerPreloader = function(player) {
         if (type == createjs.LoadQueue.IMAGE || type == createjs.LoadQueue.VIDEO || type == createjs.LoadQueue.SOUND) {
             var objectUrl = (window.URL || window.webkitURL).createObjectURL(event.rawResult);
             self.preloadedObjectUrlsById[event.item.id] = objectUrl;
+
+            if (type == createjs.LoadQueue.IMAGE) {
+                var elemToPreventCacheEviction = new Image;
+                elemToPreventCacheEviction.src = objectUrl;
+                $("#preloadedCache").append(elemToPreventCacheEviction);
+            }
+            else if (type == createjs.LoadQueue.VIDEO) {
+                var elemToPreventCacheEviction = document.createElement('video');
+                elemToPreventCacheEviction.src = objectUrl;
+                $("#preloadedCache").append(elemToPreventCacheEviction);
+            }
+            else if (type == createjs.LoadQueue.SOUND) {
+                var elemToPreventCacheEviction = document.createElement('audio');
+                elemToPreventCacheEviction.src = objectUrl;
+                $("#preloadedCache").append(elemToPreventCacheEviction);
+            }
         }
         else {
             console.log("other content");
