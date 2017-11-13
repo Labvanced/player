@@ -169,6 +169,15 @@ else {
 var Player = function() {
     var self = this;
 
+    // determine whether this is a crowdsourcingSession
+    this.crowdsourcingCode = ko.observable('');
+    this.isCrowdsourcingSession = ko.observable(false);
+    var isCrowdsourcingSession = getParameterByName("crowdsourcing");
+    if (isCrowdsourcingSession =="true"){
+        this.crowdsourcingCode(guid());
+        this.isCrowdsourcingSession(true);
+    }
+
     this.playerPreloader = new PlayerPreloader(this);
 
     function getParameterByName(name) {
@@ -205,6 +214,7 @@ var Player = function() {
         this.isTestrun = true;
     }
     this.subject_code = getParameterByName("subject_code");
+
     this.token = getParameterByName("token");
 
     // Jump to text task when pressing CNTL + Q
@@ -266,6 +276,7 @@ var Player = function() {
 
     this.sessionEnded = false;
     this.timeControlArray = [];
+
 
 
     Webcam.on("error", function(err_msg){
@@ -1170,6 +1181,12 @@ Player.prototype.finishSession = function(showEndPage) {
     this.experiment.exp_data.varTimeMeasureSpecMean().value().value(meanDelay);
     this.experiment.exp_data.varTimeMeasureSpecMax().value().value(maxDelay);
 
+    // set crowdsourcingCode
+    if (this.isCrowdsourcingSession()){
+        this.experiment.exp_data.varCrowdsourcingCode().value().value(this.crowdsourcingCode());
+    }
+
+
     var var_data = {
         browserSpec: this.experiment.exp_data.varBrowserSpec().value().toJS(),
         versionSpec: this.experiment.exp_data.varBrowserVersionSpec().value().toJS(),
@@ -1177,8 +1194,12 @@ Player.prototype.finishSession = function(showEndPage) {
         agentSpec: this.experiment.exp_data.varAgentSpec().value().toJS(),
         fullscreen: this.experiment.exp_data.varFullscreenSpec().value().toJS(),
         timeDelayMean: this.experiment.exp_data.varTimeMeasureSpecMean().value().toJS(),
-        timeDelayMax: this.experiment.exp_data.varTimeMeasureSpecMax().value().toJS()
+        timeDelayMax: this.experiment.exp_data.varTimeMeasureSpecMax().value().toJS(),
+        crowdsourcingCode:this.experiment.exp_data.varCrowdsourcingCode().value().toJS()
+
     };
+
+
 
 
     console.log("finishExpSession...");
@@ -1206,6 +1227,8 @@ Player.prototype.finishSession = function(showEndPage) {
         });
 
     }
+
+
     if (showEndPage){
         $('#experimentViewPort').hide();
         $('#endExpSection').show();
