@@ -849,14 +849,45 @@ Player.prototype.jumpToSpecificTask = function(taskToJumpId) {
         // TODO: clean up of preloaded trials of old task.
         this.cleanUpCurrentTask();
 
-        for (var i = this.currentBlockIdx; i<this.blocks.length; i++){
-            var tasks = this.blocks[i].subTasks();
-            for (var k = 0; k<tasks.length; k++){
-                if (tasks[k].id()===taskToJumpId){ // taskID found
-                    this.setSpecificBlockAndTask(i,k);
-                    break;
-                }
+        var found = false;
+        var blockIdx = this.currentBlockIdx;
+        while (!found && blockIdx<this.blocks.length){
+            var tasks = this.blocks[blockIdx].subTasks();
+            if (blockIdx == this.currentBlockIdx){
+                var taskIdx = this.currentTaskIdx+1;
             }
+            else{
+                var taskIdx = 0;
+            }
+            while (!found && taskIdx<tasks.length){
+                if (tasks[taskIdx].id()===taskToJumpId){ // taskID found
+                    this.setSpecificBlockAndTask(blockIdx,taskIdx);
+                    found = true;
+                }
+                taskIdx++;
+            }
+            blockIdx++;
+        }
+    }
+};
+
+
+Player.prototype.jumpToSpecificBlock = function(blockToJumpId) {
+    if (this.runOnlyTaskId) {
+        this.finishSession(true);
+    }
+    else {
+        // TODO: clean up of preloaded trials of old task.
+        this.cleanUpCurrentTask();
+
+        var found = false;
+        var blockIdx = this.currentBlockIdx+1;
+        while (!found && blockIdx<this.blocks.length){
+            if (this.blocks[blockIdx].id()===blockToJumpId){ // taskID found
+                this.setSpecificBlockAndTask(blockIdx,0);
+                found = true;
+            }
+            blockIdx++;
         }
     }
 };
