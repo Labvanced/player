@@ -259,6 +259,7 @@ var Player = function() {
     this.currentTrialId = null;
     this.randomizedTrials = [];
     this.trialIter = "init"; // or "waitForStart" or 0,1,2,..
+    this.trialIndex = null;
     this.currentTrialDiv = null;
     this.currentTrialFrames = null;
     this.currentSequence = null;
@@ -857,12 +858,9 @@ Player.prototype.jumpToSpecificTask = function(taskToJumpId) {
                 }
             }
         }
-
-
-
-
     }
 };
+
 
 Player.prototype.startRunningTask = function() {
     var self = this;
@@ -946,7 +944,7 @@ Player.prototype.startRunningTask = function() {
         this.randomizedTrials = this.currentTask.doTrialRandomization();
 
         console.log("randomization finished... start first trial initialization...");
-        this.addTrialViews(0, this.currentTask);
+        this.addTrialViews(0,0, this.currentTask);
 
         self.trialIter = "waitForStart";
         self.startRecordingsOfNewTask();
@@ -1063,17 +1061,20 @@ Player.prototype.startNextTrial = function() {
 
     if (this.trialIter == "waitForStart") {
         this.trialIter = 0;
+        this.trialIndex = 0;
     }
     else {
         this.recordData();
         // start next trial:
         this.trialIter++;
+        this.trialIndex++;
     }
 
-    if (this.trialIter >= this.randomizedTrials.length) {
+    if (this.trialIndex >= this.randomizedTrials.length) {
         // trial loop finished:
         console.log("task finished");
         this.trialIter = "init"; // reset to init so that another trial loop in another block will start from the beginning
+        this.trialIndex = null;
 
         if (this.webcamLoaded){
             console.log("removing webcam");
@@ -1086,7 +1087,7 @@ Player.prototype.startNextTrial = function() {
     }
 
     console.log("start trial iteration " + this.trialIter);
-    var trialSelection = this.randomizedTrials[this.trialIter];
+    var trialSelection = this.randomizedTrials[this.trialIndex];
 
     this.currentTrialId = trialSelection.trialVariation.uniqueId();
     console.log("start randomized trial id " + this.currentTrialId);
@@ -1117,12 +1118,110 @@ Player.prototype.startNextTrial = function() {
     this.startNextPageOrFrame();
 
     // preload next trial:
-    if (this.trialIter + 1 < this.randomizedTrials.length) {
+    if (this.trialIndex + 1 < this.randomizedTrials.length) {
         setTimeout(function(){
-            self.addTrialViews(self.trialIter + 1, self.currentTask);
+            self.addTrialViews(self.trialIndex + 1,self.trialIter + 1, self.currentTask);
         }, 1);
     }
 };
+
+
+
+
+
+
+
+Player.prototype.startSpecificTrial = function(trialId) {
+
+    var self = this;
+
+    if (this.trialIter == "waitForStart") {
+        this.trialIter = 0;
+        this.trialIndex  = 0;
+    }
+
+    var trialIds = [];
+    for (var j = 0; j< this.randomizedTrials.length; j++){
+        trialIds.push( this.randomizedTrials[j].trialVariation.uniqueId());
+    }
+
+    var indexOfNewTrial = trialIds.indexOf(parseInt(trialId));
+    if (indexOfNewTrial instanceof Array){
+        var trialIndex  = indexOfNewTrial[0];
+    }
+    else if (indexOfNewTrial >=0){
+        var trialIndex  = indexOfNewTrial;
+    }
+    else {
+        var trialIndex  = this.trialIter+1;
+    }
+
+    this.trialIter++;
+    this.trialIndex = trialIndex;
+
+
+    if (trialIndex >= this.randomizedTrials.length) {
+        // trial loop finished:
+        console.log("task finished");
+        this.trialIter = "init"; // reset to init so that another trial loop in another block will start from the beginning
+        this.trialIndex = null;
+
+        if (this.webcamLoaded){
+            console.log("removing webcam");
+            Webcam.reset();
+            this.webcamLoaded = false;
+        }
+
+        self.jumpToNextTask();
+        return;
+    }
+
+    console.log("start trial iteration " + this.trialIter);
+    var trialSelection = this.randomizedTrials[this.trialIndex];
+
+    this.currentTrialId = trialSelection.trialVariation.uniqueId();
+     if (trialId !=  this.currentTrialId){
+         console.log("Error: Trial ID is false!");
+     }
+     console.log("start randomized trial id " + this.currentTrialId);
+
+    // set some predefined variables for this trial:
+    this.experiment.exp_data.varTrialId().value().value(this.currentTrialId);
+    this.experiment.exp_data.varTrialNr().value().value(this.trialIter+1);
+    this.experiment.exp_data.varConditionId().value().value(trialSelection.condition.conditionIdx()); // TODO set condition id
+
+    // reset variables at start of trial:
+    for (var i=0; i<this.variablesToReset.length; i++){
+        this.variablesToReset[i].resetValueToStartValue();
+    }
+
+    // set factor values
+    for (var i=0; i<this.factorsVars.length; i++){
+        // TODO: this.factorsVars is not needed, because we could also just do this directly by reading out the factors that are within the condition:
+        var factorValue = trialSelection.condition.getCurrentValueOfFactor(this.factorsVars[i].id());
+        this.factorsVars[i].value().value(factorValue);
+    }
+
+    //this.cleanUpCurrentTrial();
+
+    // preload next trial, and start it
+    this.addTrialViews(this.trialIndex, this.trialIter, this.currentTask);
+    this.switchToNextPreloadedTrial();
+
+
+    // go into trial sequence:
+    this.currentSequence.currSelectedElement(null);
+    this.currentSequence.selectNextElement();
+    this.startNextPageOrFrame();
+
+    // preload next trial:
+    if (this.trialIndex + 1 < this.randomizedTrials.length) {
+        setTimeout(function(){
+            self.addTrialViews(self.trialIndex + 1,self.trialIter + 1, self.currentTask);
+        }, 1);
+    }
+};
+
 
 Player.prototype.startNextPageOrFrame = function() {
     var currentElement = this.currentSequence.currSelectedElement();
@@ -1146,7 +1245,7 @@ Player.prototype.startNextPageOrFrame = function() {
     }
 };
 
-Player.prototype.addTrialViews = function (trialIter,task) {
+Player.prototype.addTrialViews = function (trialIndex,trialIter,task) {
 
     this.nextTrialDiv = $(document.createElement('div'));
     this.nextTrialDiv.css({
@@ -1154,7 +1253,7 @@ Player.prototype.addTrialViews = function (trialIter,task) {
         "height": "100%"
     });
     $('#experimentTree').append(this.nextTrialDiv);
-    var nextTrialSelection = this.randomizedTrials[trialIter];
+    var nextTrialSelection = this.randomizedTrials[trialIndex];
 
     var factorGroupIdx = task.factorGroups().indexOf(nextTrialSelection.factorGroup);
     this.nextSequence = task.subSequencePerFactorGroup()[factorGroupIdx].getDeepCopyForPlayer();
@@ -1180,6 +1279,10 @@ Player.prototype.addTrialViews = function (trialIter,task) {
     }
 
 };
+
+
+
+
 
 
 Player.prototype.getRandomizedTrialId = function () {

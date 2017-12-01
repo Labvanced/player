@@ -263,15 +263,6 @@ PlayerFrame.prototype.goToCustomFrame = function(customFrame) {
     }
 };
 
-PlayerFrame.prototype.goToCustomTask = function(customTaskId) {
-    if (this.state == 'displaying') {
-        this.finishFrame();
-        this.player.jumpToSpecificTask(customTaskId);
-        this.player.startNextPageOrFrame();
-    }
-};
-
-
 
 
 PlayerFrame.prototype.getViewSize = function() {
