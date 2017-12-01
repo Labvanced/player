@@ -824,6 +824,46 @@ Player.prototype.jumpToNextTask = function() {
     }
 };
 
+Player.prototype.setSpecificBlockAndTask = function(blockIndex,taskIndex) {
+    this.currentBlockIdx = blockIndex;
+    if (this.blocks.length <= this.currentBlockIdx){
+        console.log("experiment session finished");
+        this.finishSession(true);
+    }
+    else {
+        console.log("starting block "+this.currentBlockIdx);
+        this.currentBlock = this.blocks[this.currentBlockIdx];
+        this.currentTaskIdx = taskIndex;
+        this.currentTask = this.currentBlock.subTasks()[this.currentTaskIdx];
+        this.startRunningTask();
+    }
+};
+
+
+Player.prototype.jumpToSpecificTask = function(taskToJumpId) {
+    if (this.runOnlyTaskId) {
+        this.finishSession(true);
+    }
+    else {
+        // TODO: clean up of preloaded trials of old task.
+        this.cleanUpCurrentTask();
+
+        for (var i = this.currentBlockIdx; i<this.blocks.length; i++){
+            var tasks = this.blocks[i].subTasks();
+            for (var k = 0; k<tasks.length; k++){
+                if (tasks[k].id()===taskToJumpId){ // taskID found
+                    this.setSpecificBlockAndTask(i,k);
+                    break;
+                }
+            }
+        }
+
+
+
+
+    }
+};
+
 Player.prototype.startRunningTask = function() {
     var self = this;
 
