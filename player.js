@@ -221,7 +221,7 @@ var Player = function() {
     // TODO might be useful to disable this in some routes
     function KeyPress(e) {
         var evtobj = window.event? event : e
-        if (evtobj.keyCode == 81 && evtobj.ctrlKey){
+        if (evtobj.keyCode == 81 && evtobj.ctrlKey  && !evtobj.altKey){
             self.currentFrame.finishFrame();
             self.recordData();
             self.jumpToNextTask();
