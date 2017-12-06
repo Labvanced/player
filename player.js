@@ -170,7 +170,22 @@ if (is_nwjs()) {
     };
 }
 else {
-    playerAjaxPost = $.post;
+    playerAjaxPost = function(route, p, callback) {
+        $.ajax({
+            type: "POST",
+            url: route,
+            data: p,
+            timeout: 1000,
+            error: function(jqXHR, textStatus, errorThrown) {
+                if(textStatus==="timeout") {
+                    console.error("error: the ajax post to " + route + " timed out!");
+                } else {
+                    console.error("error: the ajax post to " + route + " resulted in an error: " + textStatus);
+                }
+            },
+            success: callback
+        });
+    };
 }
 
 var Player = function() {
