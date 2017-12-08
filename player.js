@@ -175,7 +175,7 @@ else {
             type: "POST",
             url: route,
             data: p,
-            timeout: 1000,
+            timeout: 10000,
             error: function(jqXHR, textStatus, errorThrown) {
                 if(textStatus==="timeout") {
                     console.error("error: the ajax post to " + route + " timed out!");
