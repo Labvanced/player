@@ -244,6 +244,7 @@ var Player = function() {
     function KeyPress(e) {
         var evtobj = window.event? event : e
         if (evtobj.keyCode == 81 && evtobj.ctrlKey  && !evtobj.altKey){
+            self.pressedShortcut(true);
             self.currentFrame.finishFrame();
             self.recordData();
             self.jumpToNextTask();
@@ -287,6 +288,8 @@ var Player = function() {
     this.currentSequence = null;
     this.nextSequence = null;
     this.currentFrame = null;
+
+    this.pressedShortcut = ko.observable(false);
 
     this.webcamLoaded = false;
     this.variablesToReset = [];
