@@ -880,12 +880,7 @@ Player.prototype.jumpToSpecificTask = function(taskToJumpId) {
         var blockIdx = this.currentBlockIdx;
         while (!found && blockIdx<this.blocks.length){
             var tasks = this.blocks[blockIdx].subTasks();
-            if (blockIdx == this.currentBlockIdx){
-                var taskIdx = this.currentTaskIdx+1;
-            }
-            else{
-                var taskIdx = 0;
-            }
+            var taskIdx = 0;
             while (!found && taskIdx<tasks.length){
                 if (tasks[taskIdx].id()===taskToJumpId){ // taskID found
                     this.setSpecificBlockAndTask(blockIdx,taskIdx);
@@ -908,7 +903,7 @@ Player.prototype.jumpToSpecificBlock = function(blockToJumpId) {
         this.cleanUpCurrentTask();
 
         var found = false;
-        var blockIdx = this.currentBlockIdx+1;
+        var blockIdx = 0;//this.currentBlockIdx+1;
         while (!found && blockIdx<this.blocks.length){
             if (this.blocks[blockIdx].id()===blockToJumpId){ // taskID found
                 this.setSpecificBlockAndTask(blockIdx,0);
