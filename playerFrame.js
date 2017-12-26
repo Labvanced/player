@@ -61,6 +61,9 @@ PlayerFrame.prototype.init = function() {
         this.frameView = new FrameView(centeredDiv,this,"playerView");
     }
     else {
+        if (this.frameData.needsToBeShuffled()){
+            this.frameData.reshuffleEntries();
+        }
         this.frameView = new PageView(centeredDiv,this,"playerView");
     }
 
