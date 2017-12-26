@@ -57,13 +57,11 @@ PlayerFrame.prototype.init = function() {
             self.mouseY = e.pageY;
     });
 
+    this.elementRandomization();
     if (this.frameData.type == 'FrameData') {
         this.frameView = new FrameView(centeredDiv,this,"playerView");
     }
     else {
-        if (this.frameData.needsToBeShuffled()){
-            this.frameData.reshuffleEntries();
-        }
         this.frameView = new PageView(centeredDiv,this,"playerView");
     }
 
@@ -88,6 +86,26 @@ PlayerFrame.prototype.init = function() {
         });
     }
 };
+
+
+PlayerFrame.prototype.elementRandomization = function() {
+
+    var elems = this.frameData.elements();
+    for (var i = 0; i<elems.length; i++){
+        var elem = elems[i];
+        if (elem.content() instanceof ScaleElement || elem.content() instanceof CheckBoxElement || elem.content() instanceof LikertElement || elem.content() instanceof MultipleChoiceElement){
+            if (elem.content().reshuffleElements()){
+                elem.content().doReshuffle();
+            }
+        }
+    }
+
+    if (this.frameData.type == 'PageData' && this.frameData.needsToBeShuffled()) {
+        this.frameData.reshuffleEntries();
+    }
+
+};
+
 
 PlayerFrame.prototype.dispose = function() {
     window.removeEventListener('resize', this.resizeEventListener , false);
