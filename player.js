@@ -304,8 +304,8 @@ var Player = function() {
 
     this.eyetrackerLoaded = false;
 
-
-
+    this.groupNrAssignedByServer = null;
+    this.sessionNrAssignedByServer = null;
 
     Webcam.on("error", function(err_msg){
         console.log("webcam error: "+err_msg);
@@ -330,6 +330,13 @@ var Player = function() {
                 return;
             }
             console.log("experiment spec loaded from server.");
+
+            if (data.groupNr) {
+                self.groupNrAssignedByServer = data.groupNr;
+            }
+            if (data.sessionNr) {
+                self.sessionNrAssignedByServer = data.sessionNr;
+            }
 
             self.experiment = new Experiment().fromJS(data.expData);
             self.experiment.setPointers();
