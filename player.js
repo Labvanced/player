@@ -179,8 +179,16 @@ else {
             error: function(jqXHR, textStatus, errorThrown) {
                 if(textStatus==="timeout") {
                     console.error("error: the ajax post to " + route + " timed out!");
+                    setTimeout(function() {
+                        console.log("retry...");
+                        playerAjaxPost(route, p, callback);
+                    }, 300);
                 } else {
                     console.error("error: the ajax post to " + route + " resulted in an error: " + textStatus);
+                    setTimeout(function() {
+                        console.log("retry...");
+                        playerAjaxPost(route, p, callback);
+                    }, 300);
                 }
             },
             success: callback
