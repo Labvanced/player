@@ -1052,7 +1052,7 @@ Player.prototype.startRunningTask = function() {
                                 self.experiment.exp_data.varGazeY().value().value(convertedY);
 
                                 //to debug
-                                console.log("X coordinate is " + convertedX + " Y coordinate is " + convertedY);
+                                //console.log("X coordinate is " + convertedX + " Y coordinate is " + convertedY);
 
                             }else{
                                 console.log("self.currentFrame.frameData.frameWidth is not a function");
