@@ -131,6 +131,8 @@ if (is_nwjs()) {
                 trial_nr: p.trialNr,
                 rec_data: p.recData
             };
+
+            // TODO check whether entry for the current trial already exists. If it does replace instead of insert the variables.
             db.rec_trial.put(rec_trial_data).then(function(){
                 if (callback) {
                     callback({
