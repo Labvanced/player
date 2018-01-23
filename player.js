@@ -1041,10 +1041,6 @@ Player.prototype.startRunningTask = function() {
 
                             if(typeof self.currentFrame.frameData.frameWidth == "function"){
                                 var offX = (window.innerWidth - self.currentFrame.frameData.frameWidth() * scale) / 2;
-
-                                //TODO et some issue DEBUG THAT
-
-
                                 var offY = (window.innerHeight - self.currentFrame.frameData.frameHeight() * scale) / 2;
 
                                 var convertedX = (data.x - offX) / scale;

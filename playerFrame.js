@@ -16,8 +16,6 @@ var PlayerFrame = function(frameData,frameDiv,player) {
     this.trialIter = null;
     this.frameTimeout = null;
     this.elements = this.frameData.elements();
-    this.mouseX = null;
-    this.mouseY = null;
 
     this.onFrameStartCallbacks = [];
     this.onFrameEndCallbacks = [];
@@ -51,11 +49,6 @@ PlayerFrame.prototype.init = function() {
 
     var centeredDiv = $("<div/>");
     $(this.frameDiv).append(centeredDiv);
-
-    $(this.frameDiv).mousemove(function(e){
-            self.mouseX = e.pageX;
-            self.mouseY = e.pageY;
-    });
 
     this.elementRandomization();
     if (this.frameData.type == 'FrameData') {
