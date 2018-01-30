@@ -321,70 +321,105 @@ var Player = function() {
 
     createExpDesignComponents(function() {
         playerAjaxPost('/startExpPlayer', parameters, function(data){
-            if (data.hasOwnProperty('success') && data.success == false) {
-                self.playerPreloader.cancel();
-                self.finishSessionWithError("Error: "+data.msg);
-                return;
-            }
-            console.log("experiment spec loaded from server.");
-
-            if (data.groupNr) {
-                self.groupNrAssignedByServer = data.groupNr;
-            }
-            if (data.sessionNr) {
-                self.sessionNrAssignedByServer = data.sessionNr;
-            }
-
-            self.experiment = new Experiment().fromJS(data.expData);
-            self.experiment.setPointers();
-            console.log("experiment deserialized.");
-
-
-            // fast forward by strg+q
-            if (self.experiment.exp_data.studySettings.allowSTRGQ()){
-                function KeyPress(e) {
-                    var evtobj = window.event? event : e
-                    if (evtobj.keyCode == 81 && evtobj.ctrlKey  && !evtobj.altKey){
-                        self.pressedShortcut(true);
-                        self.currentFrame.finishFrame();
-                        self.recordData();
-                        self.jumpToNextTask();
-                    }
-                }
-                document.onkeydown = KeyPress;
-            }
-
-
-            ko.applyBindings(self, $("#calibrateScreen")[0]);
-            ko.applyBindings(self, $("#endExpSection")[0]);
-            ko.applyBindings(self, $("#errEndExpSection")[0]);
-            ko.applyBindings(self, $("#countdownSection")[0]);
-
-
-            self.experiment.exp_data.initVars();
-
-            // record browser and system specs
-            self.detectBrowserAndSystemSpecs();
-
-            // init default language:
-            self.experiment.exp_data.updateLanguage();
-
-            if (!self.expId) {
-                self.expId = self.experiment.exp_id();
-            }
-
-            var expPrev =  new ExperimentStartupScreen(self.experiment);
-            var newContent = jQuery('<div/>');
-            newContent.load("/html_views/ExperimentStartupScreen.html", function () {
-                newContent.prependTo('#expPreview');
-                ko.applyBindings(expPrev, newContent[0]);
-                expPrev.init();
-            });
-
+            self.startExpPlayerResult(data);
         });
     });
 
 };
+
+Player.prototype.startExpPlayerResult = function(data) {
+
+    var self = this;
+
+    if (data.hasOwnProperty('success') && data.success == false) {
+        self.playerPreloader.cancel();
+        self.finishSessionWithError("Error: "+data.msg);
+        return;
+    }
+
+    if (data.hasOwnProperty('password_required') && data.password_required == true) {
+        var publishing_data = new PublishingData();
+        publishing_data.fromJS(data.publishing_data);
+        var pwRequest = new PasswordRequest(publishing_data);
+        var newContent = jQuery('<div/>');
+        newContent.load("/html_views/PasswordRequest.html", function () {
+            newContent.prependTo('#passwordRequest');
+            ko.applyBindings(pwRequest, newContent[0]);
+            pwRequest.init(function(password) {
+                $('#passwordRequest').remove();
+                var parameters = {
+                    expId: self.expId,
+                    isTestrun: self.isTestrun,
+                    subject_code: self.subject_code,
+                    token: self.token,
+                    password: password,
+                    askSubjData: self.askSubjData
+                };
+                playerAjaxPost('/startExpPlayer', parameters, function(data){
+                    self.startExpPlayerResult(data);
+                });
+            });
+        });
+        return;
+    }
+
+    console.log("experiment spec loaded from server.");
+
+    if (data.groupNr) {
+        self.groupNrAssignedByServer = data.groupNr;
+    }
+    if (data.sessionNr) {
+        self.sessionNrAssignedByServer = data.sessionNr;
+    }
+
+    self.experiment = new Experiment().fromJS(data.expData);
+    self.experiment.setPointers();
+    console.log("experiment deserialized.");
+
+
+    // fast forward by strg+q
+    if (self.experiment.exp_data.studySettings.allowSTRGQ()){
+        function KeyPress(e) {
+            var evtobj = window.event? event : e
+            if (evtobj.keyCode == 81 && evtobj.ctrlKey  && !evtobj.altKey){
+                self.pressedShortcut(true);
+                self.currentFrame.finishFrame();
+                self.recordData();
+                self.jumpToNextTask();
+            }
+        }
+        document.onkeydown = KeyPress;
+    }
+
+
+    ko.applyBindings(self, $("#calibrateScreen")[0]);
+    ko.applyBindings(self, $("#endExpSection")[0]);
+    ko.applyBindings(self, $("#errEndExpSection")[0]);
+    ko.applyBindings(self, $("#countdownSection")[0]);
+
+
+    self.experiment.exp_data.initVars();
+
+    // record browser and system specs
+    self.detectBrowserAndSystemSpecs();
+
+    // init default language:
+    self.experiment.exp_data.updateLanguage();
+
+    if (!self.expId) {
+        self.expId = self.experiment.exp_id();
+    }
+
+    var expPrev =  new ExperimentStartupScreen(self.experiment);
+    var newContent = jQuery('<div/>');
+    newContent.load("/html_views/ExperimentStartupScreen.html", function () {
+        newContent.prependTo('#expPreview');
+        ko.applyBindings(expPrev, newContent[0]);
+        expPrev.init();
+    });
+
+};
+
 
 Player.prototype.detectBrowserAndSystemSpecs = function() {
     var unknown = '-';
