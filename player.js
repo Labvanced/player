@@ -1070,6 +1070,12 @@ Player.prototype.startRunningTask = function() {
 
             // TODO et: add callback function to eyetracker
         }
+        else {
+            if (this.eyetrackerLoaded) {
+                webgazer.end();
+                this.eyetrackerLoaded = false;
+            }
+        }
 
         if (this.currentTask.displayInitialCountdown()) {
             $('#experimentViewPort').css({
