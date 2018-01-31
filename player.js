@@ -1025,58 +1025,6 @@ Player.prototype.startRunningTask = function() {
         self.trialIter = "waitForStart";
         self.startRecordingsOfNewTask();
 
-        // eyetracker: add if condition like below for eye tracker startup (if not already done before) and calibration...
-        if (this.currentTask.recordEyetracker()) {
-            this.variablesToRecord.push(this.experiment.exp_data.varGazeX());
-            this.variablesToRecord.push(this.experiment.exp_data.varGazeY());
-            console.log("push Gaze vars");
-
-            if (!this.eyetrackerLoaded) {
-                this.eyetrackerLoaded = true;
-                webgazer.setRegression('weightedRidge') /* currently must set regression and tracker */
-                    .setTracker('clmtrackr')
-                    .setGazeListener(function(data, clock) {
-
-                        // TODO et: convert to frame coordinate system
-
-                        if (data) {
-                            var scale =self.currentFrame.frameView.scale();
-
-                            if(typeof self.currentFrame.frameData.frameWidth == "function"){
-                                var offX = (window.innerWidth - self.currentFrame.frameData.frameWidth() * scale) / 2;
-                                var offY = (window.innerHeight - self.currentFrame.frameData.frameHeight() * scale) / 2;
-
-                                var convertedX = (data.x - offX) / scale;
-                                var convertedY = (data.y - offY) / scale;
-
-                                self.experiment.exp_data.varGazeX().value().value(convertedX);
-                                self.experiment.exp_data.varGazeY().value().value(convertedY);
-
-                                //to debug
-                                //console.log("X coordinate is " + convertedX + " Y coordinate is " + convertedY);
-
-                            }else{
-                                console.log("self.currentFrame.frameData.frameWidth is not a function");
-                            }
-
-                        }
-                        //console.log(data); /* data is an object containing an x and y key which are the x and y prediction coordinates (no bounds limiting) */
-                        //console.log(clock); /* elapsed time in milliseconds since webgazer.begin() was called */
-                    })
-                    .begin();
-                //.showPredictionPoints(true); /* shows a square every 100 milliseconds where current prediction is */
-
-            }
-
-            // TODO et: add callback function to eyetracker
-        }
-        else {
-            if (this.eyetrackerLoaded) {
-                webgazer.end();
-                this.eyetrackerLoaded = false;
-            }
-        }
-
         if (this.currentTask.displayInitialCountdown()) {
             $('#experimentViewPort').css({
                 "cursor": 'none'
