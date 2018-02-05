@@ -304,6 +304,8 @@ var Player = function() {
     this.groupNrAssignedByServer = null;
     this.sessionNrAssignedByServer = null;
 
+    this.selectedEmail = null;
+
     Webcam.on("error", function(err_msg){
         console.log("webcam error: "+err_msg);
         self.finishSessionWithError(err_msg);
@@ -1459,13 +1461,12 @@ Player.prototype.finishSession = function(showEndPage) {
     console.log("finishExpSession...");
     if (!this.runOnlyTaskId && !this.isTestrun) {
         this.calculateStartWindow("next");
-
         var nextStartTime = null;
         if (this.nextStartWindow.start) {
             nextStartTime = pgFormatDate(this.nextStartWindow.start)
         }
         var nextEndTime = null;
-        if (this.nextStartWindow.start) {
+        if (this.nextStartWindow.end) {
             nextEndTime = pgFormatDate(this.nextStartWindow.end)
         }
         var currentDate = null;
@@ -1473,11 +1474,14 @@ Player.prototype.finishSession = function(showEndPage) {
             currentDate = pgFormatDate(this.nextStartWindow.current)
         }
 
+        var self = this;
         playerAjaxPost('/finishExpSession', {
             end_time: currentDate,
             nextStartTime: nextStartTime,
             nextEndTime: nextEndTime,
-            var_data: var_data
+            var_data: var_data,
+            selectedEmail:self.selectedEmail,
+            expId: self.expId
         });
 
     }
@@ -1611,6 +1615,12 @@ Player.prototype.determineNextSessionStartWindow = function(startDate,endDate,cu
     if (sessionTimeData){
         if (sessionTimeData.startCondition()=="specific"){
 
+            var timeOffsetInMS = currentDate.getTimezoneOffset() * 60000; // difference in ms
+            currentDate.setTime(currentDate.getTime() + timeOffsetInMS);
+            startDate.setTime(startDate.getTime() + timeOffsetInMS);
+            endDate.setTime(endDate.getTime() + timeOffsetInMS);
+
+
             if (sessionTimeData.startTime() && sessionTimeData.endTime() && sessionTimeData.startDay() && sessionTimeData.endDay()){
 
                 var startMinute = parseInt(sessionTimeData.startTime().substring(3,5));
@@ -1641,6 +1651,11 @@ Player.prototype.determineNextSessionStartWindow = function(startDate,endDate,cu
 
         }
         else if (sessionTimeData.startCondition()=="periodic"){
+
+            var timeOffsetInMS = currentDate.getTimezoneOffset() * 60000; // difference in ms
+            currentDate.setTime(currentDate.getTime() + timeOffsetInMS);
+            startDate.setTime(startDate.getTime() + timeOffsetInMS);
+            endDate.setTime(endDate.getTime() + timeOffsetInMS);
 
             if (sessionTimeData.startTime() && sessionTimeData.endTime() && sessionTimeData.startDay() && sessionTimeData.endDay() && sessionTimeData.startInterval()){
 
@@ -1722,8 +1737,11 @@ Player.prototype.determineNextSessionStartWindow = function(startDate,endDate,cu
         }
 
         if (endDate-startDate>=0){
-            nextStartWindow.start = startDate;
-            nextStartWindow.end = endDate
+           nextStartWindow = {
+                start: startDate,
+                end: endDate,
+                current: currentDate
+            };
         }
         else{
             console.log("error: allowed start time is later than end time.")
@@ -1731,8 +1749,11 @@ Player.prototype.determineNextSessionStartWindow = function(startDate,endDate,cu
 
     }
     else {
-        // last session reached
-        // TODO starting from the beginning OR not
+        nextStartWindow = {
+            start: null,
+            end: null,
+            current: null
+        };
     }
     return nextStartWindow
 
