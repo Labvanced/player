@@ -373,6 +373,9 @@ Player.prototype.startExpPlayerResult = function(data) {
     if (data.sessionNr) {
         self.sessionNrAssignedByServer = data.sessionNr;
     }
+    if (data.token) {
+        self.token = data.token;
+    }
 
     self.experiment = new Experiment().fromJS(data.expData);
     self.experiment.setPointers();
