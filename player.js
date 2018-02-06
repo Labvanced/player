@@ -248,6 +248,7 @@ var Player = function() {
     this.subject_code = getParameterByName("subject_code");
 
     this.token = getParameterByName("token");
+    this.prevSessionData = null;
 
     // if only testing a specific task, then don't record:
     if (this.runOnlyTaskId) {
@@ -375,6 +376,9 @@ Player.prototype.startExpPlayerResult = function(data) {
     }
     if (data.token) {
         self.token = data.token;
+    }
+    if (data.prevSessionData) {
+        self.prevSessionData = data.prevSessionData;
     }
 
     self.experiment = new Experiment().fromJS(data.expData);
@@ -1587,32 +1591,38 @@ Player.prototype.exitFullscreen = function() {
 };
 
 Player.prototype.calculateStartWindow = function(currentOrNext) {
+    var prevSessionEndTime = new Date();
+    var sessionNr;
+
     if (currentOrNext == "current"){
-        var sessionNr = this.sessionNr-1;
-        var newDateStart = new Date();
-        var currentDate = new Date();
-        var newDateEnd = new Date();
+        sessionNr = this.sessionNr;
+        if (this.prevSessionData) {
+            if (this.prevSessionData.length > 0) {
+                prevSessionEndTime = new Date(this.prevSessionData[0].end_time);
+            }
+        }
     }
     else if (currentOrNext == "next"){
-        var sessionNr = this.sessionNr;
-        var currentDate = new Date();
-        var newDateStart = new Date();
-        var newDateEnd = new Date();
+        sessionNr = this.sessionNr+1;
     }
 
-    var sessionTimeData= this.experiment.exp_data.availableGroups()[ this.groupNr-1].sessionTimeData()[sessionNr];
-    this.nextStartWindow = this.determineNextSessionStartWindow(newDateStart,newDateEnd,currentDate,sessionTimeData);
+    var sessionTimeData= this.experiment.exp_data.availableGroups()[ this.groupNr-1].sessionTimeData()[sessionNr-1];
+    var currentDate = new Date();
+    this.nextStartWindow = this.determineNextSessionStartWindow(prevSessionEndTime,currentDate,sessionTimeData);
 };
 
 
 
 
-Player.prototype.determineNextSessionStartWindow = function(startDate,endDate,currentDate,sessionTimeData) {
+Player.prototype.determineNextSessionStartWindow = function(prevSessionEndTime,currentDate,sessionTimeData) {
+
+    var startDate = new Date();
+    var endDate = new Date();
 
     var nextStartWindow = {
-        start: startDate,
-        end: endDate,
-        current: currentDate
+        start: null,
+        end: null,
+        current: null
     };
 
     if (sessionTimeData){
@@ -1726,24 +1736,23 @@ Player.prototype.determineNextSessionStartWindow = function(startDate,endDate,cu
 
             if (sessionTimeData.startTime() && sessionTimeData.endTime() && sessionTimeData.maximalDaysAfterLast() && sessionTimeData.minimalDaysAfterLast()){
                 var plusMinStart = parseInt(sessionTimeData.startTime().substring(3,5));
-                startDate.setMinutes(startDate.getMinutes() +plusMinStart);
+                startDate.setMinutes(prevSessionEndTime.getMinutes() +plusMinStart);
                 var plusHourStart = parseInt(sessionTimeData.startTime().substring(0,2));
-                startDate.setHours(startDate.getHours() +plusHourStart);
+                startDate.setHours(prevSessionEndTime.getHours() +plusHourStart);
                 var plusDaysStart = parseInt( sessionTimeData.minimalDaysAfterLast());
-                startDate.setDate(startDate.getDate() +plusDaysStart);
+                startDate.setDate(prevSessionEndTime.getDate() +plusDaysStart);
 
                 var plusMinEnd = parseInt(sessionTimeData.endTime().substring(3,5));
-                endDate.setMinutes(endDate.getMinutes() +plusMinEnd);
+                endDate.setMinutes(prevSessionEndTime.getMinutes() +plusMinEnd);
                 var plusHoursEnd = parseInt(sessionTimeData.endTime().substring(0,2));
-                endDate.setHours(endDate.getHours() +plusHoursEnd);
+                endDate.setHours(prevSessionEndTime.getHours() +plusHoursEnd);
                 var plusDaysEnd = parseInt( sessionTimeData.maximalDaysAfterLast());
-                endDate.setDate(endDate.getDate() +plusDaysEnd);
+                endDate.setDate(prevSessionEndTime.getDate() +plusDaysEnd);
 
             }
             else{
                 console.log("error: cannot calculate session start time because fields are not set.")
             }
-
 
         }
 
@@ -1752,7 +1761,7 @@ Player.prototype.determineNextSessionStartWindow = function(startDate,endDate,cu
         }
 
         if (endDate-startDate>=0){
-           nextStartWindow = {
+            nextStartWindow = {
                 start: startDate,
                 end: endDate,
                 current: currentDate
@@ -1763,13 +1772,7 @@ Player.prototype.determineNextSessionStartWindow = function(startDate,endDate,cu
         }
 
     }
-    else {
-        nextStartWindow = {
-            start: null,
-            end: null,
-            current: null
-        };
-    }
+
     return nextStartWindow
 
 };
