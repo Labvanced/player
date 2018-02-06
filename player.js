@@ -1684,10 +1684,9 @@ Player.prototype.determineNextSessionStartWindow = function(startDate,endDate,cu
                 var endYear = parseInt(sessionTimeData.endDay().substring(0,4));
                 endDate.setFullYear(endYear);
 
-
                 var timeDifference =  currentDate-startDate;
                 while (timeDifference >0){
-                // start date is in the past, need to update to find the next start period
+                    // start date is in the past, need to update to find the next start period
                     if (sessionTimeData.startInterval() == 'every day'){
                         startDate.setDate(startDate.getDate()+1);
                         endDate.setDate(endDate.getDate()+1);
@@ -1697,8 +1696,21 @@ Player.prototype.determineNextSessionStartWindow = function(startDate,endDate,cu
                         endDate.setDate(endDate.getDate()+7);
                     }
                     else if(sessionTimeData.startInterval() == 'every month'){
-                        startDate.setMonth(startDate.setMonth()+1);
-                        endDate.setMonth(endDate.setMonth()+1);
+
+                        function addMonths(date, count) {
+                            // this function handles many edge cases
+                            if (date && count) {
+                                var m, d = (date = new Date(+date)).getDate();
+                                date.setMonth(date.getMonth() + count, 1);
+                                m = date.getMonth();
+                                date.setDate(d);
+                                if (date.getMonth() !== m) date.setDate(0)
+                            }
+                            return date
+                        }
+
+                        startDate = addMonths(startDate, 1);
+                        endDate = addMonths(endDate, 1);
                     }
                     timeDifference =  currentDate-startDate;
                 }
