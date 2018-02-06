@@ -1795,24 +1795,24 @@ Player.prototype.getDifferenceBetweenDates = function(dateEarlier,dateLater) {
 
         var part1= ''; var part2= ''; var part3= '';
         if (nrDays >1){
-            part1 = nrDays+'days  ';
+            part1 = nrDays+' days  ';
         }
         else if(nrDays ==1) {
-            part1 = nrDays+'day  ';
+            part1 = nrDays+' day  ';
         }
 
         if (nrHours >1){
-             part2 = nrHours+'hours  ';
+             part2 = nrHours+' hours  ';
         }
         else if(nrHours ==1){
-             part2 = nrHours+'hour  ';
+             part2 = nrHours+' hour  ';
         }
 
         if (nrMinutes >1){
-             part3 = nrMinutes+'minutes';
+             part3 = nrMinutes+' minutes';
         }
         else if(nrMinutes ==1){
-             part3 = nrMinutes+'minute';
+             part3 = nrMinutes+' minute';
         }
 
         var timeText = part1 +part2 +part3;
