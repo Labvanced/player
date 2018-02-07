@@ -323,9 +323,15 @@ var Player = function() {
     };
 
     createExpDesignComponents(function() {
-        playerAjaxPost('/startExpPlayer', parameters, function(data){
-            self.startExpPlayerResult(data);
-        });
+
+        if (parameters.expId == "") {
+            self.finishSessionWithError("Error: No Experiment specified.");
+        }
+        else {
+            playerAjaxPost('/startExpPlayer', parameters, function (data) {
+                self.startExpPlayerResult(data);
+            });
+        }
     });
 
 };
