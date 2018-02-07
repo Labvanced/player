@@ -1480,23 +1480,24 @@ Player.prototype.finishSession = function(showEndPage) {
 
     console.log("finishExpSession...");
     if (!this.runOnlyTaskId && !this.isTestrun) {
-        var nextStartWindow = this.getNextStartWindow();
+
+        var end_time = new Date();
         var nextStartTime = null;
-        if (nextStartWindow.start) {
-            nextStartTime = pgFormatDate(nextStartWindow.start)
-        }
         var nextEndTime = null;
-        if (nextStartWindow.end) {
-            nextEndTime = pgFormatDate(nextStartWindow.end)
-        }
-        var currentDate = null;
-        if (nextStartWindow.current) {
-            currentDate = pgFormatDate(nextStartWindow.current)
+
+        var nextStartWindow = this.getNextStartWindow(end_time);
+        if (nextStartWindow) {
+            if (nextStartWindow.start) {
+                nextStartTime = pgFormatDate(nextStartWindow.start)
+            }
+            if (nextStartWindow.end) {
+                nextEndTime = pgFormatDate(nextStartWindow.end)
+            }
         }
 
         var self = this;
         playerAjaxPost('/finishExpSession', {
-            end_time: currentDate,
+            end_time: pgFormatDate(end_time),
             nextStartTime: nextStartTime,
             nextEndTime: nextEndTime,
             var_data: var_data,
@@ -1619,10 +1620,14 @@ Player.prototype.getCurrentStartWindow = function() {
     return currentStartWindow;
 };
 
-Player.prototype.getNextStartWindow = function() {
-    var prevSessionEndTime = new Date();
+Player.prototype.getNextStartWindow = function(prevSessionEndTime) {
     var sessionNr = this.sessionNr+1;
     var sessionTimeData= this.experiment.exp_data.availableGroups()[ this.groupNr-1].sessionTimeData()[sessionNr-1];
+
+    if (!sessionTimeData) {
+        // no more session defined:
+        return false;
+    }
     var currentDate = new Date();
     var nextStartWindow = this.determineNextSessionStartWindow(prevSessionEndTime,currentDate,sessionTimeData);
     return nextStartWindow;
@@ -1751,7 +1756,7 @@ Player.prototype.determineNextSessionStartWindow = function(prevSessionEndTime,c
 
         else if (sessionTimeData.startCondition()=="connectSession"){
 
-            if (sessionTimeData.startTime() && sessionTimeData.endTime() && sessionTimeData.maximalDaysAfterLast() && sessionTimeData.minimalDaysAfterLast()){
+            if (sessionTimeData.startTime() !== null && sessionTimeData.endTime() !== null && sessionTimeData.maximalDaysAfterLast() !== null && sessionTimeData.minimalDaysAfterLast() !== null){
                 var plusMinStart = parseInt(sessionTimeData.startTime().substring(3,5));
                 startDate.setMinutes(prevSessionEndTime.getMinutes() +plusMinStart);
                 var plusHourStart = parseInt(sessionTimeData.startTime().substring(0,2));
