@@ -1134,6 +1134,9 @@ Player.prototype.startRecordingsOfNewTask = function(cb) {
             }
         });
     }
+    else {
+        cb();
+    }
 };
 
 Player.prototype.recordData = function() {
