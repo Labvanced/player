@@ -1063,37 +1063,40 @@ Player.prototype.startRunningTask = function() {
         this.addTrialViews(0,0, this.currentTask);
 
         self.trialIter = "waitForStart";
-        self.startRecordingsOfNewTask();
+        self.startRecordingsOfNewTask(function() {
 
-        if (this.currentTask.displayInitialCountdown()) {
-            $('#experimentViewPort').css({
-                "cursor": 'none'
-            });
-
-            $('#countdownSection').show();
-            $('#countdown').text("3");
-            setTimeout(function () {
-                $('#countdown').text("2");
-            }, 1000);
-            setTimeout(function () {
-                $('#countdown').text("1");
-            }, 2000);
-            setTimeout(function () {
-                $('#countdownSection').hide();
+            if (self.currentTask.displayInitialCountdown()) {
                 $('#experimentViewPort').css({
-                    "cursor": 'default'
+                    "cursor": 'none'
                 });
-                self.startNextTrial();
-            }, 3000);
-        }
-        else {
-            // $('#countdownSection').show();
-            // $('#countdown').text("preloading task");
-            setTimeout(function () {
-                //  $('#countdownSection').hide();
-                self.startNextTrial();
-            }, 500);
-        }
+
+                $('#countdownSection').show();
+                $('#countdown').text("3");
+                setTimeout(function () {
+                    $('#countdown').text("2");
+                }, 1000);
+                setTimeout(function () {
+                    $('#countdown').text("1");
+                }, 2000);
+                setTimeout(function () {
+                    $('#countdownSection').hide();
+                    $('#experimentViewPort').css({
+                        "cursor": 'default'
+                    });
+                    self.startNextTrial();
+                }, 3000);
+            }
+            else {
+                // $('#countdownSection').show();
+                // $('#countdown').text("preloading task");
+                setTimeout(function () {
+                    //  $('#countdownSection').hide();
+                    self.startNextTrial();
+                }, 500);
+            }
+
+        });
+
     }
     else{
         this.startNextBlock();
@@ -1101,7 +1104,7 @@ Player.prototype.startRunningTask = function() {
 
 };
 
-Player.prototype.startRecordingsOfNewTask = function() {
+Player.prototype.startRecordingsOfNewTask = function(cb) {
     if (!this.runOnlyTaskId && !this.isTestrun) {
         // record variables at start of task:
         var recordData = {
@@ -1112,9 +1115,15 @@ Player.prototype.startRecordingsOfNewTask = function() {
             taskId: this.currentTask.id(),
             taskName: this.experiment.exp_data.varTaskName().value().value(),
             start_time: pgFormatDate(new Date())
-    };
+        };
         playerAjaxPost('/recordStartTask', recordData, function(result) {
-
+            if (result.success) {
+                cb();
+            }
+            else {
+                self.finishSessionWithError("recording of new task failed.");
+                throw new Error("recording of new task failed.");
+            }
         });
     }
 };
