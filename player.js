@@ -264,7 +264,6 @@ var Player = function() {
     this.experiment = null;
     this.sessionNr = 0;
     this.groupNr = 0;
-    this.nextStartWindow = null;
 
     // the following three variables will be set by function setSubjectGroupNr():
     this.subj_group = null;
@@ -778,7 +777,6 @@ Player.prototype.setSubjectGroupNr = function(groupNr, sessionNr){
     this.experiment.exp_data.varSessionName().value().value(this.exp_session.name());
     this.experiment.exp_data.varSessionNr().value().value(this.sessionNr);
 
-    this.calculateStartWindow("current");
 };
 
 Player.prototype.runCalibration = function(callback) {
@@ -1482,18 +1480,18 @@ Player.prototype.finishSession = function(showEndPage) {
 
     console.log("finishExpSession...");
     if (!this.runOnlyTaskId && !this.isTestrun) {
-        this.calculateStartWindow("next");
+        var nextStartWindow = this.getNextStartWindow();
         var nextStartTime = null;
-        if (this.nextStartWindow.start) {
-            nextStartTime = pgFormatDate(this.nextStartWindow.start)
+        if (nextStartWindow.start) {
+            nextStartTime = pgFormatDate(nextStartWindow.start)
         }
         var nextEndTime = null;
-        if (this.nextStartWindow.end) {
-            nextEndTime = pgFormatDate(this.nextStartWindow.end)
+        if (nextStartWindow.end) {
+            nextEndTime = pgFormatDate(nextStartWindow.end)
         }
         var currentDate = null;
-        if (this.nextStartWindow.current) {
-            currentDate = pgFormatDate(this.nextStartWindow.current)
+        if (nextStartWindow.current) {
+            currentDate = pgFormatDate(nextStartWindow.current)
         }
 
         var self = this;
@@ -1605,25 +1603,29 @@ Player.prototype.exitFullscreen = function() {
     }
 };
 
-Player.prototype.calculateStartWindow = function(currentOrNext) {
-    var prevSessionEndTime = new Date();
-    var sessionNr;
 
-    if (currentOrNext == "current"){
-        sessionNr = this.sessionNr;
-        if (this.prevSessionData) {
-            if (this.prevSessionData.length > 0) {
-                prevSessionEndTime = new Date(this.prevSessionData[0].end_time);
-            }
+Player.prototype.getCurrentStartWindow = function() {
+    var prevSessionEndTime = new Date();
+    var sessionNr = this.sessionNr;
+    if (this.prevSessionData) {
+        if (this.prevSessionData.length > 0) {
+            prevSessionEndTime = new Date(this.prevSessionData[0].end_time);
         }
-    }
-    else if (currentOrNext == "next"){
-        sessionNr = this.sessionNr+1;
     }
 
     var sessionTimeData= this.experiment.exp_data.availableGroups()[ this.groupNr-1].sessionTimeData()[sessionNr-1];
     var currentDate = new Date();
-    this.nextStartWindow = this.determineNextSessionStartWindow(prevSessionEndTime,currentDate,sessionTimeData);
+    var currentStartWindow = this.determineNextSessionStartWindow(prevSessionEndTime,currentDate,sessionTimeData);
+    return currentStartWindow;
+};
+
+Player.prototype.getNextStartWindow = function() {
+    var prevSessionEndTime = new Date();
+    var sessionNr = this.sessionNr+1;
+    var sessionTimeData= this.experiment.exp_data.availableGroups()[ this.groupNr-1].sessionTimeData()[sessionNr-1];
+    var currentDate = new Date();
+    var nextStartWindow = this.determineNextSessionStartWindow(prevSessionEndTime,currentDate,sessionTimeData);
+    return nextStartWindow;
 };
 
 
@@ -1640,7 +1642,7 @@ Player.prototype.determineNextSessionStartWindow = function(prevSessionEndTime,c
         current: null
     };
 
-    if (sessionTimeData){
+    if (sessionTimeData && sessionTimeData.startCondition()!="anytime"){
         if (sessionTimeData.startCondition()=="specific"){
 
             var timeOffsetInMS = currentDate.getTimezoneOffset() * 60000; // difference in ms
