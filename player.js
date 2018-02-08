@@ -1116,6 +1116,8 @@ Player.prototype.startRunningTask = function() {
 
 Player.prototype.startRecordingsOfNewTask = function(cb) {
     if (!this.runOnlyTaskId && !this.isTestrun) {
+
+
         // record variables at start of task:
         var recordData = {
             blockNr: this.experiment.exp_data.varBlockNr().value().value(),
@@ -1126,6 +1128,10 @@ Player.prototype.startRecordingsOfNewTask = function(cb) {
             taskName: this.experiment.exp_data.varTaskName().value().value(),
             start_time: pgFormatDate(new Date())
         };
+
+
+        playerAjaxPost('/debugExpSession', {msg: "startRecordingsOfNewTask in task " + this.currentTask.id()});
+
         playerAjaxPost('/recordStartTask', recordData, function(result) {
             if (result.success) {
                 cb();
@@ -1159,6 +1165,8 @@ Player.prototype.recordData = function() {
         playerAjaxPost('/recordTrial', recordedData, function(result) {
 
         });
+
+        playerAjaxPost('/debugExpSession', {msg: "recordData in task "});
     }
 };
 
@@ -1196,6 +1204,8 @@ Player.prototype.switchToNextPreloadedTrial = function() {
 
 Player.prototype.startNextTrial = function() {
     var self = this;
+
+    playerAjaxPost('/debugExpSession', {msg: "startNextTrial"});
 
     if (this.trialIter == "waitForStart") {
         this.trialIter = 0;
@@ -1272,6 +1282,8 @@ Player.prototype.startNextTrial = function() {
 Player.prototype.startSpecificTrial = function(trialId) {
 
     var self = this;
+
+    playerAjaxPost('/debugExpSession', {msg: "startSpecificTrial"});
 
     if (this.trialIter == "waitForStart") {
         this.trialIter = 0;
