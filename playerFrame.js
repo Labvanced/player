@@ -132,7 +132,7 @@ PlayerFrame.prototype.startFrame = function() {
         var events = this.frameData.events();
         for (var i = 0; i < events.length; i++){
             var event =  events[i];
-            event.trigger().setupOnPlayerFrame(this);
+            event.setupOnPlayerFrame(this);
         }
 
         for (var i = 0; i<this.onFrameStartCallbacks.length;i++) {
