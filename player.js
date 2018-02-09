@@ -177,19 +177,19 @@ else {
             type: "POST",
             url: route,
             data: p,
-            timeout: 10000,
+            timeout: 15000,
             error: function(jqXHR, textStatus, errorThrown) {
                 if(textStatus==="timeout") {
                     console.error("error: the ajax post to " + route + " timed out!");
                     setTimeout(function() {
-                        player.finishSessionWithError("connection to server timed out");
+                        //player.finishSessionWithError("connection to server timed out");
                         //playerAjaxPost(route, p, callback);
                         throw new Error("connection to server in route "+route+" timed out");
                     }, 300);
                 } else {
                     console.error("error: the ajax post to " + route + " resulted in an error: " + textStatus);
                     setTimeout(function() {
-                        player.finishSessionWithError("connection to server resulted in error: " + textStatus);
+                        //player.finishSessionWithError("connection to server resulted in error: " + textStatus);
                         //playerAjaxPost(route, p, callback);
                         throw new Error("connection to server in route "+route+" resulted in error: " + textStatus);
                     }, 300);
