@@ -250,6 +250,8 @@ var Player = function() {
     this.token = getParameterByName("token");
     this.prevSessionData = null;
 
+    this.recodingInClient = [];
+
     // if only testing a specific task, then don't record:
     if (this.runOnlyTaskId) {
         this.isTestrun = true;
@@ -1143,6 +1145,7 @@ Player.prototype.recordData = function() {
     if (!this.runOnlyTaskId && !this.isTestrun) {
         // record variables at end of trial:
         var recData = new RecData();
+        this.recodingInClient.push({trialNr: this.trialIter, trialId: this.this.randomizedTrials[this.trialIter].trialVariation.uniqueId(), task_nr: this.experiment.exp_data.varTaskNr().value().value(), taskName: this.experiment.exp_data.varTaskName().value().value()});
 
         // new, dynamic verison
         for (var i = 0; i < this.variablesToRecord.length; i++) {
@@ -1205,6 +1208,7 @@ Player.prototype.startNextTrial = function() {
         this.trialIter++;
         this.trialIndex++;
     }
+
 
     if (this.trialIndex >= this.randomizedTrials.length) {
         // trial loop finished:
@@ -1465,6 +1469,8 @@ Player.prototype.finishSession = function(showEndPage) {
         this.experiment.exp_data.varCrowdsourcingCode().value().value(this.crowdsourcingCode());
     }
 
+    var debugData = this.recodingInClient;
+
 
     var var_data = {
         browserSpec: this.experiment.exp_data.varBrowserSpec().value().toJS(),
@@ -1474,7 +1480,8 @@ Player.prototype.finishSession = function(showEndPage) {
         fullscreen: this.experiment.exp_data.varFullscreenSpec().value().toJS(),
         timeDelayMean: this.experiment.exp_data.varTimeMeasureSpecMean().value().toJS(),
         timeDelayMax: this.experiment.exp_data.varTimeMeasureSpecMax().value().toJS(),
-        crowdsourcingCode:this.experiment.exp_data.varCrowdsourcingCode().value().toJS()
+        crowdsourcingCode:this.experiment.exp_data.varCrowdsourcingCode().value().toJS(),
+        debugData:debugData
 
     };
 
