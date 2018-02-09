@@ -44,7 +44,6 @@ if (is_nwjs()) {
 
     var exp_subject_id = null;
     var rec_session_id = null;
-    var rec_task_id = null;
     var sessionNr = null;
 
     // replace server routes with alternatives for offline version:
@@ -117,7 +116,8 @@ if (is_nwjs()) {
                 rec_task_id = new_id;
                 if (callback) {
                     callback({
-                        success: true
+                        success: true,
+                        recTaskId: rec_task_id
                     });
                 }
             }).catch(function(error) {
@@ -127,7 +127,7 @@ if (is_nwjs()) {
 
         if (route=="/recordTrial") {
             var rec_trial_data = {
-                rec_task_id: rec_task_id,
+                rec_task_id: p.recTaskId,
                 trial_nr: p.trialNr,
                 rec_data: p.recData
             };
@@ -1117,6 +1117,7 @@ Player.prototype.startRunningTask = function() {
 };
 
 Player.prototype.startRecordingsOfNewTask = function(cb) {
+    var self = this;
     if (!this.runOnlyTaskId && !this.isTestrun) {
 
 
@@ -1136,6 +1137,7 @@ Player.prototype.startRecordingsOfNewTask = function(cb) {
 
         playerAjaxPost('/recordStartTask', recordData, function(result) {
             if (result.success) {
+                self.recTaskId = result.recTaskId;
                 cb();
             }
             else {
@@ -1150,6 +1152,7 @@ Player.prototype.startRecordingsOfNewTask = function(cb) {
 };
 
 Player.prototype.recordData = function() {
+    var self = this;
     if (!this.runOnlyTaskId && !this.isTestrun) {
         // record variables at end of trial:
         var recData = new RecData();
@@ -1163,7 +1166,8 @@ Player.prototype.recordData = function() {
         // server command
         var recordedData = {
             trialNr: this.trialIter,
-            recData: recData.toJS()
+            recData: recData.toJS(),
+            recTaskId: self.recTaskId
         };
         playerAjaxPost('/recordTrial', recordedData, function(result) {
 
