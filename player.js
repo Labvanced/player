@@ -195,6 +195,16 @@ else {
         if (timeout === undefined) {
             timeout = 5 * 60 * 1000; // 5 minutes is default timeout
         }
+
+        var serverResponseIdx = player.serverResponseTimes.length;
+
+        player.serverResponseTimes.push({
+            route: route,
+            latency: -1,
+            startTime: (new Date()).getTime(),
+            finishTime: null
+        });
+
         $.ajax({
             type: "POST",
             url: route,
@@ -207,7 +217,12 @@ else {
                 });
                 throw errorThrown;
             },
-            success: callback
+            success: function(data, textStatus, jqXHR) {
+                var finishTime = (new Date()).getTime();
+                player.serverResponseTimes[serverResponseIdx].finishTime = finishTime;
+                player.serverResponseTimes[serverResponseIdx].latency = finishTime - player.serverResponseTimes[serverResponseIdx].startTime;
+                callback(data);
+            }
         });
     };
 
@@ -266,6 +281,7 @@ var Player = function() {
     this.prevSessionData = null;
 
     this.recodingInClient = [];
+    this.serverResponseTimes = [];
 
     // if only testing a specific task, then don't record:
     if (this.runOnlyTaskId) {
@@ -1580,9 +1596,6 @@ Player.prototype.finishSession = function(showEndPage) {
         this.experiment.exp_data.varCrowdsourcingCode().value().value(this.crowdsourcingCode());
     }
 
-    var debugData = this.recodingInClient;
-
-
     var var_data = {
         browserSpec: this.experiment.exp_data.varBrowserSpec().value().toJS(),
         versionSpec: this.experiment.exp_data.varBrowserVersionSpec().value().toJS(),
@@ -1592,8 +1605,8 @@ Player.prototype.finishSession = function(showEndPage) {
         timeDelayMean: this.experiment.exp_data.varTimeMeasureSpecMean().value().toJS(),
         timeDelayMax: this.experiment.exp_data.varTimeMeasureSpecMax().value().toJS(),
         crowdsourcingCode:this.experiment.exp_data.varCrowdsourcingCode().value().toJS(),
-        debugData:debugData
-
+        debugData: this.recodingInClient,
+        serverResponseTimes: this.serverResponseTimes
     };
 
     console.log("finishExpSession...");
