@@ -47,11 +47,12 @@ if (is_nwjs()) {
     var sessionNr = null;
 
     // replace server routes with alternatives for offline version:
-    playerAjaxPost = function(route, p, callback) {
+    playerAjaxPost = function(route, p, callback, timeout) {
 
         if (route=="/startExpPlayer") {
             $.get("exp.json", function(expJSON) {
                 callback({
+                    success: true,
                     expData: JSON.parse(expJSON)
                 });
             });
@@ -59,7 +60,9 @@ if (is_nwjs()) {
 
         if (route=="/startFirstPlayerSession") {
             if (callback) {
-                callback();
+                callback({
+                    success: true
+                });
             }
         }
 
@@ -83,12 +86,12 @@ if (is_nwjs()) {
                 return db.rec_sessions.add(rec_session_data);
             }).then(function(new_id){
                 rec_session_id = new_id;
-                callback({
-                    success: true
-                });
 
                 // update list of recordings:
                 win.refreshList();
+                callback({
+                    success: true
+                });
 
             }).catch(function(error) {
                 alert ("Ooops: " + error);
@@ -101,6 +104,9 @@ if (is_nwjs()) {
                 start_time: p.start_time
             };
             db.rec_sessions.update(rec_session_id, rec_session_changes);
+            callback({
+                success: true
+            });
         }
 
         if (route=="/recordStartTask") {
@@ -145,7 +151,11 @@ if (is_nwjs()) {
         }
 
         if (route=="/errExpSession") {
-
+            if (callback) {
+                callback({
+                    success: true
+                });
+            }
         }
 
         if (route=="/finishExpSession") {
@@ -163,6 +173,12 @@ if (is_nwjs()) {
 
             db.exp_subjects.update(exp_subject_id, exp_subject_changes);
 
+            if (callback) {
+                callback({
+                    success: true
+                });
+            }
+
             // update list of recordings:
             win.refreshList();
 
@@ -172,32 +188,29 @@ if (is_nwjs()) {
     };
 }
 else {
-    playerAjaxPost = function(route, p, callback) {
+
+    // all player routes must return a result with a boolean success field!
+
+    playerAjaxPost = function(route, p, callback, timeout) {
+        if (timeout === undefined) {
+            timeout = 5 * 60 * 1000; // 5 minutes is default timeout
+        }
         $.ajax({
             type: "POST",
             url: route,
             data: p,
-            timeout: 15000,
+            timeout: timeout,
             error: function(jqXHR, textStatus, errorThrown) {
-                if(textStatus==="timeout") {
-                    console.error("error: the ajax post to " + route + " timed out!");
-                    setTimeout(function() {
-                        //player.finishSessionWithError("connection to server timed out");
-                        //playerAjaxPost(route, p, callback);
-                        throw new Error("connection to server in route "+route+" timed out");
-                    }, 300);
-                } else {
-                    console.error("error: the ajax post to " + route + " resulted in an error: " + textStatus);
-                    setTimeout(function() {
-                        //player.finishSessionWithError("connection to server resulted in error: " + textStatus);
-                        //playerAjaxPost(route, p, callback);
-                        throw new Error("connection to server in route "+route+" resulted in error: " + textStatus);
-                    }, 300);
-                }
+                callback({
+                    success: false,
+                    msg: textStatus
+                });
+                throw errorThrown;
             },
             success: callback
         });
     };
+
 }
 
 var Player = function() {
@@ -310,6 +323,9 @@ var Player = function() {
 
     this.selectedEmail = null;
 
+    this.recordTrialQueue = [];
+    this.recordTrialQueueIsUploading = false;
+
     Webcam.on("error", function(err_msg){
         console.log("webcam error: "+err_msg);
         self.finishSessionWithError(err_msg);
@@ -332,8 +348,17 @@ var Player = function() {
         }
         else {
             playerAjaxPost('/startExpPlayer', parameters, function (data) {
+                if (data.success == false) {
+                    if(data.msg==="timeout") {
+                        self.finishSessionWithError("Our server is overloaded at the moment. Please come back later.");
+                    }
+                    else {
+                        self.finishSessionWithError("Error: " + data.msg);
+                    }
+                    return;
+                }
                 self.startExpPlayerResult(data);
-            });
+            }, 20 * 1000);
         }
     });
 
@@ -368,8 +393,17 @@ Player.prototype.startExpPlayerResult = function(data) {
                     askSubjData: self.askSubjData
                 };
                 playerAjaxPost('/startExpPlayer', parameters, function(data){
+                    if (data.success == false) {
+                        if(data.msg==="timeout") {
+                            self.finishSessionWithError("Our server is overloaded at the moment. Please come back later.");
+                        }
+                        else {
+                            self.finishSessionWithError("Error: " + data.msg);
+                        }
+                        return;
+                    }
                     self.startExpPlayerResult(data);
-                });
+                }, 20 * 1000);
             });
         });
         return;
@@ -873,25 +907,42 @@ Player.prototype.startExperiment = function() {
                 }
             }
         }
+
+        function startRunning() {
+            if (needsCalibration) {
+                // first run calibration:
+                self.runCalibration(function() {
+                    self.startNextBlock();
+                });
+            }
+            else {
+                self.startNextBlock();
+            }
+        }
         if (!self.isTestrun) {
             playerAjaxPost(
                 '/setPlayerSessionStartedTime',
                 {
                     start_time: this.sessionStartTime
                 },
-                function (result) {
+                function (data) {
+                    if (data.success == false) {
+                        if(data.msg==="timeout") {
+                            self.finishSessionWithError("Our server is overloaded at the moment. Please come back later.");
+                        }
+                        else {
+                            self.finishSessionWithError("Error: " + data.msg);
+                        }
+                        return;
+                    }
                     console.log('recorded session start time');
-                }
+                    startRunning();
+                },
+                20 * 1000
             );
         }
-        if (needsCalibration) {
-            // first run calibration:
-            this.runCalibration(function() {
-                self.startNextBlock();
-            });
-        }
         else {
-            this.startNextBlock();
+            startRunning();
         }
     }
 };
@@ -1132,19 +1183,21 @@ Player.prototype.startRecordingsOfNewTask = function(cb) {
             start_time: pgFormatDate(new Date())
         };
 
-
-        playerAjaxPost('/debugExpSession', {msg: "startRecordingsOfNewTask in task " + this.currentTask.id()});
-
-        playerAjaxPost('/recordStartTask', recordData, function(result) {
-            if (result.success) {
-                self.recTaskId = result.recTaskId;
-                cb();
-            }
-            else {
-                self.finishSessionWithError("recording of new task failed.");
-                throw new Error("recording of new task failed.");
-            }
-        });
+        playerAjaxPost(
+            '/recordStartTask',
+            recordData,
+            function(result) {
+                if (result.success) {
+                    self.recTaskId = result.recTaskId;
+                    cb();
+                }
+                else {
+                    self.finishSessionWithError("recording of new task failed with error: " + result.msg);
+                    throw new Error("recording of new task failed failed with error: " + result.msg);
+                }
+            },
+            5 * 60 * 1000 // 5 minutes timeout
+        );
     }
     else {
         cb();
@@ -1169,11 +1222,48 @@ Player.prototype.recordData = function() {
             recData: recData.toJS(),
             recTaskId: self.recTaskId
         };
-        playerAjaxPost('/recordTrial', recordedData, function(result) {
 
-        });
+        // add new recording to queue:
+        this.recordTrialQueue.push(recordedData);
 
-        playerAjaxPost('/debugExpSession', {msg: "recordData in task "});
+        this.processRecordTrialQueue();
+
+    }
+};
+
+Player.prototype.processRecordTrialQueue = function() {
+    var self = this;
+    if (this.recordTrialQueueIsUploading) {
+        console.log("some previous trial upload is still in prgress...");
+    }
+    else {
+        // check if there is something in the queue to upload:
+        if (self.recordTrialQueue.length > 0) {
+            console.log("starting next trial upload...");
+            this.recordTrialQueueIsUploading = true;
+            var nextRecordedData = self.recordTrialQueue[0];
+            playerAjaxPost(
+                '/recordTrial',
+                nextRecordedData,
+                function (data) {
+                    if (data.success == false) {
+                        console.log("error uploading trial data... retry...");
+                        self.recordTrialQueueIsUploading = false;
+                        self.processRecordTrialQueue();
+                    }
+                    else {
+                        // remove first element from queue:
+                        self.recordTrialQueue.shift();
+
+                        self.recordTrialQueueIsUploading = false;
+
+                        // check if there is something in the queue to process:
+                        self.processRecordTrialQueue();
+                    }
+                },
+                60 * 1000
+            );
+        }
     }
 };
 
@@ -1211,8 +1301,6 @@ Player.prototype.switchToNextPreloadedTrial = function() {
 
 Player.prototype.startNextTrial = function() {
     var self = this;
-
-    playerAjaxPost('/debugExpSession', {msg: "startNextTrial"});
 
     if (this.trialIter == "waitForStart") {
         this.trialIter = 0;
@@ -1282,16 +1370,9 @@ Player.prototype.startNextTrial = function() {
 };
 
 
-
-
-
-
-
 Player.prototype.startSpecificTrial = function(trialId) {
 
     var self = this;
-
-    playerAjaxPost('/debugExpSession', {msg: "startSpecificTrial"});
 
     if (this.trialIter == "waitForStart") {
         this.trialIter = 0;
@@ -1459,7 +1540,18 @@ Player.prototype.getBlockId = function () {
 Player.prototype.finishSessionWithError = function(err_msg) {
     this.sessionEnded = true;
     console.log("error during experiment...");
-    playerAjaxPost('/errExpSession', {err_msg: err_msg});
+    playerAjaxPost(
+        '/errExpSession',
+        {
+            err_msg: err_msg
+        },
+        function(data) {
+            if (data.success == false) {
+                console.error("cannot sent error to server...")
+            }
+        },
+        60 * 1000
+    );
     $('#experimentViewPort').hide();
     $('#sectionPreload').hide();
     $('#errEndExpSection').show();
@@ -1470,6 +1562,7 @@ Player.prototype.finishSessionWithError = function(err_msg) {
 };
 
 Player.prototype.finishSession = function(showEndPage) {
+    var self = this;
 
     this.sessionEnded = true;
 
@@ -1503,10 +1596,21 @@ Player.prototype.finishSession = function(showEndPage) {
 
     };
 
-
-
-
     console.log("finishExpSession...");
+
+    function onSentDataComplete() {
+        if (showEndPage){
+            $('#experimentViewPort').hide();
+            $('#endExpSection').show();
+        }
+
+        $('#endExp').click(function(){
+            window.location = "/page/library";
+        });
+
+        self.exitFullscreen();
+    }
+
     if (!this.runOnlyTaskId && !this.isTestrun) {
 
         var end_time = new Date();
@@ -1524,28 +1628,29 @@ Player.prototype.finishSession = function(showEndPage) {
         }
 
         var self = this;
-        playerAjaxPost('/finishExpSession', {
-            end_time: pgFormatDate(end_time),
-            nextStartTime: nextStartTime,
-            nextEndTime: nextEndTime,
-            var_data: var_data,
-            selectedEmail:self.selectedEmail,
-            expId: self.expId
-        });
-
+        playerAjaxPost(
+            '/finishExpSession',
+            {
+                end_time: pgFormatDate(end_time),
+                nextStartTime: nextStartTime,
+                nextEndTime: nextEndTime,
+                var_data: var_data,
+                selectedEmail:self.selectedEmail,
+                expId: self.expId
+            },
+            function(data) {
+                if (data.success == false) {
+                    console.error("error during finishExpSession...")
+                }
+                onSentDataComplete();
+            },
+            5 * 60 * 1000
+        );
+    }
+    else {
+        onSentDataComplete();
     }
 
-
-    if (showEndPage){
-        $('#experimentViewPort').hide();
-        $('#endExpSection').show();
-    }
-
-    $('#endExp').click(function(){
-        window.location = "/page/library";
-    });
-
-    this.exitFullscreen();
 
 };
 
