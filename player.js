@@ -821,6 +821,25 @@ Player.prototype.setSubjectGroupNr = function(groupNr, sessionNr){
         this.exp_session.blocks(newArr);
     }
     this.blocks = this.exp_session.blocks();
+    // randomize Task Order
+    var self=this;
+    this.blocks.forEach(function(block){
+        if (block.taskRandomization()=="permutation"){
+            var n = block.subTasks().length;
+            var perm = [];
+            for (var i = 0; i<n; i++){
+                perm.push(i);
+            }
+            block.subTasks()[0].reshuffle(perm);
+
+            var newArr = [];
+            for (var i = 0; i<n; i++){
+                newArr.push(block.subTasks()[perm[i]])
+            }
+            block.subTasks(newArr);
+        }
+    });
+
 
     // initialize variables that are session specific:
     this.experiment.exp_data.varSubjectCode().value().value(this.subject_code);
