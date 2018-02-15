@@ -338,6 +338,9 @@ var Player = function() {
     this.groupNrAssignedByServer = null;
     this.sessionNrAssignedByServer = null;
 
+    this.subjCounterGlobal = null;
+    this.subjCounterPerGroup = null;
+
     this.selectedEmail = null;
 
     this.recordTrialQueue = [];
@@ -920,6 +923,10 @@ Player.prototype.startExperiment = function() {
     if (this.runOnlyTaskId){
         // run a test task session:
         this.currentTaskIdx = NaN;
+
+        this.subjCounterGlobal = 1;
+        this.subjCounterPerGroup = 1;
+
         this.currentTask = this.experiment.exp_data.entities.byId[this.runOnlyTaskId];
         if (this.currentTask.zoomMode() === "visualDegree" || this.currentTask.zoomMode() === "millimeter") {
             // first run calibration:
@@ -972,6 +979,10 @@ Player.prototype.startExperiment = function() {
                         return;
                     }
                     console.log('recorded session start time');
+
+                    self.subjCounterGlobal = data.subjCounterGlobal;
+                    self.subjCounterPerGroup = data.subjCounterPerGroup;
+
                     startRunning();
                 },
                 20 * 1000
@@ -1156,7 +1167,7 @@ Player.prototype.startRunningTask = function() {
         this.experiment.exp_data.varTaskNr().value().value(this.currentTaskIdx+1);
 
         // start randomization:
-        this.randomizedTrials = this.currentTask.doTrialRandomization();
+        this.randomizedTrials = this.currentTask.doTrialRandomization(self.subjCounterGlobal, self.subjCounterPerGroup);
 
         console.log("randomization finished... start first trial initialization...");
         this.addTrialViews(0,0, this.currentTask);
