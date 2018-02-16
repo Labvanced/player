@@ -119,6 +119,11 @@ PlayerFrame.prototype.getFrameTime = function() {
     return Date.now()-this.startedTime;
 };
 
+PlayerFrame.prototype.selectElement = function(selectedElement) {
+    this.frameView.setSelectedElement(selectedElement);
+};
+
+
 PlayerFrame.prototype.startFrame = function() {
     var self = this;
 
