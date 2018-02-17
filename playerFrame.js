@@ -78,6 +78,14 @@ PlayerFrame.prototype.init = function() {
             "height": "100%"
         });
     }
+
+
+    $('#experimentViewPort').click(function () {
+        if (self.frameView.subElemSelected == false) {
+            self.frameView.parent.selectElement(null);
+        }
+    });
+
 };
 
 
