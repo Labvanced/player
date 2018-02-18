@@ -1244,7 +1244,7 @@ Player.prototype.recordData = function() {
     if (!this.runOnlyTaskId && !this.isTestrun) {
         // record variables at end of trial:
         var recData = new RecData();
-        this.recodingInClient.push({trialNr: this.trialIter, trialId: this.randomizedTrials[this.trialIter].trialVariation.uniqueId(), task_nr: this.experiment.exp_data.varTaskNr().value().value(), taskName: this.experiment.exp_data.varTaskName().value().value()});
+       // this.recodingInClient.push({trialNr: this.trialIter, trialId: this.randomizedTrials[this.trialIter].trialVariation.uniqueId(), task_nr: this.experiment.exp_data.varTaskNr().value().value(), taskName: this.experiment.exp_data.varTaskName().value().value()});
 
         // new, dynamic verison
         for (var i = 0; i < this.variablesToRecord.length; i++) {
