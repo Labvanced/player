@@ -29,6 +29,7 @@ function pgFormatDate(date) {
         timeZoneOffsetInHours = "+"+zeroPad(Math.floor(timeZoneOffsetInHours));
     }
     else {
+        timeZoneRemainingMinutes = 0;
         timeZoneOffsetInHours = "+00";
     }
     if (timeZoneRemainingMinutes != 0) {
