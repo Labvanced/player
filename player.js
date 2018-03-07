@@ -45,6 +45,7 @@ if (is_nwjs()) {
 
     var exp_subject_id = null;
     var rec_session_id = null;
+    var rec_task_id = null;
     var sessionNr = null;
 
     // replace server routes with alternatives for offline version:
@@ -334,6 +335,9 @@ var Player = function() {
     this.timeControlArray = [];
 
     this.eyetrackerLoaded = false;
+
+    this.socket = null;
+    this.expSessionNr = null;
 
     this.groupNrAssignedByServer = null;
     this.sessionNrAssignedByServer = null;
@@ -1166,8 +1170,24 @@ Player.prototype.startRunningTask = function() {
         this.experiment.exp_data.varTaskName().value().value(this.currentTask.name());
         this.experiment.exp_data.varTaskNr().value().value(this.currentTaskIdx+1);
 
-        // start randomization:
-        this.randomizedTrials = this.currentTask.doTrialRandomization(self.subjCounterGlobal, self.subjCounterPerGroup);
+        if (this.experiment.exp_data.isJointExp()) {    // synchronize trials among participants
+            self.syncTrialOrder();
+
+        } else {                                        // 'regular' non-joint Experiment
+            // start randomization:
+            this.randomizedTrials = this.currentTask.doTrialRandomization(self.subjCounterGlobal, self.subjCounterPerGroup);
+            this.startFirstTrialInitialization();
+        }
+    }
+    else{
+        this.startNextBlock();
+    }
+
+};
+
+Player.prototype.startFirstTrialInitialization = function(){
+
+    var self = this;
 
         console.log("randomization finished... start first trial initialization...");
         this.addTrialViews(0,0, this.currentTask);
@@ -1204,14 +1224,48 @@ Player.prototype.startRunningTask = function() {
                     self.startNextTrial();
                 }, 500);
             }
-
         });
+};
 
-    }
-    else{
-        this.startNextBlock();
-    }
+Player.prototype.syncTrialOrder = function() {
 
+    // Player with id 1 does randomization and sends it to server.
+    if(this.experiment.exp_data.varRoleId().value().value() == 1){
+        // start randomization:
+        this.randomizedTrials = this.currentTask.doTrialRandomization();
+
+        var trialOrderData = [];
+
+        for(var i=0; i<this.randomizedTrials.length; i++){
+
+            // retrieve relevant data
+            var trialVariation = this.randomizedTrials[i].trialVariation;
+            var condition = trialVariation.condition;
+            var factorGroup = condition.factorGroup;
+
+            // retrieve positions of relevant data
+            var posTrialVariation = condition.trials.indexOf(trialVariation);
+            var posCondition = factorGroup.conditionsLinear().indexOf(condition);
+            var posFactorGroup = this.currentTask.factorGroups.indexOf(factorGroup);
+
+            trialOrderData.push({
+                trialVariationId: trialVariation.uniqueId(), // same as posTrialVariation + 1
+                posTrialVariation: posTrialVariation,
+                posCondition: posCondition,
+                posFactorGroup: posFactorGroup
+            });
+        }
+
+        // letting server know
+        this.socket.emit('submit trial order', trialOrderData);
+
+        // continue with initialization process.
+        this.startFirstTrialInitialization();
+
+    } else{
+        // not player with id 1.. Thus request trial order of player 1 from server.
+        this.socket.emit('request trial order');
+    }
 };
 
 Player.prototype.startRecordingsOfNewTask = function(cb) {
@@ -1265,6 +1319,7 @@ Player.prototype.recordData = function() {
 
         // server command
         var recordedData = {
+            expSessionNr: this.expSessionNr,
             trialNr: this.trialIter,
             recData: recData.toJS(),
             recTaskId: self.recTaskId
@@ -1510,6 +1565,29 @@ Player.prototype.startSpecificTrial = function(trialId) {
 
 
 Player.prototype.startNextPageOrFrame = function() {
+// this function is just interposed to manage synchronization.
+    var subsequentElement = this.currentSequence.currSelectedElement();
+
+    if(this.experiment.exp_data.isJointExp() && subsequentElement && subsequentElement.type!="EndOfSequence"){
+
+        var subsequentPageOrFrame = this.currentTrialFrames[subsequentElement.id()];
+
+        // check if next page or frame needs to be synchronized
+        if( (subsequentPageOrFrame.frameData && subsequentPageOrFrame.frameData.syncFrame()) || (subsequentPageOrFrame.frameData && subsequentPageOrFrame.frameData.syncFrame()) ){
+            this.socket.emit("sync next frame",
+                {
+                    frame_nr: this.currentSequence.elements().indexOf(subsequentElement),
+                    trial_nr: this.trialIter,
+                });
+        } else{
+            this.startNextPageOrFrameOriginal();
+        }
+    } else{
+        this.startNextPageOrFrameOriginal();
+    }
+};
+
+Player.prototype.startNextPageOrFrameOriginal = function() {
     var currentElement = this.currentSequence.currSelectedElement();
     var frameIdx = this.currentSequence.elements().indexOf(currentElement);
     console.log('starting frame nr: '+frameIdx +' in trial nr: '+this.trialIter);
