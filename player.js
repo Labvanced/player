@@ -453,6 +453,9 @@ Player.prototype.startExpPlayerResult = function(data) {
     console.log("experiment deserialized.");
 
 
+    self.expSessionNr = data.expSessionNr;
+    console.log('expSessionNr: ' + self.expSessionNr);
+
     // fast forward by strg+q
     if (self.experiment.exp_data.studySettings.allowSTRGQ()){
         function KeyPress(e) {
@@ -970,7 +973,8 @@ Player.prototype.startExperiment = function() {
             playerAjaxPost(
                 '/setPlayerSessionStartedTime',
                 {
-                    start_time: this.sessionStartTime
+                    start_time: this.sessionStartTime,
+                    expSessionNr: this.expSessionNr
                 },
                 function (data) {
                     if (data.success == false) {
@@ -1275,6 +1279,7 @@ Player.prototype.startRecordingsOfNewTask = function(cb) {
 
         // record variables at start of task:
         var recordData = {
+            expSessionNr: this.expSessionNr,
             blockNr: this.experiment.exp_data.varBlockNr().value().value(),
             blockId: this.currentBlock.id(),
             blockName: this.experiment.exp_data.varBlockName().value().value(),
@@ -1753,6 +1758,7 @@ Player.prototype.finishSession = function(showEndPage) {
         playerAjaxPost(
             '/finishExpSession',
             {
+                expSessionNr: self.expSessionNr,
                 end_time: pgFormatDate(end_time),
                 nextStartTime: nextStartTime,
                 nextEndTime: nextEndTime,
