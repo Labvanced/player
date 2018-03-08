@@ -235,10 +235,19 @@ var Player = function() {
     // determine whether this is a crowdsourcingSession
     this.crowdsourcingCode = ko.observable('');
     this.isCrowdsourcingSession = ko.observable(false);
+    this.crowdsourcingType= ko.observable("code");
     var isCrowdsourcingSession = getParameterByName("crowdsourcing");
+    var csType = getParameterByName("type");
     if (isCrowdsourcingSession =="true"){
         this.crowdsourcingCode(guid());
         this.isCrowdsourcingSession(true);
+        if (csType =="link"){
+            this.crowdsourcingType("link")
+        }
+        else if (csType =="code"){
+            this.crowdsourcingType("code");
+        }
+
     }
 
     this.playerPreloader = new PlayerPreloader(this);
@@ -1634,6 +1643,7 @@ Player.prototype.finishSession = function(showEndPage) {
         agentSpec: this.experiment.exp_data.varAgentSpec().value().toJS(),
         fullscreen: this.experiment.exp_data.varFullscreenSpec().value().toJS(),
         timeDelayMean: this.experiment.exp_data.varTimeMeasureSpecMean().value().toJS(),
+        crowdsourcinSubjId: this.experiment.exp_data.varCrowdsourcingSubjId().value().toJS(),
         timeDelayMax: this.experiment.exp_data.varTimeMeasureSpecMax().value().toJS(),
         crowdsourcingCode:this.experiment.exp_data.varCrowdsourcingCode().value().toJS(),
         debugData: this.recodingInClient,
