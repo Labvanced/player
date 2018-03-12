@@ -1395,6 +1395,7 @@ Player.prototype.cleanUpCurrentTask = function() {
 
 Player.prototype.cleanUpCurrentTrial = function() {
     if (this.currentTrialDiv) {
+        ko.cleanNode(this.currentTrialDiv);
         this.currentTrialDiv.remove();
     }
     for( var oldTrialFrameKeys in this.currentTrialFrames ) {
@@ -1591,7 +1592,7 @@ Player.prototype.startNextPageOrFrame = function() {
             this.socket.emit("sync next frame",
                 {
                     frame_nr: this.currentSequence.elements().indexOf(subsequentElement),
-                    trial_nr: this.trialIter,
+                    trial_nr: this.trialIter
                 });
         } else{
             this.startNextPageOrFrameOriginal();

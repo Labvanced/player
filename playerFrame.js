@@ -20,13 +20,17 @@ var PlayerFrame = function(frameData,frameDiv,player) {
     this.onFrameStartCallbacks = [];
     this.onFrameEndCallbacks = [];
 
-    // the following is stored to later remove the event listener:
+    // the following is stored   to later remove the event listener:
     this.resizeEventListener = function() {
         self.resize();
     };
-
+    this.selectionEventListener = function() {
+        if (self.frameView.subElemSelected == false) {
+            self.frameView.parent.selectElement(null);
+        }
+    };
     window.addEventListener('resize', this.resizeEventListener, false);
-
+    window.addEventListener('click', this.selectionEventListener, false);
 
 };
 
@@ -80,13 +84,9 @@ PlayerFrame.prototype.init = function() {
     }
 
 
-    $('#experimentViewPort').click(function () {
-        if (self.frameView.subElemSelected == false) {
-            self.frameView.parent.selectElement(null);
-        }
-    });
 
 };
+
 
 
 PlayerFrame.prototype.elementRandomization = function() {
@@ -111,6 +111,8 @@ PlayerFrame.prototype.elementRandomization = function() {
 PlayerFrame.prototype.dispose = function() {
     window.removeEventListener('resize', this.resizeEventListener , false);
     this.resizeEventListener = null;
+    window.removeEventListener('click', this.selectionEventListener , false);
+    this.selectionEventListener = null;
 
     if (typeof this.frameView.dispose === "function") {
         this.frameView.dispose();
