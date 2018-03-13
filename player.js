@@ -1394,14 +1394,14 @@ Player.prototype.cleanUpCurrentTask = function() {
 };
 
 Player.prototype.cleanUpCurrentTrial = function() {
-    if (this.currentTrialDiv) {
-        ko.cleanNode(this.currentTrialDiv);
-        this.currentTrialDiv.remove();
-    }
     for( var oldTrialFrameKeys in this.currentTrialFrames ) {
         if (this.currentTrialFrames.hasOwnProperty(oldTrialFrameKeys)) {
             this.currentTrialFrames[oldTrialFrameKeys].dispose();
         }
+    }
+    if (this.currentTrialDiv) {
+        ko.cleanNode(this.currentTrialDiv);
+        this.currentTrialDiv.remove();
     }
 };
 
