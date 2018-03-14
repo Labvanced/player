@@ -252,6 +252,7 @@ var Player = function() {
     }
 
     this.playerPreloader = new PlayerPreloader(this);
+    this.playerFileUploader = new PlayerFileUploader(this);
 
     function getParameterByName(name) {
         name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
