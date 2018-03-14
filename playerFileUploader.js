@@ -63,7 +63,7 @@ PlayerFileUploader.prototype.checkAjaxUploadQueue = function() {
                 }
             };
             xhr.onerror = function (e) {
-                console.log('An error occurred while submitting the form. Maybe your file is too big');
+                console.log('An error occurred while uploading file. Maybe your file is too big');
             };
             xhr.onload = function (e) {
                 console.log(this.statusText);
