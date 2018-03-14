@@ -1403,6 +1403,11 @@ Player.prototype.cleanUpCurrentTrial = function() {
         ko.cleanNode(this.currentTrialDiv);
         this.currentTrialDiv.remove();
     }
+
+    if (this.currentSequence){
+        this.currentSequence.dispose();
+    }
+
 };
 
 Player.prototype.switchToNextPreloadedTrial = function() {
