@@ -17,7 +17,7 @@ var PlayerFileUploader = function(player) {
  * @param {directory} parentFolderId - the directory where the file is located
  * @param {fileString} file - the file string
  */
-PlayerFileUploader.prototype.addToAjaxUploadQueue = function(file, globalVarFile, callbackWhenFinished) {
+PlayerFileUploader.prototype.addToAjaxUploadQueue = function(file, newFileName, globalVarFile, callbackWhenFinished) {
 
     if (this.ajaxUploadInProgress){
         this.uploadNumFiles(this.uploadNumFiles() + 1);
@@ -31,6 +31,7 @@ PlayerFileUploader.prototype.addToAjaxUploadQueue = function(file, globalVarFile
 
     this.ajaxUploadQueue.push({
         file: file,
+        newFileName: newFileName,
         globalVarFile: globalVarFile,
         callbackWhenFinished: callbackWhenFinished
     });
@@ -51,7 +52,10 @@ PlayerFileUploader.prototype.checkAjaxUploadQueue = function() {
             console.log("this.uploadCurrentFile() = " + this.uploadCurrentFile());
 
             // start new upload of next file in queue:
+
             var formData = new FormData();
+            formData.append('expSessionNr', self.player.expSessionNr);
+            formData.append('newFileName', this.ajaxUploadQueue[0].newFileName);
             formData.append('myFile', this.ajaxUploadQueue[0].file);
             var xhr = new XMLHttpRequest();
             xhr.open('post', '/player_upload', true);
@@ -67,9 +71,13 @@ PlayerFileUploader.prototype.checkAjaxUploadQueue = function() {
             };
             xhr.onload = function (e) {
                 console.log(this.statusText);
-                console.log(xhr.response);
+                var file_guid = xhr.response.file_guid;
+                var file_name = xhr.response.file_name;
 
-                self.ajaxUploadQueue[0].callbackWhenFinished();
+                var result = JSON.parse(xhr.response);
+                console.log("file_guid = "+file_guid);
+
+                self.ajaxUploadQueue[0].callbackWhenFinished(result.file_guid, result.file_name);
 
                 // now start the next file:
                 console.log("xhr.onload: start the next file");
