@@ -1,5 +1,5 @@
 /**
- * This dialog gathers all potential participants for a specific experiment. In a next stept they'll
+ * This dialog gathers all potential participants for a specific experiment. In a next stept they'll be matched.
  * @param expData
  * @constructor
  */
@@ -140,10 +140,12 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
 
     player.socket.on('distribution allowed', function(){
         console.log('distribution allowed from server...');
+        //TODO create an action to respond to allowance (in order to e. g. play a sound)
     });
 
     player.socket.on('distribution declined', function(){
         console.log('distribution declined from server...');
+        //TODO create an action to respond to declination (in order to e. g. play a sound)
     });
 };
 
