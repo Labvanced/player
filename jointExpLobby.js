@@ -89,7 +89,14 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
         console.log("updated value of (distributed) variable '" + variable.name() + "' from '" + oldValue + "' to '" + operandValue + "' ...");
 
         // letting the server know that the variable is successfully delivered and changed.
-        player.socket.emit("received distribution response");
+        player.socket.emit("received distribution response",
+            {
+                variable:
+                    {
+                        name: variable.name(),
+                        id: variable.id()
+                    }
+            });
     });
 
     player.socket.on('start next frame', function(){
