@@ -1164,6 +1164,11 @@ Player.prototype.startRunningTask = function() {
         this.variablesToRecord.push(this.experiment.exp_data.varTrialNr());
         this.variablesToRecord.push(this.experiment.exp_data.varConditionId());
 
+        // ad role id if experiment is joint experiment
+        if(this.experiment.exp_data.isJointExp()){
+            this.variablesToRecord.push(this.experiment.exp_data.varRoleId());
+        }
+
         // add all factor vars to recordings
         var allEntities = this.experiment.exp_data.entities();
         for (var i=0; i<allEntities.length; i++){
