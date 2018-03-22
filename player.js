@@ -1715,6 +1715,10 @@ Player.prototype.finishSession = function(showEndPage) {
     var self = this;
 
     this.sessionEnded = true;
+    if (this.timeControlArray.length >=1){
+        this.timeControlArray.splice(0,1);
+    }
+
 
     var total = 0;
     for(var i = 0; i < this.timeControlArray.length; i++) {
@@ -1722,7 +1726,15 @@ Player.prototype.finishSession = function(showEndPage) {
     }
     var meanDelay = (total / this.timeControlArray.length)-100;
     var maxDelay = Math.max.apply(null,this.timeControlArray)-100;
+
+    var stdDelay = 0;
+    for(var key in this.timeControlArray){
+        stdDelay += Math.pow((parseFloat(this.timeControlArray[key]-100) - meanDelay),2);
+    }
+    var stdDelay = Math.sqrt(stdDelay/this.timeControlArray.length);
+
     this.experiment.exp_data.varTimeMeasureSpecMean().value().value(meanDelay);
+    this.experiment.exp_data.varTimeMeasureSpecStd().value().value(stdDelay);
     this.experiment.exp_data.varTimeMeasureSpecMax().value().value(maxDelay);
 
     // set crowdsourcingCode
@@ -1741,7 +1753,8 @@ Player.prototype.finishSession = function(showEndPage) {
         timeDelayMax: this.experiment.exp_data.varTimeMeasureSpecMax().value().toJS(),
         crowdsourcingCode:this.experiment.exp_data.varCrowdsourcingCode().value().toJS(),
         debugData: this.recodingInClient,
-        serverResponseTimes: this.serverResponseTimes
+        serverResponseTimes: this.serverResponseTimes,
+        timeDelayStd: this.experiment.exp_data.varTimeMeasureSpecStd().value().toJS()
     };
 
     console.log("finishExpSession...");
