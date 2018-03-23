@@ -56,7 +56,7 @@ PlayerFileUploader.prototype.checkAjaxUploadQueue = function() {
             var formData = new FormData();
             formData.append('expSessionNr', self.player.expSessionNr);
             formData.append('newFileName', this.ajaxUploadQueue[0].newFileName);
-            formData.append('myFile', this.ajaxUploadQueue[0].file);
+            formData.append('myFile', this.ajaxUploadQueue[0].file, this.ajaxUploadQueue[0].newFileName);
             var xhr = new XMLHttpRequest();
             xhr.open('post', '/player_upload', true);
             xhr.upload.onprogress = function (e) {
@@ -71,13 +71,13 @@ PlayerFileUploader.prototype.checkAjaxUploadQueue = function() {
             };
             xhr.onload = function (e) {
                 console.log(this.statusText);
-                var file_guid = xhr.response.file_guid;
-                var file_name = xhr.response.file_name;
 
                 var result = JSON.parse(xhr.response);
-                console.log("file_guid = "+file_guid);
+                console.log("file_guid = "+result.file_guid);
 
-                self.ajaxUploadQueue[0].callbackWhenFinished(result.file_guid, result.file_name);
+                if (self.ajaxUploadQueue[0].callbackWhenFinished) {
+                    self.ajaxUploadQueue[0].callbackWhenFinished(result.file_guid, result.file_name);
+                }
 
                 // now start the next file:
                 console.log("xhr.onload: start the next file");
