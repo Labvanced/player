@@ -252,6 +252,7 @@ var Player = function() {
     }
 
     this.playerPreloader = new PlayerPreloader(this);
+    this.playerFileUploader = new PlayerFileUploader(this);
 
     function getParameterByName(name) {
         name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
@@ -358,6 +359,8 @@ var Player = function() {
 
     this.recordTrialQueue = [];
     this.recordTrialQueueIsUploading = false;
+
+    this.microphone_stream = null;
 
     Webcam.on("error", function(err_msg){
         console.log("webcam error: "+err_msg);
@@ -930,6 +933,22 @@ Player.prototype.setupPlayerDesign = function() {
 
 
 Player.prototype.startExperiment = function() {
+    var self = this;
+
+    // enable microphone access:
+    if (self.experiment.exp_data.studySettings.isAudioRecEnabled()){
+        // Request permissions to record audio
+        navigator.mediaDevices.getUserMedia({audio: true}).then(function (stream) {
+            self.microphone_stream = stream;
+            self.startExperimentContinue();
+        });
+    }
+    else {
+        self.startExperimentContinue();
+    }
+};
+
+Player.prototype.startExperimentContinue = function() {
 
     this.timeMeasureControl();
 
