@@ -1754,7 +1754,7 @@ Player.prototype.finishSession = function(showEndPage) {
 
     this.experiment.exp_data.varTimeMeasureSpecMean().value().value(meanDelay);
     this.experiment.exp_data.varTimeMeasureSpecStd().value().value(stdDelay);
-    this.experiment.exp_data.varTimeMeasureSpecMax().value().value(maxDelay);
+  //  this.experiment.exp_data.varTimeMeasureSpecMax().value().value(maxDelay);
 
     // set crowdsourcingCode
     if (this.isCrowdsourcingSession()){
@@ -1769,7 +1769,7 @@ Player.prototype.finishSession = function(showEndPage) {
         fullscreen: this.experiment.exp_data.varFullscreenSpec().value().toJS(),
         timeDelayMean: this.experiment.exp_data.varTimeMeasureSpecMean().value().toJS(),
         crowdsourcinSubjId: this.experiment.exp_data.varCrowdsourcingSubjId().value().toJS(),
-        timeDelayMax: this.experiment.exp_data.varTimeMeasureSpecMax().value().toJS(),
+      //  timeDelayMax: this.experiment.exp_data.varTimeMeasureSpecMax().value().toJS(),
         crowdsourcingCode:this.experiment.exp_data.varCrowdsourcingCode().value().toJS(),
         debugData: this.recodingInClient,
         serverResponseTimes: this.serverResponseTimes,
