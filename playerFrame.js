@@ -19,6 +19,7 @@ var PlayerFrame = function(frameData,frameDiv,player) {
 
     this.onFrameStartCallbacks = [];
     this.onFrameEndCallbacks = [];
+    this.onEyetrackingCoords = [];
 
     // the following is stored   to later remove the event listener:
     this.resizeEventListener = function() {
@@ -131,6 +132,26 @@ PlayerFrame.prototype.getFrameTime = function() {
 
 PlayerFrame.prototype.selectElement = function(selectedElement) {
     this.frameView.setSelectedElement(selectedElement);
+};
+
+
+PlayerFrame.prototype.triggerEyetracking = function(data) {
+    if (typeof this.frameData.frameWidth == "function"){
+        var scale = this.frameView.scale();
+        var offX = (window.innerWidth - this.frameData.frameWidth() * scale) / 2;
+        var offY = (window.innerHeight - this.frameData.frameHeight() * scale) / 2;
+        var coordX = (data.x - offX) / scale;
+        var coordY = (data.y - offY) / scale;
+    } else {
+        console.log("this.frameData.frameWidth is not a function");
+        var coordX = data.x;
+        var coordY = data.y;
+    }
+    jQuery.each(this.onEyetrackingCoords, function(idx, eyetrackingCb) {
+        eyetrackingCb(coordX, coordY);
+    });
+    player.experiment.exp_data.varGazeX().value().value(coordX);
+    player.experiment.exp_data.varGazeY().value().value(coordY);
 };
 
 
