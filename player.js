@@ -938,10 +938,15 @@ Player.prototype.startExperiment = function() {
     // enable microphone access:
     if (self.experiment.exp_data.studySettings.isAudioRecEnabled()){
         // Request permissions to record audio
-        navigator.mediaDevices.getUserMedia({audio: true}).then(function (stream) {
-            self.microphone_stream = stream;
-            self.startExperimentContinue();
-        });
+        navigator.mediaDevices.getUserMedia({audio: true})
+            .then(function (stream) {
+                self.microphone_stream = stream;
+                self.startExperimentContinue();
+            })
+            .catch(function (err) {
+                console.log("cannot get mic access: error: "+err);
+                self.finishSessionWithError("Error accessing your microphone. Please check your PC and browser settings and restart the experiment. Supported browsers are Chrome, Firefox and Microsoft Edge.");
+            });
     }
     else {
         self.startExperimentContinue();
