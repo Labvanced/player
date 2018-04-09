@@ -1024,6 +1024,10 @@ Player.prototype.startExperimentContinue = function() {
                     self.subjCounterGlobal = data.subjCounterGlobal;
                     self.subjCounterPerGroup = data.subjCounterPerGroup;
 
+                    self.experiment.exp_data.varSubjectNr().value().setValue(data.subjCounterGlobal);
+                    self.experiment.exp_data.varSubjectNrPerSubjGroup().value().setValue(data.subjCounterPerGroup);
+
+
                     startRunning();
                 },
                 20 * 1000
@@ -1778,7 +1782,10 @@ Player.prototype.finishSession = function(showEndPage) {
         crowdsourcingCode:this.experiment.exp_data.varCrowdsourcingCode().value().toJS(),
         debugData: this.recodingInClient,
         serverResponseTimes: this.serverResponseTimes,
-        timeDelayStd: this.experiment.exp_data.varTimeMeasureSpecStd().value().toJS()
+        timeDelayStd: this.experiment.exp_data.varTimeMeasureSpecStd().value().toJS(),
+        subjCounterGlobal:  this.experiment.exp_data.varSubjectNr().value().toJS(),
+        subjCounterPerGroup:  this.experiment.exp_data.varSubjectNrPerSubjGroup().value().toJS(),
+        roleId: this.experiment.exp_data.varRoleId().value().toJS()
     };
 
     console.log("finishExpSession...");
