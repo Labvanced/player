@@ -361,6 +361,7 @@ var Player = function() {
     this.recordTrialQueueIsUploading = false;
 
     this.microphone_stream = null;
+    this.audioContext = null;
 
     Webcam.on("error", function(err_msg){
         console.log("webcam error: "+err_msg);
@@ -941,6 +942,7 @@ Player.prototype.startExperiment = function() {
         navigator.mediaDevices.getUserMedia({audio: true})
             .then(function (stream) {
                 self.microphone_stream = stream;
+                self.audioContext = new AudioContext();
                 self.startExperimentContinue();
             })
             .catch(function (err) {
