@@ -1305,14 +1305,18 @@ Player.prototype.syncTrialOrder = function() {
         }
 
         // letting server know
-        this.socket.emit('submit trial order', trialOrderData);
+        console.log('submit trial order to server');
+        this.socket.emit('submit trial order', {
+            trialOrderData: trialOrderData,
+            taskIdx: this.currentTaskIdx
+        });
 
         // continue with initialization process.
         this.startFirstTrialInitialization();
 
     } else{
         // not player with id 1.. Thus request trial order of player 1 from server.
-        this.socket.emit('request trial order');
+        this.socket.emit('request trial order', this.currentTaskIdx);
     }
 };
 
