@@ -1746,7 +1746,9 @@ Player.prototype.finishSession = function(showEndPage) {
 
     this.sessionEnded = true;
 
-    this.socket.emit('experiment finished');
+    if(this.experiment.exp_data.isJointExp()) {
+        this.socket.emit('experiment finished');
+    }
 
     if (this.timeControlArray.length >=1){
         this.timeControlArray.splice(0,1);
