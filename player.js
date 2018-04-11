@@ -1745,6 +1745,9 @@ Player.prototype.finishSession = function(showEndPage) {
     var self = this;
 
     this.sessionEnded = true;
+
+    this.socket.emit('experiment finished');
+
     if (this.timeControlArray.length >=1){
         this.timeControlArray.splice(0,1);
     }

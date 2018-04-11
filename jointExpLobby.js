@@ -154,6 +154,11 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
         console.log('distribution declined from server...');
         //TODO create an action to respond to declination (in order to e. g. play a sound)
     });
+
+    player.socket.on('abort', function(){
+        console.log('Lost connection to other participants.');
+        player.finishSessionWithError("Connection lost to another participant. Experiment aborted!");
+    });
 };
 
 /**
