@@ -117,6 +117,7 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
         $("#waitForSyncDiv").remove();
 
         console.log('sync trial order...');
+        player.randomizedTrials = [];
 
         for(var i=0; i<trialOrderData.length; i++){
 
