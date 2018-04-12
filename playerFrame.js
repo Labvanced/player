@@ -175,7 +175,9 @@ PlayerFrame.prototype.startFrame = function() {
             this.onFrameStartCallbacks[i]();
         }
 
-        this.frameDiv.css('display', 'block');
+        if(this.state == 'displaying') { // in case e. g. onFrameStart-event has caused to be on another frame already.
+            this.frameDiv.css('display', 'block');
+        }
 
 
         // if emotion recording is enabled:
