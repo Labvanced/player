@@ -1632,13 +1632,28 @@ Player.prototype.startNextPageOrFrame = function() {
         var subsequentPageOrFrame = this.currentTrialFrames[subsequentElement.id()];
 
         // check if next page or frame needs to be synchronized
-        if( (subsequentPageOrFrame.frameData && subsequentPageOrFrame.frameData.syncFrame()) || (subsequentPageOrFrame.frameData && subsequentPageOrFrame.frameData.syncFrame()) ){
+
+        // case: sync task start
+        if(this.currentTask && this.currentTask.syncTaskStart && this.currentTask.syncTaskStart()){
+            this.currentTask.syncTaskStart(false); // deactivate once used
+            console.log('sync task start');
+            this.socket.emit("sync next frame",
+                {
+                    frame_nr: this.currentSequence.elements().indexOf(subsequentElement),
+                    trial_nr: this.trialIter
+                });
+        }
+
+        // case:
+        else if( (subsequentPageOrFrame.frameData && subsequentPageOrFrame.frameData.syncFrame()) || (subsequentPageOrFrame.frameData && subsequentPageOrFrame.frameData.syncFrame()) ){
+            console.log('sync frame start');
             this.socket.emit("sync next frame",
                 {
                     frame_nr: this.currentSequence.elements().indexOf(subsequentElement),
                     trial_nr: this.trialIter
                 });
         } else{
+            console.log('start without sync');
             this.startNextPageOrFrameOriginal();
         }
     } else{
