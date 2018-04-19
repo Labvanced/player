@@ -131,7 +131,6 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
             player.currentTask.completeSelectionSpec(randomizedTrialsEntry);
 
             // add to randomizedTrials.
-            player.randomizedTrials = [];
             player.randomizedTrials.push(randomizedTrialsEntry);
         }
 
