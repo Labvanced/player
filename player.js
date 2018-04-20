@@ -1825,6 +1825,7 @@ Player.prototype.finishSession = function(showEndPage) {
         var end_time = new Date();
         var nextStartTime = null;
         var nextEndTime = null;
+        var emailReminder = "noReminder";
 
         var nextStartWindow = this.getNextStartWindow(end_time);
         if (nextStartWindow) {
@@ -1834,6 +1835,7 @@ Player.prototype.finishSession = function(showEndPage) {
             if (nextStartWindow.end) {
                 nextEndTime = pgFormatDate(nextStartWindow.end)
             }
+            emailReminder = "sendTokenNow";
         }
 
         var self = this;
@@ -1844,6 +1846,7 @@ Player.prototype.finishSession = function(showEndPage) {
                 end_time: pgFormatDate(end_time),
                 nextStartTime: nextStartTime,
                 nextEndTime: nextEndTime,
+                emailReminder: emailReminder,
                 var_data: var_data,
                 selectedEmail:self.selectedEmail,
                 expId: self.expId
