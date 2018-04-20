@@ -251,6 +251,10 @@ var Player = function() {
 
     }
 
+
+    this.showLinkOnEndPage = ko.observable(false);
+    this.linkToStartNextSession = ko.observable(null);
+
     this.playerPreloader = new PlayerPreloader(this);
     this.playerFileUploader = new PlayerFileUploader(this);
 
@@ -1855,7 +1859,13 @@ Player.prototype.finishSession = function(showEndPage) {
                 if (data.success == false) {
                     console.error("error during finishExpSession...")
                 }
-                onSentDataComplete();
+                else {
+                    self.linkToStartNextSession(data.link)
+                    if (nextStartWindow) {
+                        self.showLinkOnEndPage(true);
+                    }
+                    onSentDataComplete();
+                }
             },
             5 * 60 * 1000
         );
