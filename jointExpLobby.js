@@ -134,6 +134,7 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
             player.randomizedTrials.push(randomizedTrialsEntry);
         }
 
+        // continue with initialization process.
         player.startFirstTrialInitialization();
     });
     

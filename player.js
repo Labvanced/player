@@ -1277,47 +1277,41 @@ Player.prototype.startFirstTrialInitialization = function(){
 
 Player.prototype.syncTrialOrder = function() {
 
-    // Player with id 1 does randomization and sends it to server.
-    if(this.experiment.exp_data.varRoleId().value().value() == 1){
-        // start randomization:
-        this.randomizedTrials = this.currentTask.doTrialRandomization();
+    // Do randomization first (even if other randomization will be assigned from server)
 
-        var trialOrderData = [];
+    // start randomization:
+    this.randomizedTrials = this.currentTask.doTrialRandomization();
 
-        for(var i=0; i<this.randomizedTrials.length; i++){
+    var trialOrderData = [];
 
-            // retrieve relevant data
-            var trialVariation = this.randomizedTrials[i].trialVariation;
-            var condition = trialVariation.condition;
-            var factorGroup = condition.factorGroup;
+    for(var i=0; i<this.randomizedTrials.length; i++){
 
-            // retrieve positions of relevant data
-            var posTrialVariation = condition.trials.indexOf(trialVariation);
-            var posCondition = factorGroup.conditionsLinear().indexOf(condition);
-            var posFactorGroup = this.currentTask.factorGroups.indexOf(factorGroup);
+        // retrieve relevant data
+        var trialVariation = this.randomizedTrials[i].trialVariation;
+        var condition = trialVariation.condition;
+        var factorGroup = condition.factorGroup;
 
-            trialOrderData.push({
-                trialVariationId: trialVariation.uniqueId(), // same as posTrialVariation + 1
-                posTrialVariation: posTrialVariation,
-                posCondition: posCondition,
-                posFactorGroup: posFactorGroup
-            });
-        }
+        // retrieve positions of relevant data
+        var posTrialVariation = condition.trials.indexOf(trialVariation);
+        var posCondition = factorGroup.conditionsLinear().indexOf(condition);
+        var posFactorGroup = this.currentTask.factorGroups.indexOf(factorGroup);
 
-        // letting server know
-        console.log('submit trial order to server');
-        this.socket.emit('submit trial order', {
-            trialOrderData: trialOrderData,
-            taskIdx: this.currentTaskIdx
+        trialOrderData.push({
+            trialVariationId: trialVariation.uniqueId(), // same as posTrialVariation + 1
+            posTrialVariation: posTrialVariation,
+            posCondition: posCondition,
+            posFactorGroup: posFactorGroup
         });
-
-        // continue with initialization process.
-        this.startFirstTrialInitialization();
-
-    } else{
-        // not player with id 1.. Thus request trial order of player 1 from server.
-        this.socket.emit('request trial order', this.currentTaskIdx);
     }
+
+    // submit this trialorder (might receive different one if another participant already submitted)
+    this.socket.emit('submit trial order', {
+        trialOrderData: trialOrderData,
+        taskIdx: this.currentTaskIdx
+    });
+
+    this.socket.emit('request trial order', this.currentTaskIdx);
+
 };
 
 Player.prototype.startRecordingsOfNewTask = function(cb) {
@@ -1636,7 +1630,6 @@ Player.prototype.startNextPageOrFrame = function() {
         // case: sync task start
         if(this.currentTask && this.currentTask.syncTaskStart && this.currentTask.syncTaskStart()){
             this.currentTask.syncTaskStart(false); // deactivate once used
-            console.log('sync task start');
             this.socket.emit("sync next frame",
                 {
                     frame_nr: this.currentSequence.elements().indexOf(subsequentElement),
@@ -1644,16 +1637,14 @@ Player.prototype.startNextPageOrFrame = function() {
                 });
         }
 
-        // case:
+        // case: sync next frame start (skip if task start is already synchronized)
         else if( (subsequentPageOrFrame.frameData && subsequentPageOrFrame.frameData.syncFrame()) || (subsequentPageOrFrame.frameData && subsequentPageOrFrame.frameData.syncFrame()) ){
-            console.log('sync frame start');
             this.socket.emit("sync next frame",
                 {
                     frame_nr: this.currentSequence.elements().indexOf(subsequentElement),
                     trial_nr: this.trialIter
                 });
         } else{
-            console.log('start without sync');
             this.startNextPageOrFrameOriginal();
         }
     } else{
