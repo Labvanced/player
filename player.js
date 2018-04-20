@@ -1877,6 +1877,11 @@ Player.prototype.finishSession = function(showEndPage) {
 
 };
 
+Player.prototype.copyNextSessionLinkTarget = function() {
+
+    this.copyTextContent($("#copyTarget")[0]);
+};
+
 Player.prototype.startFullscreen = function() {
     var self = this;
 
