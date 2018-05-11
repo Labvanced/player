@@ -264,6 +264,15 @@ var Player = function() {
     }
 
 
+    // readout userName
+    this.registeredUserSession = false;
+    this.username = getParameterByName("username");
+    if (this.username){
+        this.registeredUserSession = true;
+    }
+
+
+
     this.showLinkOnEndPage = ko.observable(false);
     this.linkToStartNextSession = ko.observable(null);
 
