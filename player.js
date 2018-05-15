@@ -192,9 +192,11 @@ else {
                 throw errorThrown;
             },
             success: function(data, textStatus, jqXHR) {
-                var finishTime = (new Date()).getTime();
-                player.serverResponseTimes[serverResponseIdx].finishTime = finishTime;
-                player.serverResponseTimes[serverResponseIdx].latency = finishTime - player.serverResponseTimes[serverResponseIdx].startTime;
+                if (player.recordServerResponseTimes) {
+                    var finishTime = (new Date()).getTime();
+                    player.serverResponseTimes[serverResponseIdx].finishTime = finishTime;
+                    player.serverResponseTimes[serverResponseIdx].latency = finishTime - player.serverResponseTimes[serverResponseIdx].startTime;
+                }
                 callback(data);
             }
         });
@@ -289,7 +291,7 @@ var Player = function() {
     this.token = getParameterByName("token");
     this.prevSessionData = null;
 
-    this.recodingInClient = [];
+    this.recordServerResponseTimes = false; // only enable this for debugging purposes!
     this.serverResponseTimes = [];
 
     // if only testing a specific task, then don't record:
@@ -1354,7 +1356,6 @@ Player.prototype.recordData = function() {
     if (!this.runOnlyTaskId && !this.isTestrun) {
         // record variables at end of trial:
         var recData = new RecData();
-       // this.recodingInClient.push({trialNr: this.trialIter, trialId: this.randomizedTrials[this.trialIter].trialVariation.uniqueId(), task_nr: this.experiment.exp_data.varTaskNr().value().value(), taskName: this.experiment.exp_data.varTaskName().value().value()});
 
         // new, dynamic verison
         for (var i = 0; i < this.variablesToRecord.length; i++) {
@@ -1794,7 +1795,6 @@ Player.prototype.finishSession = function(showEndPage) {
         crowdsourcinSubjId: this.experiment.exp_data.varCrowdsourcingSubjId().value().toJS(),
       //  timeDelayMax: this.experiment.exp_data.varTimeMeasureSpecMax().value().toJS(),
         crowdsourcingCode:this.experiment.exp_data.varCrowdsourcingCode().value().toJS(),
-        debugData: this.recodingInClient,
         serverResponseTimes: this.serverResponseTimes,
         timeDelayStd: this.experiment.exp_data.varTimeMeasureSpecStd().value().toJS(),
         subjCounterGlobal:  this.experiment.exp_data.varSubjectNr().value().toJS(),
