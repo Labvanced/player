@@ -1035,6 +1035,12 @@ Player.prototype.startExperimentContinue = function() {
             );
         }
         else {
+            self.subjCounterGlobal = 1;
+            self.subjCounterPerGroup = 1;
+
+            self.experiment.exp_data.varSubjectNr().value().setValue(1);
+            self.experiment.exp_data.varSubjectNrPerSubjGroup().value().setValue(1);
+
             startRunning();
         }
     }
