@@ -85,11 +85,6 @@ PlayerFrame.prototype.init = function() {
             "height": "100%"
         });
     }
-
-
-    if (this.frameData.nrOfFrackMousemove()>0){
-        this.trackMouseMove()
-    }
 };
 
 
@@ -170,6 +165,8 @@ PlayerFrame.prototype.elementRandomization = function() {
 
 PlayerFrame.prototype.dispose = function() {
     $(window).off("mousemove");
+    this.frameMouseX = null;
+    this.frameMouseY = null;
     window.removeEventListener('resize', this.resizeEventListener , false);
     this.resizeEventListener = null;
     window.removeEventListener('click', this.selectionEventListener , false);
@@ -229,6 +226,10 @@ PlayerFrame.prototype.startFrame = function() {
         for (var i = 0; i < events.length; i++){
             var event =  events[i];
             event.setupOnPlayerFrame(this);
+        }
+
+        if (this.frameData.nrOfTrackMousemove()>0){
+            this.trackMouseMove();
         }
 
         for (var i = 0; i<this.onFrameStartCallbacks.length;i++) {
@@ -341,6 +342,7 @@ PlayerFrame.prototype.finishFrame = function() {
     // remove document event handlers
     $(document).off("keyup");
     $(document).off("keydown");
+    $(window).off("mousemove");
 
     // empty div and make new frame
 
