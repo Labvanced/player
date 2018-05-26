@@ -20,6 +20,8 @@ var PlayerFrame = function(frameData,frameDiv,player) {
     this.onFrameStartCallbacks = [];
     this.onFrameEndCallbacks = [];
     this.onEyetrackingCoords = [];
+    this.frameMouseX = null;
+    this.frameMouseY = null;
 
     // the following is stored   to later remove the event listener:
     this.resizeEventListener = function() {
@@ -85,9 +87,66 @@ PlayerFrame.prototype.init = function() {
     }
 
 
-
+    if (this.frameData.nrOfFrackMousemove()>0){
+        this.trackMouseMove()
+    }
 };
 
+
+PlayerFrame.prototype.trackMouseMove = function() {
+    var self = this;
+    var mousePosX;
+    var mousePosY;
+    function handleMouseMove(event) {
+        var dot, eventDoc, doc, body, pageX, pageY;
+
+        event = event || window.event; // IE-ism
+
+        // If pageX/Y aren't available and clientX/Y are,
+        // calculate pageX/Y - logic taken from jQuery.
+        // (This is to support old IE)
+        if (event.pageX == null && event.clientX != null) {
+            eventDoc = (event.target && event.target.ownerDocument) || document;
+            doc = eventDoc.documentElement;
+            body = eventDoc.body;
+
+            event.pageX = event.clientX +
+                (doc && doc.scrollLeft || body && body.scrollLeft || 0) -
+                (doc && doc.clientLeft || body && body.clientLeft || 0);
+            event.pageY = event.clientY +
+                (doc && doc.scrollTop  || body && body.scrollTop  || 0) -
+                (doc && doc.clientTop  || body && body.clientTop  || 0 );
+        }
+
+        if(self.frameData instanceof FrameData) {
+            var scale = self.frameView.scale();
+            var offX = (window.innerWidth - self.frameData.frameWidth() * scale) / 2;
+            var offY = (window.innerHeight - self.frameData.frameHeight() * scale) / 2;
+            event.pageX = (event.pageX - offX) / scale;
+            event.pageY = ( event.pageY - offY) / scale;
+        }
+
+        mousePosX = event.pageX;
+        mousePosY =  event.pageY;
+
+    }
+    function getMousePosition() {
+        self.frameMouseX = mousePosX;
+        self.frameMouseY =  mousePosY;
+    }
+
+
+    $(window).on( "mousemove", handleMouseMove );
+    setInterval(getMousePosition, 10); // setInterval repeats every X ms
+};
+
+PlayerFrame.prototype.getMouseX = function() {
+    return  this.frameMouseX || 0;
+};
+
+PlayerFrame.prototype.getMouseY = function() {
+    return  this.frameMouseY || 0;
+};
 
 
 PlayerFrame.prototype.elementRandomization = function() {
@@ -110,6 +169,7 @@ PlayerFrame.prototype.elementRandomization = function() {
 
 
 PlayerFrame.prototype.dispose = function() {
+    $(window).off("mousemove");
     window.removeEventListener('resize', this.resizeEventListener , false);
     this.resizeEventListener = null;
     window.removeEventListener('click', this.selectionEventListener , false);
