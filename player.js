@@ -33,16 +33,7 @@ if (is_nwjs()) {
         }
 
         if (route=="/startFirstPlayerSession") {
-            if (callback) {
-                callback({
-                    groupNr: 1,
-                    sessionNr: 1,
-                    success: true
-                });
-            }
-        }
 
-        if (route=="/startPlayerSession") {
             sessionNr = p.sessionNr;
             var exp_subject_data = {
                 exp_id: p.expId,
@@ -65,10 +56,13 @@ if (is_nwjs()) {
 
                 // update list of recordings:
                 win.refreshList();
-                callback({
-                    success: true
-                });
-
+                if (callback) {
+                    callback({
+                        groupNr: 1,
+                        sessionNr: 1,
+                        success: true
+                    });
+                }
             }).catch(function(error) {
                 alert ("Ooops: " + error);
             });
