@@ -35,6 +35,8 @@ if (is_nwjs()) {
         if (route=="/startFirstPlayerSession") {
             if (callback) {
                 callback({
+                    groupNr: 1,
+                    sessionNr: 1,
                     success: true
                 });
             }
@@ -379,7 +381,7 @@ var Player = function() {
 
     createExpDesignComponents(function() {
 
-        if (parameters.expId == "") {
+        if (parameters.expId == "" && !is_nwjs()) {
             self.finishSessionWithError("Error: No Experiment specified.");
         }
         else {
