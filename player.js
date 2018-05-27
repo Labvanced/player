@@ -75,6 +75,8 @@ if (is_nwjs()) {
             };
             db.rec_sessions.update(rec_session_id, rec_session_changes);
             callback({
+                subjCounterGlobal: 1,
+                subjCounterPerGroup: 1,
                 success: true
             });
         }
@@ -938,7 +940,9 @@ Player.prototype.startExperiment = function() {
             .then(function (stream) {
                 self.microphone_stream = stream;
                 self.audioContext = new AudioContext();
-                self.startExperimentContinue();
+                setTimeout(function() {
+                    self.startExperimentContinue();
+                }, 1);
             })
             .catch(function (err) {
                 console.log("cannot get mic access: error: "+err);
