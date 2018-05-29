@@ -75,29 +75,43 @@ PlayerFileUploader.prototype.checkAjaxUploadQueue = function() {
                 }, 500);
             }
             else {
-                // start new upload of next file in queue:
-                var formData = new FormData();
-                formData.append('expSessionNr', self.player.expSessionNr);
-                formData.append('newFileName', this.ajaxUploadQueue[0].newFileName);
-                formData.append('myFile', this.ajaxUploadQueue[0].file, this.ajaxUploadQueue[0].newFileName);
-                var xhr = new XMLHttpRequest();
-                xhr.open('post', '/player_upload', true);
-                xhr.upload.onprogress = function (e) {
-                    if (e.lengthComputable) {
-                        var percentage = (e.loaded / e.total) * 100;
-                        console.log("upload percentage complete: "+percentage);
-                        self.uploadPercentComplete(percentage);
-                    }
-                };
-                xhr.onerror = function (e) {
-                    console.log('An error occurred while uploading file. Maybe your file is too big');
-                };
-                xhr.onload = function (e) {
-                    //console.log(this.statusText);
-                    var result = JSON.parse(xhr.response);
-                    onUploadComplete(result.file_guid, result.file_name);
-                };
-                xhr.send(formData);
+                if (is_nwjs()) {
+                    // save next file to disk:
+                    var newFileName = this.ajaxUploadQueue[0].newFileName;
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        var arrayBuffer = reader.result;
+                        writeFileNwjs(arrayBuffer, newFileName, function(file_guid) {
+                            onUploadComplete(file_guid, newFileName);
+                        })
+                    };
+                    reader.readAsArrayBuffer(this.ajaxUploadQueue[0].file);
+                }
+                else {
+                    // start new upload of next file in queue:
+                    var formData = new FormData();
+                    formData.append('expSessionNr', self.player.expSessionNr);
+                    formData.append('newFileName', this.ajaxUploadQueue[0].newFileName);
+                    formData.append('myFile', this.ajaxUploadQueue[0].file, this.ajaxUploadQueue[0].newFileName);
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('post', '/player_upload', true);
+                    xhr.upload.onprogress = function (e) {
+                        if (e.lengthComputable) {
+                            var percentage = (e.loaded / e.total) * 100;
+                            console.log("upload percentage complete: " + percentage);
+                            self.uploadPercentComplete(percentage);
+                        }
+                    };
+                    xhr.onerror = function (e) {
+                        console.log('An error occurred while uploading file. Maybe your file is too big');
+                    };
+                    xhr.onload = function (e) {
+                        //console.log(this.statusText);
+                        var result = JSON.parse(xhr.response);
+                        onUploadComplete(result.file_guid, result.file_name);
+                    };
+                    xhr.send(formData);
+                }
             }
         }
     }

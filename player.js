@@ -13,12 +13,36 @@ function is_nwjs(){
 var playerAjaxPost;
 if (is_nwjs()) {
     var win = nw.Window.get();
+    var fs = require('fs');
+    var path = require('path');
     var db = win.db;
 
     var exp_subject_id = null;
     var rec_session_id = null;
     var rec_task_id = null;
     var sessionNr = null;
+
+    function mkdirIfNotExist(check_path) {
+        fs.existsSync(check_path) || fs.mkdirSync(check_path);
+    }
+
+    function writeFileNwjs(dataToSave, filename, callback) {
+        var file_guid = guid();
+        var filePath = path.join(nw.App.dataPath, "recordings", ""+exp_subject_id, file_guid, filename);
+        mkdirIfNotExist(path.join(nw.App.dataPath, "recordings"));
+        mkdirIfNotExist(path.join(nw.App.dataPath, "recordings", ""+exp_subject_id));
+        mkdirIfNotExist(path.join(nw.App.dataPath, "recordings", ""+exp_subject_id, file_guid));
+
+        fs.writeFile(filePath, new Buffer(dataToSave), function (err) {
+            if (err) {
+                console.info("There was an error attempting to save your data.");
+                console.warn(err.message);
+                return;
+            } else if (callback) {
+                callback(file_guid);
+            }
+        });
+    };
 
     // replace server routes with alternatives for offline version:
     playerAjaxPost = function(route, p, callback, timeout) {
