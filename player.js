@@ -15,6 +15,7 @@ if (is_nwjs()) {
     var win = nw.Window.get();
     var fs = require('fs');
     var path = require('path');
+    var crypto = require('crypto');
     var db = win.db;
 
     var exp_subject_id = null;
@@ -26,8 +27,15 @@ if (is_nwjs()) {
         fs.existsSync(check_path) || fs.mkdirSync(check_path);
     }
 
+    function file_guid() {
+        var buf = crypto.randomBytes(10);
+        return buf.toString('base64').replace(/\+/g, '-') // Convert '+' to '-'
+            .replace(/\//g, '_') // Convert '/' to '_'
+            .replace(/=+$/, ''); // Remove ending '='
+    }
+
     function writeFileNwjs(dataToSave, filename, callback) {
-        var file_guid = guid();
+        var file_guid = file_guid();
         var filePath = path.join(nw.App.dataPath, "recordings", ""+exp_subject_id, file_guid, filename);
         mkdirIfNotExist(path.join(nw.App.dataPath, "recordings"));
         mkdirIfNotExist(path.join(nw.App.dataPath, "recordings", ""+exp_subject_id));
