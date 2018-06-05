@@ -15,27 +15,28 @@ if (is_nwjs()) {
     var win = nw.Window.get();
     var fs = require('fs');
     var path = require('path');
-    var crypto = require('crypto');
     var db = win.db;
 
     var exp_subject_id = null;
     var rec_session_id = null;
     var rec_task_id = null;
     var sessionNr = null;
+    var groupNr = null;
 
     function mkdirIfNotExist(check_path) {
         fs.existsSync(check_path) || fs.mkdirSync(check_path);
     }
 
-    function file_guid() {
-        var buf = crypto.randomBytes(10);
+    function sec_file_guid() {
+        var crypt = require('crypto');
+        var buf = crypt.randomBytes(10);
         return buf.toString('base64').replace(/\+/g, '-') // Convert '+' to '-'
             .replace(/\//g, '_') // Convert '/' to '_'
             .replace(/=+$/, ''); // Remove ending '='
     }
 
     function writeFileNwjs(dataToSave, filename, callback) {
-        var file_guid = file_guid();
+        var file_guid = sec_file_guid();
         var filePath = path.join(nw.App.dataPath, "recordings", ""+exp_subject_id, file_guid, filename);
         mkdirIfNotExist(path.join(nw.App.dataPath, "recordings"));
         mkdirIfNotExist(path.join(nw.App.dataPath, "recordings", ""+exp_subject_id));
@@ -47,7 +48,17 @@ if (is_nwjs()) {
                 console.warn(err.message);
                 return;
             } else if (callback) {
-                callback(file_guid);
+                var rec_file_data = {
+                    exp_subject_id: exp_subject_id,
+                    rec_session_id: rec_session_id,
+                    file_guid: file_guid,
+                    filename: filename
+                };
+                db.rec_files.add(rec_file_data).then(function(rec_file_id){
+                    callback(file_guid);
+                }).catch(function(error) {
+                    alert ("Ooops: " + error);
+                });
             }
         });
     };
@@ -65,14 +76,14 @@ if (is_nwjs()) {
         }
 
         if (route=="/startFirstPlayerSession") {
-
-            sessionNr = p.sessionNr;
+            sessionNr = player.sessionNr;
+            groupNr = player.groupNr;
             var exp_subject_data = {
                 exp_id: p.expId,
                 subject_code: p.subject_code,
                 survey_data: p.survey_data,
-                group_nr: p.groupNr,
-                last_completed_session_nr: 0,
+                group_nr: groupNr,
+                last_completed_session_nr: p.last_completed_session_nr,
                 add_time: pgFormatDate(new Date())
             };
             db.exp_subjects.add(exp_subject_data).then(function(new_id){
@@ -90,8 +101,8 @@ if (is_nwjs()) {
                 win.refreshList();
                 if (callback) {
                     callback({
-                        groupNr: 1,
-                        sessionNr: 1,
+                        groupNr: groupNr,
+                        sessionNr: sessionNr,
                         success: true
                     });
                 }
