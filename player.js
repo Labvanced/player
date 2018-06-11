@@ -798,6 +798,25 @@ Player.prototype.preloadAllContent = function() {
         }
     }
 
+    // preload file in file variables
+    var contentElements = this.experiment.exp_data.entities();
+    $.each(contentElements, function(idx, elem) {
+        if (elem instanceof GlobalVar  ){
+            if(elem.dataType() == "file"){
+                if(elem.dataFormat() == "scalar"){
+                    var fileValue = elem.getValue();
+                    addToContents(fileValue.id(), fileValue.name());
+                }
+                else if(elem.dataFormat() == "array"){
+                    var fileValues = elem.value().getValues();
+                    $.each(fileValues, function(idx2, subFile) {
+                        addToContents(subFile.id, subFile.name);
+                    })
+                }
+            }
+        }
+    });
+
     // parse images, video and audio elements in current session:
     var allFramesOrPages = this.getAllFramesOrPagesInSession();
     $.each(allFramesOrPages, function(frameIdx, entity) {
