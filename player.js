@@ -1867,7 +1867,8 @@ Player.prototype.finishSession = function(showEndPage) {
         timeDelayStd: this.experiment.exp_data.varTimeMeasureSpecStd().value().toJS(),
         subjCounterGlobal:  this.experiment.exp_data.varSubjectNr().value().toJS(),
         subjCounterPerGroup:  this.experiment.exp_data.varSubjectNrPerSubjGroup().value().toJS(),
-        roleId: this.experiment.exp_data.varRoleId().value().toJS()
+        roleId: this.experiment.exp_data.varRoleId().value().toJS(),
+        displayedLanguage: this.experiment.exp_data.varDisplayedLanguage().value().toJS()
     };
 
     console.log("finishExpSession...");
