@@ -159,7 +159,13 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
 
     player.socket.on('abort', function(){
         console.log('Lost connection to other participants.');
-        player.finishSessionWithError("Connection lost to another participant. Experiment aborted!");
+        if (player.experiment.exp_data.studySettings.multiUserOnLeaveAction()=="Finish Study With Error"){
+            player.finishSessionWithError("Connection lost to another participant. Experiment aborted!");
+        }
+        else if (player.experiment.exp_data.studySettings.multiUserOnLeaveAction()=="Finish Study Correctly"){
+            player.finishSession("Connection lost to another participant. Finish study correctly");
+        }
+
     });
 };
 
