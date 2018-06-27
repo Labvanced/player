@@ -61,6 +61,21 @@ PlayerPreloader.prototype.cancel = function() {
 
 
 PlayerPreloader.prototype.start = function(contentList) {
+
+    if (is_nwjs()) {
+        // need to check if file exists locally:
+        var fs = require('fs');
+        var newContentList = [];
+        for (var i = 0; i < contentList.length; i++) {
+            if (contentList[i].src.charAt(0) == "/") {
+                contentList[i].src = contentList[i].src.substring(1);
+            }
+            if (fs.existsSync(contentList[i].src)) {
+                newContentList.push(contentList[i]);
+            }
+        }
+        contentList = newContentList;
+    }
     this.queue.loadManifest(contentList);
 };
 
