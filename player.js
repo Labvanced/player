@@ -376,6 +376,7 @@ var Player = function() {
     this.webcamLoaded = false;
     this.variablesToReset = [];
     this.PixelDensityPerMM = null; // in pixel per mm
+    this.distanceTScreenInCM = ko.observable(40);  // default is 40 cm distance
 
     this.sessionStartTime = pgFormatDate(new Date());
 
