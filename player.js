@@ -1892,12 +1892,16 @@ Player.prototype.finishSession = function(showEndPage) {
         var end_time = new Date();
         var nextStartTime = null;
         var nextEndTime = null;
+        var reminderTime = null;
         var emailReminder = "noReminder";
 
         var nextStartWindow = this.getNextStartWindow(end_time);
         if (nextStartWindow) {
             if (nextStartWindow.start) {
-                nextStartTime = pgFormatDate(nextStartWindow.start)
+                nextStartTime = pgFormatDate(nextStartWindow.start);
+                var reminderDate = new Date(nextStartTime.getTime());
+                reminderDate.setHours(reminderDate.getMinutes() - 10); // remind 10 minutes earlier...
+                reminderTime = pgFormatDate(reminderDate);
             }
             if (nextStartWindow.end) {
                 nextEndTime = pgFormatDate(nextStartWindow.end)
@@ -1913,6 +1917,7 @@ Player.prototype.finishSession = function(showEndPage) {
                 end_time: pgFormatDate(end_time),
                 nextStartTime: nextStartTime,
                 nextEndTime: nextEndTime,
+                reminderTime: reminderTime,
                 emailReminder: emailReminder,
                 var_data: var_data,
                 selectedEmail:self.selectedEmail,
