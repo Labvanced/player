@@ -1899,8 +1899,8 @@ Player.prototype.finishSession = function(showEndPage) {
         if (nextStartWindow) {
             if (nextStartWindow.start) {
                 nextStartTime = pgFormatDate(nextStartWindow.start);
-                var reminderDate = new Date(nextStartTime.getTime());
-                reminderDate.setHours(reminderDate.getMinutes() - 10); // remind 10 minutes earlier...
+                var reminderDate = new Date(nextStartWindow.start.getTime());
+                reminderDate.setHours(reminderDate.getHours() - 1); // remind 1 hour earlier...
                 reminderTime = pgFormatDate(reminderDate);
             }
             if (nextStartWindow.end) {
