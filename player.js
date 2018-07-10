@@ -1900,7 +1900,8 @@ Player.prototype.finishSession = function(showEndPage) {
             if (nextStartWindow.start) {
                 nextStartTime = pgFormatDate(nextStartWindow.start);
                 var reminderDate = new Date(nextStartWindow.start.getTime());
-                reminderDate.setHours(reminderDate.getHours() - 1); // remind 1 hour earlier...
+                var reminderDelayMinutes = 0; // this could also be a setting somewhere in the editor...
+                reminderDate.setMinutes(reminderDate.getMinutes() + reminderDelayMinutes);
                 reminderTime = pgFormatDate(reminderDate);
             }
             if (nextStartWindow.end) {
