@@ -784,7 +784,7 @@ Player.prototype.preloadAllContent = function() {
 
     function deepDive(arr) {
         var t;
-        if (arr.length>0 || arr[0].constructor === Array) {
+        if (arr.length>0 && arr[0].constructor === Array) {
             // recursive call:
             for (t = 0; t < arr.length; t++) {
                 deepDive(arr[t]);
