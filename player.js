@@ -70,7 +70,8 @@ if (is_nwjs()) {
             $.get("exp.json", function(expJSON) {
                 callback({
                     success: true,
-                    expData: JSON.parse(expJSON)
+                    expData: JSON.parse(expJSON),
+                    country: null
                 });
             });
         }
@@ -500,6 +501,9 @@ Player.prototype.startExpPlayerResult = function(data) {
     }
     if (data.prevSessionData) {
         self.prevSessionData = data.prevSessionData;
+    }
+    if (data.country) {
+        self.country = data.country;
     }
 
     self.experiment = new Experiment().fromJS(data.expData);
