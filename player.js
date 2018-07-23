@@ -229,6 +229,7 @@ else {
             error: function(jqXHR, textStatus, errorThrown) {
                 callback({
                     success: false,
+                    errorThrown: errorThrown,
                     msg: textStatus
                 });
                 throw errorThrown;
@@ -1467,9 +1468,17 @@ Player.prototype.processRecordTrialQueue = function() {
                 nextRecordedData,
                 function (data) {
                     if (data.success == false) {
-                        console.log("error uploading trial data... retry...");
-                        self.recordTrialQueueIsUploading = false;
-                        self.processRecordTrialQueue();
+                        if (data.errorThrown == "Payload Too Large") {
+                            // remove first element from queue:
+                            self.recordTrialQueue.shift();
+                            self.finishSessionWithError("Recordings in this trial are exceeding the maximum allowed size.");
+                            self.processRecordTrialQueue();
+                        }
+                        else {
+                            console.log("error uploading trial data... retry...");
+                            self.recordTrialQueueIsUploading = false;
+                            self.processRecordTrialQueue();
+                        }
                     }
                     else {
                         // remove first element from queue:
