@@ -772,11 +772,12 @@ Player.prototype.getAllFramesOrPagesInSession = function() {
 
 Player.prototype.preloadAllContent = function() {
 
+    var self = this;
     var contentList = [];
     var contentListById = {};
 
     function addToContents(file_id, file_orig_name) {
-        var src = "/files/" + file_id + "/" + file_orig_name;
+        var src = "/player/files/" + self.expSessionNr + "/" + file_id + "/" + file_orig_name;
         var fileSpec = {
             id: file_id,
             src: src
