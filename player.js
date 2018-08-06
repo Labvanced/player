@@ -353,6 +353,7 @@ var Player = function() {
     this.groupNr = 0;
 
     // the following three variables will be set by function setSubjectGroupNr():
+    this.doNotKnowScreenSize = ko.observable(false);
     this.subj_group = null;
     this.exp_session = null;
     this.blocks = null;
@@ -720,11 +721,10 @@ Player.prototype.detectBrowserAndSystemSpecs = function() {
     this.experiment.exp_data.varAgentSpec().value().value(nAgt);
 };
 
-
+Player.prototype.desiredDelayInMs = 100;
 Player.prototype.timeMeasureControl = function() {
 
     var self = this;
-    var desiredDelayInMs = 100;
     var distanceBetweenMeasures = 5000;
     var timerHandle = null;
 
@@ -737,7 +737,7 @@ Player.prototype.timeMeasureControl = function() {
             if (self.sessionEnded && timerHandle) {
                 clearTimeout(timerHandle);
             }
-        },desiredDelayInMs)
+        },Player.prototype.desiredDelayInMs)
     }
 
     timerHandle = setInterval(measureTime,distanceBetweenMeasures);
@@ -1850,12 +1850,12 @@ Player.prototype.finishSession = function(showEndPage) {
     for(var i = 0; i < this.timeControlArray.length; i++) {
         total += this.timeControlArray[i];
     }
-    var meanDelay = (total / this.timeControlArray.length)-100;
-    var maxDelay = Math.max.apply(null,this.timeControlArray)-100;
+    var meanDelay = (total / this.timeControlArray.length)-Player.prototype.desiredDelayInMs;
+    var maxDelay = Math.max.apply(null,this.timeControlArray)-Player.prototype.desiredDelayInMs;
 
     var stdDelay = 0;
     for(var key in this.timeControlArray){
-        stdDelay += Math.pow((parseFloat(this.timeControlArray[key]-100) - meanDelay),2);
+        stdDelay += Math.pow((parseFloat(this.timeControlArray[key]-Player.prototype.desiredDelayInMs) - meanDelay),2);
     }
     var stdDelay = Math.sqrt(stdDelay/this.timeControlArray.length);
 
