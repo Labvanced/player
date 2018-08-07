@@ -232,7 +232,7 @@ else {
                     errorThrown: errorThrown,
                     msg: textStatus
                 });
-                throw errorThrown;
+                console.error("error in ajax post...",errorThrown);
             },
             success: function(data, textStatus, jqXHR) {
                 if (player.recordServerResponseTimes) {
@@ -351,6 +351,7 @@ var Player = function() {
     this.experiment = null;
     this.sessionNr = 0;
     this.groupNr = 0;
+    this.retryCounter = 0;
 
     // the following three variables will be set by function setSubjectGroupNr():
     this.doNotKnowScreenSize = ko.observable(false);
@@ -1476,15 +1477,19 @@ Player.prototype.processRecordTrialQueue = function() {
                             self.processRecordTrialQueue();
                         }
                         else {
-                            console.log("error uploading trial data... retry...");
-                            self.recordTrialQueueIsUploading = false;
-                            self.processRecordTrialQueue();
+                            self.retryCounter += 1;
+                            var retryInMs = self.retryCounter * 300;
+                            console.log("error uploading trial data... retry in "+retryInMs+" ms...");
+                            setTimeout(function() {
+                                self.recordTrialQueueIsUploading = false;
+                                self.processRecordTrialQueue();
+                            }, retryInMs);
                         }
                     }
                     else {
                         // remove first element from queue:
                         self.recordTrialQueue.shift();
-
+                        self.retryCounter = 0;
                         self.recordTrialQueueIsUploading = false;
 
                         // check if there is something in the queue to process:
