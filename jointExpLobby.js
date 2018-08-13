@@ -11,6 +11,7 @@ var JointExpLobby = function(expData) {
     this.gotMatchedFromServer = ko.observable(false);
     this.nrOfParticipantsReady = ko.observable(0);
     this.waiting = ko.observable(true);
+    this.pingTestCounter = ko.observable(0);
 
     /**
     this.nrOfParticipantsMissing = ko.computed(function(){
@@ -32,8 +33,6 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
 
     console.log("experiment is joint experiment.");
     console.log("number of required participants (total): " + self.expData().numPartOfJointExp());
-    console.log("proceed to lobby...");
-
 
 
     // create new io connection to jointExpServer
@@ -48,13 +47,69 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
 
     console.log('exp id: ' + player.experiment.exp_id());
 
-    player.socket.on('connect',function(){
+
+    var pingStats = {
+        sum: 0,
+        num: 0,
+        max: 0,
+        min: Infinity
+    };
+
+    function run_ping_test() {
+        var startTime = new Date();
+        player.socket.emit('pingTest', "fdsfggfdg", function () {
+            var endTime = new Date();
+            var timeDiff = endTime - startTime; //in ms
+            console.log("new ping "+timeDiff)
+            pingStats.sum += timeDiff;
+            pingStats.num += 1;
+            self.pingTestCounter(pingStats.num);
+
+            if (pingStats.min > timeDiff) {
+                pingStats.min = timeDiff;
+            }
+
+            if (pingStats.max < timeDiff) {
+                pingStats.max = timeDiff;
+            }
+
+            if (pingStats.num >= 10) {
+                pingStats.avg = pingStats.sum / pingStats.num;
+                player.socket.emit('submitPingResult', pingStats, function () {
+                    if (pingStats.avg < self.expData().studySettings.multiUserMaxAvgPingAllowed() && pingStats.max < self.expData().studySettings.multiUserMaxPingAllowed()) {
+                        join_lobby();
+                    }
+                    else {
+                        player.finishSessionWithError("The experiment failed, because of a bad internet connection (bad ping). Please use a faster internet connection to participate in this study.")
+                    }
+                });
+            }
+            else {
+                setTimeout(function() {
+                    run_ping_test()
+                }, 3000);
+            }
+        });
+    }
+
+    function join_lobby() {
         console.log('lobby connection established...');
         player.socket.emit('join room', {
             exp_id: player.experiment.exp_id(),
             numPartOfJointExp: player.experiment.exp_data.numPartOfJointExp()
         });
+    }
+
+    player.socket.on('connect',function(){
+        console.log("socket connected...");
+        if (self.expData().studySettings.multiUserCheckPing()) {
+            run_ping_test();
+        }
+        else {
+            join_lobby();
+        }
     });
+
 
     player.socket.on('disconnect', function (reason){
         console.log( "socket.io disconnected...");
