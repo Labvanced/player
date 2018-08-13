@@ -106,6 +106,7 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
 
     player.socket.on('start next frame', function(){
         $("#waitForSyncDiv").remove();
+        console.log("joint exp received command: start next frame")
         player.startNextPageOrFrameOriginal();
     });
 
