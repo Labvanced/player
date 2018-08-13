@@ -57,10 +57,10 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
 
     function run_ping_test() {
         var startTime = new Date();
-        player.socket.emit('pingTest', "fdsfggfdg", function () {
+        player.socket.emit('pingTest', null, function () {
             var endTime = new Date();
             var timeDiff = endTime - startTime; //in ms
-            console.log("new ping "+timeDiff)
+            console.log("new ping "+timeDiff);
             pingStats.sum += timeDiff;
             pingStats.num += 1;
             self.pingTestCounter(pingStats.num);
