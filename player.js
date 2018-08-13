@@ -387,6 +387,7 @@ var Player = function() {
     this.preloaderCompleted = ko.observable(false);
 
     this.sessionEnded = false;
+    this.endExpSectionCustomText = ko.observable("");
     this.timeControlArray = [];
 
     this.eyetrackerLoaded = false;
@@ -1841,6 +1842,10 @@ Player.prototype.finishSession = function(showEndPage) {
     var self = this;
 
     this.sessionEnded = true;
+
+    if (typeof showEndPage == "string") {
+        self.endExpSectionCustomText(showEndPage);
+    }
 
     if(this.experiment.exp_data.isJointExp()) {
         this.socket.emit('experiment finished');

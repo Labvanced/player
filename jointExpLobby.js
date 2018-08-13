@@ -56,6 +56,11 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
         });
     });
 
+    player.socket.on('disconnect', function (reason){
+        console.log( "socket.io disconnected...");
+        player.finishSessionWithError("Your internet connection or your browser does not support a stable websocket connection. Therefore the experiment failed. Please use a more stable internet connection or more modern browser to participate in this study.")
+    });
+
     player.socket.on('room name', function(roomName){
         self.lobbyRoomName = roomName;
         console.log('this room name: ' + roomName);
@@ -163,7 +168,7 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
             player.finishSessionWithError("Connection lost to another participant. Experiment aborted!");
         }
         else if (player.experiment.exp_data.studySettings.multiUserOnLeaveAction()=="Finish Study Correctly"){
-            player.finishSession("Connection lost to another participant. Finish study correctly");
+            player.finishSession("Connection lost to another participant. You finished the study correctly.");
         }
 
     });
