@@ -4,6 +4,8 @@
  * @constructor
  */
 var JointExpLobby = function(expData) {
+    var self = this;
+
     this.expData = ko.observable(expData);
     this.currentNrOfParticipants = ko.observable(0);
     this.nrOfParticipantsRequired = expData.numPartOfJointExp;
@@ -11,7 +13,11 @@ var JointExpLobby = function(expData) {
     this.gotMatchedFromServer = ko.observable(false);
     this.nrOfParticipantsReady = ko.observable(0);
     this.waiting = ko.observable(true);
+
+    this.totalPings = 10;
     this.pingTestCounter = ko.observable(0);
+    this.pingTestProgressPercent = ko.observable(0);
+    this.pingTestFailed = ko.observable(false);
 
     /**
     this.nrOfParticipantsMissing = ko.computed(function(){
@@ -73,7 +79,13 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
                 pingStats.max = timeDiff;
             }
 
-            if (pingStats.num >= 10) {
+            self.pingTestProgressPercent(Math.round(100 * pingStats.num / self.totalPings));
+
+            if (self.pingTestFailed()) {
+                return;
+            }
+
+            if (pingStats.num >= self.totalPings) {
                 pingStats.avg = pingStats.sum / pingStats.num;
                 player.socket.emit('submitPingResult', pingStats, function () {
                     if (pingStats.avg < self.expData().studySettings.multiUserMaxAvgPingAllowed() && pingStats.max < self.expData().studySettings.multiUserMaxPingAllowed()) {
@@ -102,10 +114,15 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
 
     player.socket.on('connect',function(){
         console.log("socket connected...");
+        if (self.pingTestFailed()) {
+            console.log("previous ping test failed... therefore exit..");
+            return;
+        }
         if (self.expData().studySettings.multiUserCheckPing()) {
             run_ping_test();
         }
         else {
+            self.pingTestProgressPercent(100);
             join_lobby();
         }
     });
@@ -113,6 +130,7 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
 
     player.socket.on('disconnect', function (reason){
         console.log( "socket.io disconnected...");
+        self.pingTestFailed(true);
         player.finishSessionWithError("Your internet connection or your browser does not support a stable websocket connection. Therefore the experiment failed. Please use a more stable internet connection or more modern browser to participate in this study.")
     });
 
