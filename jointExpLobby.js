@@ -127,6 +127,10 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
         }
     });
 
+    player.socket.on('error', function(error) {
+        console.log("socket error...");
+        report_error_to_server("jointExp socket.io error "+error.msg, "", "", "", error);
+    });
 
     player.socket.on('disconnect', function (reason){
         console.log( "socket.io disconnected...");
