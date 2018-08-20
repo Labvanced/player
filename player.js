@@ -354,7 +354,6 @@ var Player = function() {
     this.retryCounter = 0;
 
     // the following three variables will be set by function setSubjectGroupNr():
-    this.doNotKnowScreenSize = ko.observable(false);
     this.subj_group = null;
     this.exp_session = null;
     this.blocks = null;
