@@ -430,21 +430,29 @@ var Player = function() {
             self.finishSessionWithError("Error: No Experiment specified.");
         }
         else {
-            playerAjaxPost('/startExpPlayer', parameters, function (data) {
-                if (data.success == false) {
-                    if(data.msg==="timeout") {
-                        self.finishSessionWithError("Our server is overloaded at the moment. Please come back later.");
-                    }
-                    else {
-                        self.finishSessionWithError("Error: " + data.msg);
-                    }
-                    return;
-                }
-                self.startExpPlayerResult(data);
-            }, 20 * 1000);
+            self.startExpPlayer(parameters);
         }
     });
 
+};
+
+Player.prototype.startExpPlayer = function(parameters) {
+    var self = this;
+    playerAjaxPost('/startExpPlayer', parameters, function (data) {
+
+        $("#loadingExpData").hide();
+
+        if (data.success == false) {
+            if(data.msg==="timeout") {
+                self.finishSessionWithError("Error receiving experiment. Please check your internet connection.");
+            }
+            else {
+                self.finishSessionWithError("Error: " + data.msg);
+            }
+            return;
+        }
+        self.startExpPlayerResult(data);
+    }, 3 * 60 * 1000);
 };
 
 Player.prototype.startExpPlayerResult = function(data) {
@@ -475,18 +483,7 @@ Player.prototype.startExpPlayerResult = function(data) {
                     password: password,
                     askSubjData: self.askSubjData
                 };
-                playerAjaxPost('/startExpPlayer', parameters, function(data){
-                    if (data.success == false) {
-                        if(data.msg==="timeout") {
-                            self.finishSessionWithError("Our server is overloaded at the moment. Please come back later.");
-                        }
-                        else {
-                            self.finishSessionWithError("Error: " + data.msg);
-                        }
-                        return;
-                    }
-                    self.startExpPlayerResult(data);
-                }, 20 * 1000);
+                self.startExpPlayer(parameters);
             });
         });
         return;
@@ -1084,7 +1081,7 @@ Player.prototype.startExperimentContinue = function() {
                 function (data) {
                     if (data.success == false) {
                         if(data.msg==="timeout") {
-                            self.finishSessionWithError("Our server is overloaded at the moment. Please come back later.");
+                            self.finishSessionWithError("Our server is overloaded at the moment (error setting start time). Please come back later.");
                         }
                         else {
                             self.finishSessionWithError("Error: " + data.msg);
