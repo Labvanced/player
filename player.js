@@ -384,6 +384,7 @@ var Player = function() {
     this.sessionStartTime = pgFormatDate(new Date());
 
     this.preloaderCompleted = ko.observable(false);
+    this.jointExpLobby = null;
 
     this.sessionEnded = false;
     this.endExpSectionCustomText = ko.observable("");
@@ -1392,12 +1393,7 @@ Player.prototype.syncTrialOrder = function() {
     }
 
     // submit this trialorder (might receive different one if another participant already submitted)
-    this.socket.emit('submit trial order', {
-        trialOrderData: trialOrderData,
-        taskIdx: this.currentTaskIdx
-    });
-
-    this.socket.emit('request trial order', this.currentTaskIdx);
+    this.jointExpLobby.submitTrialOrder(trialOrderData, this.currentTaskIdx);
 
 };
 
@@ -1716,7 +1712,7 @@ Player.prototype.startSpecificTrial = function(trialId) {
 
 
 Player.prototype.startNextPageOrFrame = function() {
-// this function is just interposed to manage synchronization.
+    // this function is just interposed to manage synchronization.
     var subsequentElement = this.currentSequence.currSelectedElement();
 
     if(this.experiment.exp_data.isJointExp() && subsequentElement && subsequentElement.type!="EndOfSequence"){
@@ -1724,24 +1720,14 @@ Player.prototype.startNextPageOrFrame = function() {
         var subsequentPageOrFrame = this.currentTrialFrames[subsequentElement.id()];
 
         // check if next page or frame needs to be synchronized
-
-        // case: sync task start
         if(this.currentTask && this.currentTask.syncTaskStart && this.currentTask.syncTaskStart()){
+            // case: sync task start
             this.currentTask.syncTaskStart(false); // deactivate once used
-            this.socket.emit("sync next frame",
-                {
-                    frame_nr: this.currentSequence.elements().indexOf(subsequentElement),
-                    trial_nr: this.trialIter
-                });
+            this.jointExpLobby.distributeVariable(this.currentSequence.elements().indexOf(subsequentElement), this.trialIter);
         }
-
-        // case: sync next frame start (skip if task start is already synchronized)
         else if( (subsequentPageOrFrame.frameData && subsequentPageOrFrame.frameData.syncFrame()) || (subsequentPageOrFrame.frameData && subsequentPageOrFrame.frameData.syncFrame()) ){
-            this.socket.emit("sync next frame",
-                {
-                    frame_nr: this.currentSequence.elements().indexOf(subsequentElement),
-                    trial_nr: this.trialIter
-                });
+            // case: sync next frame start (skip if task start is already synchronized)
+            this.jointExpLobby.distributeVariable(this.currentSequence.elements().indexOf(subsequentElement), this.trialIter);
         } else{
             this.startNextPageOrFrameOriginal();
         }

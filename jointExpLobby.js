@@ -114,7 +114,9 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
         player.socket.emit('join room', {
             expSessionNr: player.expSessionNr,
             exp_id: player.experiment.exp_id(),
-            numPartOfJointExp: player.experiment.exp_data.numPartOfJointExp()
+            numPartOfJointExp: player.experiment.exp_data.numPartOfJointExp(),
+            multiUserAllowReconnect: player.experiment.exp_data.studySettings.multiUserAllowReconnect(),
+            multiUserReconnectTimeout: player.experiment.exp_data.studySettings.multiUserReconnectTimeout()
         });
     }
 
@@ -139,7 +141,7 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
             });
         }
         else {
-            // this is an initial connection:s
+            // this is an initial connection:
             if (self.expData().studySettings.multiUserCheckPing()) {
                 self.pingTestInProgress(true);
                 run_ping_test();
@@ -167,7 +169,7 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
         else if (self.gotMatchedFromServer()) {
             console.log("disconnected during running experiment session... pause player until reconnect...");
             player.pauseExperiment("The experiment was paused because you lost the connection to the experiment server. Please check your internet connection and wait until the connection is reestablished. Time Left: <span id='timeLeftForReconnect'></span>");
-            self.updateReconnectCountdown(120, function() {
+            self.updateReconnectCountdown(self.expData().studySettings.multiUserReconnectTimeout(), function() {
                 player.finishSessionWithError("Failed to reconnect to the experiment. Please check your internet connection.");
             })
         }
@@ -259,7 +261,19 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
         // continue with initialization process.
         player.startFirstTrialInitialization();
     });
-    
+
+    var last_pong = Date.now();
+    setInterval(function() {
+        var time_since_pong = Date.now() - last_pong;
+        if (time_since_pong > 6000) {
+            console.log("no pong received since "+time_since_pong+" ms.")
+            // TODO: maybe pause experiment here, although the connection is not disconnected yet...
+        }
+    }, 1000);
+    player.socket.on('pong', function(){
+        last_pong = Date.now();
+    });
+
     player.socket.on('stop waiting', function(){
         self.waiting(false);
     });
@@ -282,7 +296,7 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
     player.socket.on('pause', function(){
         console.log('Lost connection to other participants. Pause until all are in again...');
         player.pauseExperiment("The experiment was paused because another participant lost the connection to the experiment server. Please wait until the connection is reestablished. Time Left: <span id='timeLeftForReconnect'></span>");
-        self.updateReconnectCountdown(120, function() {
+        self.updateReconnectCountdown(self.expData().studySettings.multiUserReconnectTimeout(), function() {
             // do nothing here, because this is handled by the abort signal sent from the server...
         })
     });
@@ -342,4 +356,29 @@ JointExpLobby.prototype.cancelReconnectCountdown = function(){
     if (this.reconnectCountdownHandle) {
         clearInterval(this.reconnectCountdownHandle);
     }
+};
+
+JointExpLobby.prototype.distributeVariable = function(variable, operandValueToSend, playersToDistributeToArray, blockVarUntilDone){
+    player.socket.emit('distribute variable',
+        {
+            variable:  {name: variable.name(), id: variable.id()},
+            operandValue: operandValueToSend,
+            playersToDistributeTo: playersToDistributeToArray,
+            blockVarUntilDone: blockVarUntilDone
+        }
+    );
+};
+
+JointExpLobby.prototype.distributeVariable = function(frame_nr, trial_nr){
+    player.socket.emit("sync next frame", {
+        frame_nr: frame_nr,
+        trial_nr: trial_nr
+    });
+};
+
+JointExpLobby.prototype.submitTrialOrder = function(trialOrderData, currentTaskIdx){
+    player.socket.emit('submit trial order', {
+        trialOrderData: trialOrderData,
+        taskIdx: currentTaskIdx
+    });
 };
