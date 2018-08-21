@@ -997,11 +997,12 @@ Player.prototype.setupPlayerDesign = function() {
 };
 
 
-Player.prototype.pauseExperiment = function() {
+Player.prototype.pauseExperiment = function(pauseMsg) {
     if (this.currentFrame) {
         this.currentFrame.pauseFrame();
     }
     $("#pauseScreen").show();
+    $("#pauseMsg").html(pauseMsg);
 };
 
 Player.prototype.continueExperiment = function() {

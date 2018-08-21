@@ -15,9 +15,13 @@ var JointExpLobby = function(expData) {
     this.waiting = ko.observable(true);
 
     this.totalPings = 10;
+    this.pingTestInProgress = ko.observable(false);
     this.pingTestCounter = ko.observable(0);
     this.pingTestProgressPercent = ko.observable(0);
     this.pingTestFailed = ko.observable(false);
+
+    this.reconnectCountdown = 120;
+    this.reconnectCountdownHandle = null;
 
     /**
     this.nrOfParticipantsMissing = ko.computed(function(){
@@ -88,6 +92,7 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
             if (pingStats.num >= self.totalPings) {
                 pingStats.avg = pingStats.sum / pingStats.num;
                 player.socket.emit('submitPingResult', pingStats, function () {
+                    self.pingTestInProgress(false);
                     if (pingStats.avg < self.expData().studySettings.multiUserMaxAvgPingAllowed() && pingStats.max < self.expData().studySettings.multiUserMaxPingAllowed()) {
                         join_lobby();
                     }
@@ -107,6 +112,7 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
     function join_lobby() {
         console.log('lobby connection established...');
         player.socket.emit('join room', {
+            expSessionNr: player.expSessionNr,
             exp_id: player.experiment.exp_id(),
             numPartOfJointExp: player.experiment.exp_data.numPartOfJointExp()
         });
@@ -114,17 +120,36 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
 
     player.socket.on('connect',function(){
         console.log("socket connected...");
+
         if (self.pingTestFailed()) {
-            console.log("previous ping test failed... therefore exit..");
+            console.log("previous ping test failed... therefore exit and do nothing..");
             return;
         }
-        if (self.expData().studySettings.multiUserCheckPing()) {
-            run_ping_test();
+
+        if (self.gotMatchedFromServer()) {
+            // experiment was already running...
+            console.log("try to continue running experiment");
+            player.socket.emit('reconnectExpSessionNr', player.expSessionNr, function(success) {
+                if (success) {
+                    console.log("success reconnect to running experiment. waiting for continue signal from server...");
+                }
+                else {
+                    player.finishSessionWithError("The experiment was terminated because your connection to the server was lost for too long... Please check your internet connection.")
+                }
+            });
         }
         else {
-            self.pingTestProgressPercent(100);
-            join_lobby();
+            // this is an initial connection:s
+            if (self.expData().studySettings.multiUserCheckPing()) {
+                self.pingTestInProgress(true);
+                run_ping_test();
+            }
+            else {
+                self.pingTestProgressPercent(100);
+                join_lobby();
+            }
         }
+
     });
 
     player.socket.on('error', function(error) {
@@ -134,8 +159,22 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
 
     player.socket.on('disconnect', function (reason){
         console.log( "socket.io disconnected...");
-        self.pingTestFailed(true);
-        player.finishSessionWithError("Your internet connection or your browser does not support a stable websocket connection. Therefore the experiment failed. Please use a more stable internet connection or more modern browser to participate in this study.")
+        if (self.pingTestInProgress()) {
+            console.log( "ping test failed because the socket disconnected.");
+            self.pingTestFailed(true);
+            player.finishSessionWithError("Your internet connection or your browser does not support a stable websocket connection. Therefore the experiment failed. Please use a more stable internet connection or more modern browser to participate in this study.")
+        }
+        else if (self.gotMatchedFromServer()) {
+            console.log("disconnected during running experiment session... pause player until reconnect...");
+            player.pauseExperiment("The experiment was paused because you lost the connection to the experiment server. Please check your internet connection and wait until the connection is reestablished. Time Left: <span id='timeLeftForReconnect'></span>");
+            self.updateReconnectCountdown(120, function() {
+                player.finishSessionWithError("Failed to reconnect to the experiment. Please check your internet connection.");
+            })
+        }
+    });
+
+    player.socket.on('reconnect', function () {
+        console.log('you have been reconnected');
     });
 
     player.socket.on('room name', function(roomName){
@@ -242,11 +281,15 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
 
     player.socket.on('pause', function(){
         console.log('Lost connection to other participants. Pause until all are in again...');
-        player.pauseExperiment();
+        player.pauseExperiment("The experiment was paused because another participant lost the connection to the experiment server. Please wait until the connection is reestablished. Time Left: <span id='timeLeftForReconnect'></span>");
+        self.updateReconnectCountdown(120, function() {
+            // do nothing here, because this is handled by the abort signal sent from the server...
+        })
     });
 
     player.socket.on('continue', function(){
         console.log('All participants are in again... Continue...');
+        self.cancelReconnectCountdown();
         player.continueExperiment();
     });
 
@@ -270,4 +313,33 @@ JointExpLobby.prototype.emitReadiness = function(){
     console.log('letting server know readiness status...');
     player.socket.emit('update readiness');
     return true; // necessary for checkbox!
+};
+
+JointExpLobby.prototype.updateReconnectCountdown = function(secToWait, onFinished){
+
+    if (this.reconnectCountdownHandle) {
+        // updater is already running
+        return;
+    }
+    var self = this;
+    this.reconnectCountdown = secToWait;
+
+    function update() {
+        self.reconnectCountdown -= 1;
+        $("#timeLeftForReconnect").text(""+self.reconnectCountdown);
+        if (self.reconnectCountdown == 0) {
+            clearInterval(self.reconnectCountdownHandle);
+            onFinished();
+        }
+    }
+
+    this.reconnectCountdownHandle = setInterval(update, 1000);
+    update();
+
+};
+
+JointExpLobby.prototype.cancelReconnectCountdown = function(){
+    if (this.reconnectCountdownHandle) {
+        clearInterval(this.reconnectCountdownHandle);
+    }
 };
