@@ -997,6 +997,20 @@ Player.prototype.setupPlayerDesign = function() {
 };
 
 
+Player.prototype.pauseExperiment = function() {
+    if (this.currentFrame) {
+        this.currentFrame.pauseFrame();
+    }
+    $("#pauseScreen").show();
+};
+
+Player.prototype.continueExperiment = function() {
+    if (this.currentFrame) {
+        this.currentFrame.continueFrame();
+    }
+    $("#pauseScreen").hide();
+};
+
 Player.prototype.startExperiment = function() {
     var self = this;
 
@@ -1812,6 +1826,7 @@ Player.prototype.getBlockId = function () {
 
 Player.prototype.finishSessionWithError = function(err_msg) {
     this.sessionEnded = true;
+    $("#pauseScreen").hide();
     console.log("error during experiment...");
     playerAjaxPost(
         '/errExpSession',
@@ -1837,6 +1852,7 @@ Player.prototype.finishSessionWithError = function(err_msg) {
 Player.prototype.finishSession = function(showEndPage) {
     var self = this;
 
+    $("#pauseScreen").hide();
     this.sessionEnded = true;
 
     if (typeof showEndPage == "string") {

@@ -12,7 +12,7 @@ var PlayerFrame = function(frameData,frameDiv,player) {
     this.player = player;
     this.frameView = null;
     this.startedTime= null;
-    this.state = 'preloaded'; // or 'displaying' or 'finished'
+    this.state = 'preloaded'; // or 'displaying' or 'paused' or 'finished'
     this.trialIter = null;
     this.frameTimeout = null;
     this.elements = this.frameData.elements();
@@ -22,6 +22,7 @@ var PlayerFrame = function(frameData,frameDiv,player) {
     this.onEyetrackingCoords = [];
     this.frameMouseX = null;
     this.frameMouseY = null;
+    this.isPaused = ko.observable(false);
 
     // the following is stored   to later remove the event listener:
     this.resizeEventListener = function() {
@@ -240,7 +241,6 @@ PlayerFrame.prototype.startFrame = function() {
             this.frameDiv.css('display', 'block');
         }
 
-
         // if emotion recording is enabled:
         if (this.frameData.parent.parent.webcamEnabled() && this.frameData.emotionEnabled()) {
             setTimeout(function () {
@@ -350,6 +350,23 @@ PlayerFrame.prototype.finishFrame = function() {
    // this.frameDiv.remove();
 };
 
+PlayerFrame.prototype.pauseFrame = function() {
+    this.isPaused(true);
+    var events = this.frameData.events();
+    for (var i = 0; i < events.length; i++){
+        var event =  events[i];
+        event.isPaused = true;
+    }
+};
+
+PlayerFrame.prototype.continueFrame = function() {
+    this.isPaused(false);
+    var events = this.frameData.events();
+    for (var i = 0; i < events.length; i++){
+        var event =  events[i];
+        event.isPaused = false;
+    }
+};
 
 PlayerFrame.prototype.endFrame = function() {
     if (this.state == 'displaying') {

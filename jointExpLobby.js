@@ -240,6 +240,16 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
         //TODO create an action to respond to declination (in order to e. g. play a sound)
     });
 
+    player.socket.on('pause', function(){
+        console.log('Lost connection to other participants. Pause until all are in again...');
+        player.pauseExperiment();
+    });
+
+    player.socket.on('continue', function(){
+        console.log('All participants are in again... Continue...');
+        player.continueExperiment();
+    });
+
     player.socket.on('abort', function(){
         console.log('Lost connection to other participants.');
         if (player.experiment.exp_data.studySettings.multiUserOnLeaveAction()=="Finish Study With Error"){
