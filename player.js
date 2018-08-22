@@ -391,8 +391,6 @@ var Player = function() {
     this.timeControlArray = [];
 
     this.eyetrackerLoaded = false;
-
-    this.socket = null;
     this.expSessionNr = null;
 
     this.groupNrAssignedByServer = null;
@@ -1847,7 +1845,7 @@ Player.prototype.finishSession = function(showEndPage) {
     }
 
     if(this.experiment.exp_data.isJointExp()) {
-        this.socket.emit('experiment finished');
+        this.jointExpLobby.experimentFinished();
     }
 
     if (this.timeControlArray.length >=1){
