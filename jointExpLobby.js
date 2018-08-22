@@ -343,6 +343,7 @@ JointExpLobby.prototype.updateReconnectCountdown = function(secToWait, onFinishe
         $("#timeLeftForReconnect").text(""+self.reconnectCountdown);
         if (self.reconnectCountdown == 0) {
             clearInterval(self.reconnectCountdownHandle);
+            self.reconnectCountdownHandle = null;
             onFinished();
         }
     }
@@ -355,6 +356,7 @@ JointExpLobby.prototype.updateReconnectCountdown = function(secToWait, onFinishe
 JointExpLobby.prototype.cancelReconnectCountdown = function(){
     if (this.reconnectCountdownHandle) {
         clearInterval(this.reconnectCountdownHandle);
+        this.reconnectCountdownHandle = null;
     }
 };
 

@@ -2032,6 +2032,13 @@ Player.prototype.startFullscreen = function() {
     {
         if (!fs_status()) {
             self.experiment.exp_data.varFullscreenSpec().value().setValue(false);
+            if (self.experiment.exp_data.studySettings.pauseOnExitFullscreen()) {
+                self.pauseExperiment("Detected change of fullscreen mode. Please switch to fullscreen again to continue with the experiment. <button id='continueFullscreen'>Start Fullscreen</button>")
+                $("#continueFullscreen").click(function() {
+                    self.startFullscreen();
+                    self.continueExperiment();
+                });
+            }
         }
     }
 

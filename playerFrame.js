@@ -19,6 +19,7 @@ var PlayerFrame = function(frameData,frameDiv,player) {
 
     this.onFrameStartCallbacks = [];
     this.onFrameEndCallbacks = [];
+    this.onGlobalEventCallbacks = [];
     this.onEyetrackingCoords = [];
     this.frameMouseX = null;
     this.frameMouseY = null;
@@ -351,6 +352,12 @@ PlayerFrame.prototype.finishFrame = function() {
 };
 
 PlayerFrame.prototype.pauseFrame = function() {
+    // FIRST call the pause events:
+    for (var i = 0; i<this.onGlobalEventCallbacks.length;i++) {
+        this.onGlobalEventCallbacks[i]("expPaused");
+    }
+
+    // now pause experiment
     this.isPaused(true);
     var events = this.frameData.events();
     for (var i = 0; i < events.length; i++){
@@ -360,11 +367,17 @@ PlayerFrame.prototype.pauseFrame = function() {
 };
 
 PlayerFrame.prototype.continueFrame = function() {
+    // First continue experiment:
     this.isPaused(false);
     var events = this.frameData.events();
     for (var i = 0; i < events.length; i++){
         var event =  events[i];
         event.isPaused = false;
+    }
+
+    // now call continue events:
+    for (var i = 0; i<this.onGlobalEventCallbacks.length;i++) {
+        this.onGlobalEventCallbacks[i]("expContinued");
     }
 };
 
