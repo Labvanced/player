@@ -289,11 +289,13 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
 
     var last_pong = Date.now();
     setInterval(function() {
-        var time_since_pong = Date.now() - last_pong;
-        if (time_since_pong > 1000 * self.expData().studySettings.multiUserPauseAfter()) {
-            console.log("no pong received since "+time_since_pong+" ms.")
-            self.pausedDueToNoConnectivity = true;
-            pauseExpDueToLostConnectivity();
+        if (!self.pausedDueToNoConnectivity) {
+            var time_since_pong = Date.now() - last_pong;
+            if (time_since_pong > 1000 * self.expData().studySettings.multiUserPauseAfter()) {
+                console.log("no pong received since " + time_since_pong + " ms.")
+                self.pausedDueToNoConnectivity = true;
+                pauseExpDueToLostConnectivity();
+            }
         }
     }, 1000);
 
