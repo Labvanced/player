@@ -1721,11 +1721,11 @@ Player.prototype.startNextPageOrFrame = function() {
         if(this.currentTask && this.currentTask.syncTaskStart && this.currentTask.syncTaskStart()){
             // case: sync task start
             this.currentTask.syncTaskStart(false); // deactivate once used
-            this.jointExpLobby.distributeVariable(this.currentSequence.elements().indexOf(subsequentElement), this.trialIter);
+            this.jointExpLobby.syncNextFrame(this.currentSequence.elements().indexOf(subsequentElement), this.trialIter);
         }
         else if( (subsequentPageOrFrame.frameData && subsequentPageOrFrame.frameData.syncFrame()) || (subsequentPageOrFrame.frameData && subsequentPageOrFrame.frameData.syncFrame()) ){
             // case: sync next frame start (skip if task start is already synchronized)
-            this.jointExpLobby.distributeVariable(this.currentSequence.elements().indexOf(subsequentElement), this.trialIter);
+            this.jointExpLobby.syncNextFrame(this.currentSequence.elements().indexOf(subsequentElement), this.trialIter);
         } else{
             this.startNextPageOrFrameOriginal();
         }

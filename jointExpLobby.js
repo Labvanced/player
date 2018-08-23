@@ -413,7 +413,7 @@ JointExpLobby.prototype.distributeVariable = function(variable, operandValueToSe
     );
 };
 
-JointExpLobby.prototype.distributeVariable = function(frame_nr, trial_nr){
+JointExpLobby.prototype.syncNextFrame = function(frame_nr, trial_nr){
     this.socket.emit("sync next frame", {
         frame_nr: frame_nr,
         trial_nr: trial_nr
