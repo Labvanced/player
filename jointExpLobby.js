@@ -62,7 +62,7 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
 
 
     // create new io connection to jointExpServer
-    var socketio_host_url = 'http://localhost:8070';
+    var socketio_host_url = document.location.hostname+":8070"; // 'http://localhost:8070';
     if (window.location.protocol === "https:") {
         socketio_host_url = document.location.host;
     }
