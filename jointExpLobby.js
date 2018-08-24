@@ -173,7 +173,7 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
 
     this.socket.on('error', function(error) {
         console.log("socket error...");
-        report_error_to_server("jointExp socket.io error "+error.msg, "", "", "", error);
+        //report_error_to_server("jointExp socket.io error "+error.msg, "", "", "", error);
     });
 
     function pauseExpDueToLostConnectivity() {
