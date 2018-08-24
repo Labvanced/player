@@ -420,15 +420,15 @@ var Player = function() {
     this.wasPaused = this.isPaused();
     this.isPaused.subscribe(function(isPausedNew) {
         if (!self.wasPaused && isPausedNew) {
-            if (this.currentFrame) {
-                this.currentFrame.pauseFrame();
+            if (self.currentFrame) {
+                self.currentFrame.pauseFrame();
             }
             console.log("show pause screen");
             $("#pauseScreen").show();
         }
         else if (self.wasPaused && !isPausedNew) {
-            if (this.currentFrame) {
-                this.currentFrame.continueFrame();
+            if (self.currentFrame) {
+                self.currentFrame.continueFrame();
             }
             console.log("hide pause screen");
             $("#pauseScreen").hide();
