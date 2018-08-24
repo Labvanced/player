@@ -301,7 +301,9 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
 
     function checkContinue() {
         if (self.pausedDueToNoConnectivity) {
+            console.log("connectivity reestablished..");
             self.pausedDueToNoConnectivity = false;
+            self.cancelReconnectCountdown();
             player.continueExperiment();
         }
     }
