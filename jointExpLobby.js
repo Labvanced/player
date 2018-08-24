@@ -172,7 +172,7 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
     });
 
     this.socket.on('error', function(error) {
-        console.log("socket error...");
+        console.log("socket error... error: "+error);
         //report_error_to_server("jointExp socket.io error "+error.msg, "", "", "", error);
     });
 
@@ -184,7 +184,7 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
     }
 
     this.socket.on('disconnect', function (reason){
-        console.log( "socket.io disconnected...");
+        console.log( "socket.io disconnected...reason: "+reason);
         if (self.pingTestInProgress()) {
             console.log( "ping test failed because the socket disconnected.");
             self.pingTestFailed(true);
