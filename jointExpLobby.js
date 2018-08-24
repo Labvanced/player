@@ -176,13 +176,6 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
         //report_error_to_server("jointExp socket.io error "+error.msg, "", "", "", error);
     });
 
-    function pauseExpDueToLostConnectivity() {
-        player.pausedDueToNoConnectionToJointExpServer(true);
-        self.updateReconnectCountdown(self.expData().studySettings.multiUserReconnectTimeout(), function () {
-            player.finishSessionWithError("Failed to reconnect to the experiment. Please check your internet connection.");
-        });
-    }
-
     this.socket.on('disconnect', function (reason){
         console.log( "socket.io disconnected...reason: "+reason);
         if (self.pingTestInProgress()) {
@@ -192,6 +185,7 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
         }
         else if (self.gotMatchedFromServer()) {
             console.log("disconnected during running experiment session... or this is the disconnect during a reconnect.");
+            pauseExpDueToLostConnectivity();
         }
     });
 
@@ -288,20 +282,27 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
 
     var last_pong = Date.now();
     setInterval(function() {
-        if (!self.pausedDueToNoConnectivity) {
+        if (!player.pausedDueToNoConnectionToJointExpServer()) {
             var time_since_pong = Date.now() - last_pong;
             if (time_since_pong > 1000 * self.expData().studySettings.multiUserPauseAfter()) {
                 console.log("no pong received since " + time_since_pong + " ms.")
-                self.pausedDueToNoConnectivity = true;
                 pauseExpDueToLostConnectivity();
             }
         }
     }, 1000);
 
+    function pauseExpDueToLostConnectivity() {
+        if (!player.pausedDueToNoConnectionToJointExpServer()) {
+            player.pausedDueToNoConnectionToJointExpServer(true);
+            self.updateReconnectCountdown(self.expData().studySettings.multiUserReconnectTimeout(), function () {
+                player.finishSessionWithError("Failed to reconnect to the experiment. Please check your internet connection.");
+            });
+        }
+    }
+
     function checkContinue() {
-        if (self.pausedDueToNoConnectivity) {
+        if (player.pausedDueToNoConnectionToJointExpServer()) {
             console.log("connectivity reestablished..");
-            self.pausedDueToNoConnectivity = false;
             self.cancelReconnectCountdown();
             player.pausedDueToNoConnectionToJointExpServer(false);
         }
