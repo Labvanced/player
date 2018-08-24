@@ -407,6 +407,35 @@ var Player = function() {
     this.microphone_stream = null;
     this.audioContext = null;
 
+    this.pausedDueToFullscreen = ko.observable(false);
+    this.pausedDueToNoConnectionToJointExpServer = ko.observable(false);
+    this.pausedDueToAnotherParticipant = ko.observable(false);
+
+    this.isPaused = ko.computed(function () {
+        return self.pausedDueToAnotherParticipant() ||
+            self.pausedDueToFullscreen() ||
+            self.pausedDueToNoConnectionToJointExpServer();
+    });
+
+    this.wasPaused = this.isPaused();
+    this.isPaused.subscribe(function(isPausedNew) {
+        if (!self.wasPaused && isPausedNew) {
+            if (this.currentFrame) {
+                this.currentFrame.pauseFrame();
+            }
+            console.log("show pause screen");
+            $("#pauseScreen").show();
+        }
+        else if (self.wasPaused && !isPausedNew) {
+            if (this.currentFrame) {
+                this.currentFrame.continueFrame();
+            }
+            console.log("hide pause screen");
+            $("#pauseScreen").hide();
+        }
+        self.wasPaused = isPausedNew;
+    });
+
     Webcam.on("error", function(err_msg){
         console.log("webcam error: "+err_msg);
         self.finishSessionWithError(err_msg);
@@ -528,6 +557,7 @@ Player.prototype.startExpPlayerResult = function(data) {
     }
 
 
+    ko.applyBindings(self, $("#pauseScreen")[0]);
     ko.applyBindings(self, $("#calibrateScreen")[0]);
     ko.applyBindings(self, $("#endExpSection")[0]);
     ko.applyBindings(self, $("#errEndExpSection")[0]);
@@ -995,21 +1025,6 @@ Player.prototype.setupPlayerDesign = function() {
     });
 };
 
-
-Player.prototype.pauseExperiment = function(pauseMsg) {
-    if (this.currentFrame) {
-        this.currentFrame.pauseFrame();
-    }
-    $("#pauseScreen").show();
-    $("#pauseMsg").html(pauseMsg);
-};
-
-Player.prototype.continueExperiment = function() {
-    if (this.currentFrame) {
-        this.currentFrame.continueFrame();
-    }
-    $("#pauseScreen").hide();
-};
 
 Player.prototype.startExperiment = function() {
     var self = this;
@@ -1811,7 +1826,7 @@ Player.prototype.getBlockId = function () {
 
 Player.prototype.finishSessionWithError = function(err_msg) {
     this.sessionEnded = true;
-    $("#pauseScreen").hide();
+    $("#pauseScreen").remove();
     console.log("error during experiment...");
     playerAjaxPost(
         '/errExpSession',
@@ -1837,7 +1852,7 @@ Player.prototype.finishSessionWithError = function(err_msg) {
 Player.prototype.finishSession = function(showEndPage) {
     var self = this;
 
-    $("#pauseScreen").hide();
+    $("#pauseScreen").remove();
     this.sessionEnded = true;
 
     if (typeof showEndPage == "string") {
@@ -2031,11 +2046,7 @@ Player.prototype.startFullscreen = function() {
         if (!fs_status()) {
             self.experiment.exp_data.varFullscreenSpec().value().setValue(false);
             if (self.experiment.exp_data.studySettings.pauseOnExitFullscreen()) {
-                self.pauseExperiment("Detected change of fullscreen mode. Please switch to fullscreen again to continue with the experiment. <button id='continueFullscreen'>Start Fullscreen</button>")
-                $("#continueFullscreen").click(function() {
-                    self.startFullscreen();
-                    self.continueExperiment();
-                });
+                self.pausedDueToFullscreen(true);
             }
         }
     }
@@ -2048,6 +2059,11 @@ Player.prototype.startFullscreen = function() {
         document.addEventListener('MSFullscreenChange', exitHandler, false);
     }
 
+};
+
+Player.prototype.continueFullscreen = function() {
+    this.startFullscreen();
+    this.pausedDueToFullscreen(false);
 };
 
 Player.prototype.exitFullscreen = function() {

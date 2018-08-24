@@ -34,7 +34,7 @@ var JointExpLobby = function(expData) {
     this.pingTestProgressPercent = ko.observable(0);
     this.pingTestFailed = ko.observable(false);
 
-    this.reconnectCountdown = 120;
+    this.reconnectCountdown = ko.observable(120);
     this.reconnectCountdownHandle = null;
 
     this.socket = null;
@@ -177,7 +177,7 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
     });
 
     function pauseExpDueToLostConnectivity() {
-        player.pauseExperiment("The experiment was paused because you lost the connection to the experiment server. Please check your internet connection and wait until the connection is reestablished. Time Left: <span id='timeLeftForReconnect'></span>");
+        player.pausedDueToNoConnectionToJointExpServer(true);
         self.updateReconnectCountdown(self.expData().studySettings.multiUserReconnectTimeout(), function () {
             player.finishSessionWithError("Failed to reconnect to the experiment. Please check your internet connection.");
         });
@@ -304,7 +304,7 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
             console.log("connectivity reestablished..");
             self.pausedDueToNoConnectivity = false;
             self.cancelReconnectCountdown();
-            player.continueExperiment();
+            player.pausedDueToNoConnectionToJointExpServer(false);
         }
     }
 
@@ -337,18 +337,14 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
     this.socket.on('pause', function(){
         checkContinue();
         console.log('Lost connection to other participants. Pause until all are in again...');
-        player.pauseExperiment("The experiment was paused because another participant lost the connection to the experiment server. Please wait until the connection is reestablished. Time Left: <span id='timeLeftForReconnect'></span>");
-        self.updateReconnectCountdown(self.expData().studySettings.multiUserReconnectTimeout(), function() {
-            // do nothing here, because this is handled by the abort signal sent from the server...
-        })
+        player.pausedDueToAnotherParticipant(true);
     });
 
     this.socket.on('continue', function(){
         last_pong = Date.now();
         checkContinue();
         console.log('All participants are in again... Continue...');
-        self.cancelReconnectCountdown();
-        player.continueExperiment();
+        player.pausedDueToAnotherParticipant(false);
     });
 
     this.socket.on('abort', function(){
@@ -381,12 +377,11 @@ JointExpLobby.prototype.updateReconnectCountdown = function(secToWait, onFinishe
         return;
     }
     var self = this;
-    this.reconnectCountdown = secToWait;
+    this.reconnectCountdown(secToWait);
 
     function update() {
-        self.reconnectCountdown -= 1;
-        $("#timeLeftForReconnect").text(""+self.reconnectCountdown);
-        if (self.reconnectCountdown == 0) {
+        self.reconnectCountdown(self.reconnectCountdown() - 1);
+        if (self.reconnectCountdown() == 0) {
             clearInterval(self.reconnectCountdownHandle);
             self.reconnectCountdownHandle = null;
             onFinished();
