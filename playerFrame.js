@@ -37,6 +37,7 @@ var PlayerFrame = function(frameData,frameDiv,player) {
     window.addEventListener('resize', this.resizeEventListener, false);
     window.addEventListener('click', this.selectionEventListener, false);
 
+    this.pausedElements = []; // due to experiment paused...!
 };
 
 PlayerFrame.prototype.init = function() {
@@ -180,8 +181,7 @@ PlayerFrame.prototype.dispose = function() {
 };
 
 PlayerFrame.prototype.resize = function() {
-    console.log("warning player size changed!!! TODO: pause experiment...");
-    // TODO: pause experiment
+    console.log("warning player size changed!");
     this.frameView.resize(this.getViewSize());
 };
 
@@ -357,6 +357,19 @@ PlayerFrame.prototype.pauseFrame = function() {
         this.onGlobalEventCallbacks[i]("expPaused");
     }
 
+    // now pause all videos and audio elements:
+    var pausedElements = [];
+    $.each(this.elements, function(idx, elem) {
+        var content = elem.content();
+        if (content instanceof VideoElement || content instanceof AudioElement) {
+            if (content.currentlyPlaying()) {
+                content.currentlyPlaying(false);
+                pausedElements.push(content);
+            }
+        }
+    });
+    this.pausedElements = pausedElements;
+
     // now pause experiment
     this.isPaused(true);
     var events = this.frameData.events();
@@ -374,6 +387,14 @@ PlayerFrame.prototype.continueFrame = function() {
         var event =  events[i];
         event.isPaused = false;
     }
+
+    // now continue all videos and audio elements:
+    $.each(this.pausedElements, function(idx, elem) {
+        if (elem instanceof VideoElement || elem instanceof AudioElement) {
+            elem.currentlyPlaying(true);
+        }
+    });
+    this.pausedElements = [];
 
     // now call continue events:
     for (var i = 0; i<this.onGlobalEventCallbacks.length;i++) {
