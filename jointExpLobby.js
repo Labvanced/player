@@ -309,8 +309,8 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
     }
 
     this.socket.on('pong', function(){
-        checkContinue();
         last_pong = Date.now();
+        checkContinue();
     });
 
     this.socket.on('stop waiting', function(){
@@ -344,6 +344,7 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
     });
 
     this.socket.on('continue', function(){
+        last_pong = Date.now();
         checkContinue();
         console.log('All participants are in again... Continue...');
         self.cancelReconnectCountdown();
