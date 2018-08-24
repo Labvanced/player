@@ -191,8 +191,7 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
             player.finishSessionWithError("Your internet connection or your browser does not support a stable websocket connection. Therefore the experiment failed. Please use a more stable internet connection or more modern browser to participate in this study.")
         }
         else if (self.gotMatchedFromServer()) {
-            console.log("disconnected during running experiment session... pause player until reconnect...");
-            pauseExpDueToLostConnectivity();
+            console.log("disconnected during running experiment session... or this is the disconnect during a reconnect.");
         }
     });
 
