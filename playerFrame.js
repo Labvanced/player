@@ -363,6 +363,7 @@ PlayerFrame.prototype.pauseFrame = function() {
         var content = elem.content();
         if (content instanceof VideoElement || content instanceof AudioElement) {
             if (content.currentlyPlaying()) {
+                console.log("stop playing video or audio.");
                 content.currentlyPlaying(false);
                 pausedElements.push(content);
             }
@@ -391,6 +392,7 @@ PlayerFrame.prototype.continueFrame = function() {
     // now continue all videos and audio elements:
     $.each(this.pausedElements, function(idx, elem) {
         if (elem instanceof VideoElement || elem instanceof AudioElement) {
+            console.log("continue playing video or audio.");
             elem.currentlyPlaying(true);
         }
     });
