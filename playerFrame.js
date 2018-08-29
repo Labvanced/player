@@ -375,8 +375,7 @@ PlayerFrame.prototype.pauseFrame = function() {
     this.isPaused(true);
     var events = this.frameData.events();
     for (var i = 0; i < events.length; i++){
-        var event =  events[i];
-        event.isPaused = true;
+        events[i].startPause(this);
     }
 };
 
@@ -385,8 +384,7 @@ PlayerFrame.prototype.continueFrame = function() {
     this.isPaused(false);
     var events = this.frameData.events();
     for (var i = 0; i < events.length; i++){
-        var event =  events[i];
-        event.isPaused = false;
+        events[i].stopPause(this);
     }
 
     // now continue all videos and audio elements:

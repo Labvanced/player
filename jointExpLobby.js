@@ -10,6 +10,9 @@ var JointExpLobby = function(expData) {
     this.currentNrOfParticipants = ko.observable(0);
     this.nrOfParticipantsRequired = expData.numPartOfJointExp;
     this.readyToStart = ko.observable(false);
+    this.lastRecvMsgCounter = -1;
+
+    this.connReestablishingState = "connected";
 
     this.readyToStart.subscribe(function(newVal) {
         console.log("readyToStart="+newVal);
@@ -148,14 +151,20 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
         if (self.gotMatchedFromServer()) {
             // experiment was already running...
             console.log("try to continue running experiment");
-            self.socket.emit('reconnectExpSessionNr', player.expSessionNr, function(success) {
-                if (success) {
-                    console.log("success reconnect to running experiment. waiting for continue signal from server...");
+            self.socket.emit(
+                'reconnectExpSessionNr',
+                {
+                    expSessionNr: player.expSessionNr
+                },
+                function(success) {
+                    if (success) {
+                        console.log("success reconnect to running experiment. waiting for continue signal from server...");
+                    }
+                    else {
+                        player.finishSessionWithError("The experiment was terminated because your connection to the server was lost for too long... Please check your internet connection.")
+                    }
                 }
-                else {
-                    player.finishSessionWithError("The experiment was terminated because your connection to the server was lost for too long... Please check your internet connection.")
-                }
-            });
+            );
         }
         else {
             // this is an initial connection:
@@ -215,26 +224,37 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
     this.socket.on('receive distributed variable', function(data){
         checkContinue();
 
+        // check if experiment is paused... only apply and do something if experiment is not paused:
+        if  (player.isPaused()) {
+            console.warn("cannot receive distributed variable because experiment is paused.");
+            return;
+        }
+
         //Extract (set pointers) variable from data...
         var variable = player.experiment.exp_data.entities.byId[data.variable.id];
         var operandValue = data.operandValue;
+        var msgCounter = data.msgCounter;
+
+        self.lastRecvMsgCounter = msgCounter;
 
         // Update local variables...
         var oldValue = variable.value().value();
         variable.value().value(operandValue);
 
         // debug
-        console.log("updated value of (distributed) variable '" + variable.name() + "' from '" + oldValue + "' to '" + operandValue + "' ...");
+        console.log("updated value of (distributed) variable '" + variable.name() + "' from '" + oldValue + "' to '" + operandValue + "' ... (msgCounter="+msgCounter+")");
 
         // letting the server know that the variable is successfully delivered and changed.
         self.socket.emit("received distribution response",
             {
-                variable:
-                    {
-                        name: variable.name(),
-                        id: variable.id()
-                    }
+                varId: variable.id(),
+                msgCounter: msgCounter
             });
+    });
+
+    this.socket.on('getLastRecvMsgCounter', function(fn){
+        checkContinue();
+        fn(self.lastRecvMsgCounter)
     });
 
     this.socket.on('start next frame', function(){
@@ -294,6 +314,7 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
     function pauseExpDueToLostConnectivity() {
         if (!player.pausedDueToNoConnectionToJointExpServer()) {
             player.pausedDueToNoConnectionToJointExpServer(true);
+            self.connReestablishingState = "lostConn";
             self.updateReconnectCountdown(self.expData().studySettings.multiUserReconnectTimeout(), function () {
                 player.finishSessionWithError("Failed to reconnect to the experiment. Please check your internet connection.");
             });
@@ -302,9 +323,18 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
 
     function checkContinue() {
         if (player.pausedDueToNoConnectionToJointExpServer()) {
-            console.log("connectivity reestablished..");
+            console.log("connectivity reestablished... canceling reconnect countdown... self.connReestablishingState="+self.connReestablishingState);
             self.cancelReconnectCountdown();
-            player.pausedDueToNoConnectionToJointExpServer(false);
+            if (self.connReestablishingState != "sendingState") {
+                self.connReestablishingState = "sendingState";
+                // now switch the pause state (it now only depends on the server to continue the expeirment, because our connection is reestablished)
+                player.pausedDueToAnotherParticipant(true);
+                player.pausedDueToNoConnectionToJointExpServer(false);
+                console.log("send my pause state to server and wait for acknoledgement")
+                self.socket.emit("connectionWasLostAndReestablished", {}, function () {
+                    self.connReestablishingState = "connected";
+                });
+            }
         }
     }
 
@@ -322,29 +352,43 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
         self.waiting(true);
     });
 
-    this.socket.on('distribution allowed', function(){
-        checkContinue();
-        console.log('distribution allowed from server...');
-        //TODO create an action to respond to allowance (in order to e. g. play a sound)
-    });
-
-    this.socket.on('distribution declined', function(){
-        checkContinue();
-        console.log('distribution declined from server...');
-        //TODO create an action to respond to declination (in order to e. g. play a sound)
-    });
-
     this.socket.on('pause', function(){
         checkContinue();
         console.log('Lost connection to other participants. Pause until all are in again...');
         player.pausedDueToAnotherParticipant(true);
     });
 
+    this.socket.on('requestContinue', function(msgCounter){
+        console.log("received requestContinue");
+        acknoledgeRequestContinue(msgCounter);
+    });
+
+    function acknoledgeRequestContinue(msgCounter) {
+        if (self.connReestablishingState == "connected") {
+            console.log("continueAck");
+            self.socket.emit("continueAck", {
+                msgCounter: msgCounter,
+                lastRecvMsgCounter: self.lastRecvMsgCounter
+            });
+        }
+        else {
+            console.log("connReestablishingState is not connected. Therefore wait 1 sec and then recheck...");
+            // check again later:
+            setTimeout(function() {
+                acknoledgeRequestContinue(msgCounter);
+            }, 1000);
+        }
+    }
+
     this.socket.on('continue', function(){
         last_pong = Date.now();
-        checkContinue();
         console.log('All participants are in again... Continue...');
+        player.pausedDueToNoConnectionToJointExpServer(false);
         player.pausedDueToAnotherParticipant(false);
+    });
+
+    this.socket.on('errorExpNotFound', function(){
+        throw new Error("error joint exp session not found on server!");
     });
 
     this.socket.on('abort', function(){
@@ -407,6 +451,14 @@ JointExpLobby.prototype.distributeVariable = function(variable, operandValueToSe
             operandValue: operandValueToSend,
             playersToDistributeTo: playersToDistributeToArray,
             blockVarUntilDone: blockVarUntilDone
+        },
+        function(data) {
+            if (data.success) {
+                console.log("distribution was allowed and went through...");
+            }
+            else {
+                console.log("distribution was declined...");
+            }
         }
     );
 };
