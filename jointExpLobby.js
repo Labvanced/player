@@ -305,8 +305,11 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
         if (!player.pausedDueToNoConnectionToJointExpServer()) {
             var time_since_pong = Date.now() - last_pong;
             if (time_since_pong > 1000 * self.expData().studySettings.multiUserPauseAfter()) {
-                console.log("no pong received since " + time_since_pong + " ms.")
-                pauseExpDueToLostConnectivity();
+                console.log("no pong received since " + time_since_pong + " ms.");
+                if (self.gotMatchedFromServer()) {
+                    // only pause if experiment was already started
+                    pauseExpDueToLostConnectivity();
+                }
             }
         }
     }, 1000);
