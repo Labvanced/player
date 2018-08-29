@@ -138,6 +138,10 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
             multiUserReconnectTimeout: player.experiment.exp_data.studySettings.multiUserReconnectTimeout(),
             multiUserPauseAfter: player.experiment.exp_data.studySettings.multiUserPauseAfter()
         });
+
+        if (self.readyToStartCheckbox()) {
+            self.readyToStartCheckbox(false);
+        }
     }
 
     this.socket.on('connect',function(){
