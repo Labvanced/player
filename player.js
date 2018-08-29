@@ -804,14 +804,16 @@ Player.prototype.preloadAllContent = function() {
     var contentListById = {};
 
     function addToContents(file_id, file_orig_name) {
-        var src = "/player/files/" + self.expSessionNr + "/" + file_id + "/" + file_orig_name;
-        var fileSpec = {
-            id: file_id,
-            src: src
-        };
-        if (!contentListById.hasOwnProperty(fileSpec.id)) {
-            contentList.push(fileSpec);
-            contentListById[fileSpec.id] = fileSpec;
+        if (file_id) {
+            var src = "/player/files/" + self.expSessionNr + "/" + file_id + "/" + file_orig_name;
+            var fileSpec = {
+                id: file_id,
+                src: src
+            };
+            if (!contentListById.hasOwnProperty(fileSpec.id)) {
+                contentList.push(fileSpec);
+                contentListById[fileSpec.id] = fileSpec;
+            }
         }
     }
 
