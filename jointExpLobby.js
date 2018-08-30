@@ -152,6 +152,11 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
             return;
         }
 
+        if (player.sessionEnded) {
+            console.log("exp session already ended... therefore exit and do nothing..");
+            return;
+        }
+
         if (self.gotMatchedFromServer()) {
             // experiment was already running...
             console.log("try to continue running experiment");
@@ -330,6 +335,9 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
 
     function checkContinue() {
         if (player.pausedDueToNoConnectionToJointExpServer()) {
+            if (player.sessionEnded) {
+                return;
+            }
             console.log("connectivity reestablished... canceling reconnect countdown... self.connReestablishingState="+self.connReestablishingState);
             self.cancelReconnectCountdown();
             if (self.connReestablishingState != "sendingState") {

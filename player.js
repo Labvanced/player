@@ -1827,11 +1827,11 @@ Player.prototype.getBlockId = function () {
 
 
 Player.prototype.finishSessionWithError = function(err_msg) {
-    this.sessionEnded = true;
-    if (self.sessionEnded) {
+    if (this.sessionEnded) {
         // This is very important, so that the server is not DoS's in case of a player bug. Only allow sessionEnd once!
         return;
     }
+    this.sessionEnded = true;
     $("#pauseScreen").remove();
     console.log("error during experiment...");
     playerAjaxPost(
@@ -1857,7 +1857,7 @@ Player.prototype.finishSessionWithError = function(err_msg) {
 
 Player.prototype.finishSession = function(showEndPage) {
     var self = this;
-    if (self.sessionEnded) {
+    if (this.sessionEnded) {
         // This is very important, so that the server is not DoS's in case of a player bug. Only allow sessionEnd once!
         return;
     }
