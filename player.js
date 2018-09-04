@@ -775,7 +775,11 @@ Player.prototype.timeMeasureControl = function() {
 
 Player.prototype.getAllFramesOrPagesInSession = function() {
     var allFramesOrPages = [];
-    var blocks = this.experiment.exp_data.availableGroups()[this.groupNr-1].sessions()[this.sessionNr-1].blocks();
+    var expSessionSpec = this.experiment.exp_data.availableGroups()[this.groupNr-1].sessions()[this.sessionNr-1];
+    if (!expSessionSpec) {
+        this.finishSessionWithError("experiment session sessionNr="+this.sessionNr+" is not defined in subject group groupNr="+this.groupNr);
+    }
+    var blocks = expSessionSpec.blocks();
     for (var i = 0; i<blocks.length; i++){
         var subTasks = blocks[i].subTasks();
         for (var j = 0; j<subTasks.length; j++) {
