@@ -334,12 +334,12 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
     }
 
     function checkContinue() {
+        self.cancelReconnectCountdown();
         if (player.pausedDueToNoConnectionToJointExpServer()) {
             if (player.sessionEnded) {
                 return;
             }
             console.log("connectivity reestablished... canceling reconnect countdown... self.connReestablishingState="+self.connReestablishingState);
-            self.cancelReconnectCountdown();
             if (self.connReestablishingState != "sendingState") {
                 self.connReestablishingState = "sendingState";
                 // now switch the pause state (it now only depends on the server to continue the expeirment, because our connection is reestablished)
@@ -455,6 +455,7 @@ JointExpLobby.prototype.updateReconnectCountdown = function(secToWait, onFinishe
 JointExpLobby.prototype.cancelReconnectCountdown = function(){
     if (this.reconnectCountdown() > 0) {
         clearInterval(this.reconnectCountdownHandle);
+        this.reconnectCountdown(0);
         this.reconnectCountdownHandle = null;
     }
 };
