@@ -37,7 +37,7 @@ var JointExpLobby = function(expData) {
     this.pingTestProgressPercent = ko.observable(0);
     this.pingTestFailed = ko.observable(false);
 
-    this.reconnectCountdown = ko.observable(120);
+    this.reconnectCountdown = ko.observable(0);
     this.reconnectCountdownHandle = null;
 
     this.socket = null;
@@ -431,7 +431,7 @@ JointExpLobby.prototype.emitReadiness = function(readyToStart){
 
 JointExpLobby.prototype.updateReconnectCountdown = function(secToWait, onFinished){
 
-    if (this.reconnectCountdownHandle) {
+    if (this.reconnectCountdown() > 0) {
         // updater is already running
         return;
     }
@@ -453,7 +453,7 @@ JointExpLobby.prototype.updateReconnectCountdown = function(secToWait, onFinishe
 };
 
 JointExpLobby.prototype.cancelReconnectCountdown = function(){
-    if (this.reconnectCountdownHandle) {
+    if (this.reconnectCountdown() > 0) {
         clearInterval(this.reconnectCountdownHandle);
         this.reconnectCountdownHandle = null;
     }
