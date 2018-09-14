@@ -67,11 +67,11 @@ PlayerPreloader.prototype.start = function(contentList) {
         var fs = require('fs');
         var newContentList = [];
         for (var i = 0; i < contentList.length; i++) {
-            if (contentList[i].src.charAt(0) == "/") {
-                contentList[i].src = contentList[i].src.substring(1);
-            }
             if (fs.existsSync(contentList[i].src)) {
                 newContentList.push(contentList[i]);
+            }
+            else {
+                console.warn("local offline file not found!")
             }
         }
         contentList = newContentList;

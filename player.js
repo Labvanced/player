@@ -810,6 +810,9 @@ Player.prototype.preloadAllContent = function() {
     function addToContents(file_id, file_orig_name) {
         if (file_id) {
             var src = "/player/files/" + self.expSessionNr + "/" + file_id + "/" + file_orig_name;
+            if (is_nwjs()) {
+                src = "files/" + file_id + "/" + file_orig_name;
+            }
             var fileSpec = {
                 id: file_id,
                 src: src
