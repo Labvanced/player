@@ -897,7 +897,13 @@ Player.prototype.preloadAllContent = function(callback) {
     });
 
     if (contentList.length>0){
-        this.playerPreloader.start(contentList,callback);
+        if (callback){
+            this.playerPreloader.start(contentList,callback);
+        }
+        else{
+            this.playerPreloader.start(contentList,null);
+        }
+
     }
     else{
         this.preloaderCompleted(true);
