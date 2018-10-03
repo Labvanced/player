@@ -6,20 +6,16 @@ var PlayerPreloader = function(player) {
     this.queue = new createjs.LoadQueue(true);
     this.preloadedObjectUrlsById = {};
     this.progress = ko.observable(0);
-    this.callback = null;
 
     this.queue.on("complete",function onComplete(event) {
         self.player.preloaderCompleted(true);
-        if (self.callback){
-            self.callback();
-        }
     });
 
     this.queue.on("error", function onError(event) {
         console.log('Preloader Error', event);
-       if (self.player.experiment.exp_data.studySettings.actionOnResourceError()== "abort experiment"){
-           self.player.finishSessionWithError("ERROR: A resource could not be loaded! Please try to load the experiment again. If this error repeats please contact Labvanced staff.")
-       }
+        if (self.player.experiment.exp_data.studySettings.actionOnResourceError()== "abort experiment"){
+            self.player.finishSessionWithError("ERROR: A resource could not be loaded! Please try to load the experiment again. If this error repeats please contact the creator of the experiment.")
+        }
     });
 
     this.queue.on("fileload", function onFileLoad(event) {
@@ -67,9 +63,8 @@ PlayerPreloader.prototype.cancel = function() {
 };
 
 
-PlayerPreloader.prototype.start = function(contentList,callback) {
+PlayerPreloader.prototype.start = function(contentList) {
 
-    this.callback = callback;
     if (is_nwjs()) {
         // need to check if file exists locally:
         var fs = require('fs');
