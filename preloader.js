@@ -13,6 +13,9 @@ var PlayerPreloader = function(player) {
 
     this.queue.on("error", function onError(event) {
         console.log('Preloader Error', event);
+       if (self.player.experiment.exp_data.studySettings.actionOnResourceError()== "abort experiment"){
+           self.player.finishSessionWithError("ERROR: A resource could not be loaded! Please try to load the experiment again. If this error repeats please contact Labvanced staff.")
+       }
     });
 
     this.queue.on("fileload", function onFileLoad(event) {
