@@ -6,9 +6,13 @@ var PlayerPreloader = function(player) {
     this.queue = new createjs.LoadQueue(true);
     this.preloadedObjectUrlsById = {};
     this.progress = ko.observable(0);
+    this.callback = null;
 
     this.queue.on("complete",function onComplete(event) {
         self.player.preloaderCompleted(true);
+        if (self.callback){
+            self.callback();
+        }
     });
 
     this.queue.on("error", function onError(event) {
@@ -63,8 +67,9 @@ PlayerPreloader.prototype.cancel = function() {
 };
 
 
-PlayerPreloader.prototype.start = function(contentList) {
+PlayerPreloader.prototype.start = function(contentList,callback) {
 
+    this.callback = callback;
     if (is_nwjs()) {
         // need to check if file exists locally:
         var fs = require('fs');

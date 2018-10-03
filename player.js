@@ -801,7 +801,7 @@ Player.prototype.getAllFramesOrPagesInSession = function() {
     return allFramesOrPages;
 };
 
-Player.prototype.preloadAllContent = function() {
+Player.prototype.preloadAllContent = function(callback) {
 
     var self = this;
     var contentList = [];
@@ -897,7 +897,7 @@ Player.prototype.preloadAllContent = function() {
     });
 
     if (contentList.length>0){
-        this.playerPreloader.start(contentList);
+        this.playerPreloader.start(contentList,callback);
     }
     else{
         this.preloaderCompleted(true);
