@@ -6,6 +6,7 @@ var PlayerPreloader = function(player) {
     this.queue = new createjs.LoadQueue(true);
     this.preloadedObjectUrlsById = {};
     this.progress = ko.observable(0);
+    this.contentList = []
 
     this.queue.on("complete",function onComplete(event) {
         self.player.preloaderCompleted(true);
@@ -18,6 +19,7 @@ var PlayerPreloader = function(player) {
         }
     });
 
+
     this.queue.on("fileload", function onFileLoad(event) {
         var item = event.item; // A reference to the item that was passed in to the LoadQueue
         var type = item.type;
@@ -26,22 +28,7 @@ var PlayerPreloader = function(player) {
         if (type == createjs.LoadQueue.IMAGE || type == createjs.LoadQueue.VIDEO || type == createjs.LoadQueue.SOUND) {
             var objectUrl = (window.URL || window.webkitURL).createObjectURL(event.rawResult);
             self.preloadedObjectUrlsById[event.item.id] = objectUrl;
-
-            if (type == createjs.LoadQueue.IMAGE) {
-                var elemToPreventCacheEviction = new Image;
-                elemToPreventCacheEviction.src = objectUrl;
-                $("#preloadedCache").append(elemToPreventCacheEviction);
-            }
-            else if (type == createjs.LoadQueue.VIDEO) {
-                var elemToPreventCacheEviction = document.createElement('video');
-                elemToPreventCacheEviction.src = objectUrl;
-                $("#preloadedCache").append(elemToPreventCacheEviction);
-            }
-            else if (type == createjs.LoadQueue.SOUND) {
-                var elemToPreventCacheEviction = document.createElement('audio');
-                elemToPreventCacheEviction.src = objectUrl;
-                $("#preloadedCache").append(elemToPreventCacheEviction);
-            }
+            self.addToCache(type, objectUrl);
         }
         else {
             console.log("other content");
@@ -58,14 +45,74 @@ var PlayerPreloader = function(player) {
 
 };
 
+PlayerPreloader.prototype.addToCache = function(type, objectUrl) {
+    if (type == createjs.Types.IMAGE) {
+        var elemToPreventCacheEviction = new Image;
+        elemToPreventCacheEviction.src = objectUrl;
+        $("#preloadedCache").append(elemToPreventCacheEviction);
+    }
+    else if (type == createjs.Types.VIDEO) {
+        var elemToPreventCacheEviction = document.createElement('video');
+        elemToPreventCacheEviction.src = objectUrl;
+        $("#preloadedCache").append(elemToPreventCacheEviction);
+    }
+    else if (type == createjs.Types.SOUND) {
+        var elemToPreventCacheEviction = document.createElement('audio');
+        elemToPreventCacheEviction.src = objectUrl;
+        $("#preloadedCache").append(elemToPreventCacheEviction);
+    }
+};
+
 PlayerPreloader.prototype.cancel = function() {
     this.queue.cancel();
 };
 
+PlayerPreloader.prototype.nwjsLoadNext = function(idx) {
+    var self = this;
+
+    // determine file type:
+    var match = createjs.URLUtils.parseURI(this.contentList[idx].src);
+    if (match.extension) {
+        var ext = match.extension;
+    }
+    var type = createjs.RequestUtils.getTypeByExtension(ext);
+
+    var file = new File(this.contentList[idx].src, 'randomDivName'+idx);
+    var fileReader = new FileReader();
+    fileReader.readAsArrayBuffer(file);
+    fileReader.onload = function(e) {
+        console.log('load complete '+idx);
+        var arr = new Uint8Array(fileReader.result);
+        var objectBlob = new Blob([arr]);
+        var objectUrl = (window.URL || window.webkitURL).createObjectURL(objectBlob);
+        self.preloadedObjectUrlsById[self.contentList[idx].id] = objectUrl;
+        self.addToCache(type, objectUrl);
+
+        idx += 1;
+        if (idx >= self.contentList.length) {
+            self.player.preloaderCompleted(true);
+            //self.queue.loadManifest(self.contentList);
+        }
+        else {
+            self.nwjsLoadNext(idx);
+        }
+    };
+
+    fileReader.onerror = function(e) {
+        console.error(e);
+    };
+
+    /*var fileReader = new FileReader();
+    fileReader.onload = function() {
+        fs.writeFileSync('test.wav', Buffer.from(new Uint8Array(fileReader.result)));
+    };
+    fileReader.readAsArrayBuffer($scope.recordedInput);*/
+};
 
 PlayerPreloader.prototype.start = function(contentList) {
+    this.contentList = contentList;
 
-    if (is_nwjs()) {
+    /*if (is_nwjs()) {
         // need to check if file exists locally:
         var fs = require('fs');
         var newContentList = [];
@@ -78,7 +125,13 @@ PlayerPreloader.prototype.start = function(contentList) {
             }
         }
         contentList = newContentList;
+    }*/
+
+    if (is_nwjs()) {
+        this.nwjsLoadNext(0);
     }
-    this.queue.loadManifest(contentList);
+    else {
+        this.queue.loadManifest(this.contentList);
+    }
 };
 

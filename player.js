@@ -37,10 +37,14 @@ if (is_nwjs()) {
 
     function writeFileNwjs(dataToSave, filename, callback) {
         var file_guid = sec_file_guid();
-        var filePath = path.join(nw.App.dataPath, "recordings", ""+exp_subject_id, file_guid, filename);
-        mkdirIfNotExist(path.join(nw.App.dataPath, "recordings"));
-        mkdirIfNotExist(path.join(nw.App.dataPath, "recordings", ""+exp_subject_id));
-        mkdirIfNotExist(path.join(nw.App.dataPath, "recordings", ""+exp_subject_id, file_guid));
+        var offlineExpFolder = path.join(nw.App.dataPath, "studies", "exp_"+player.expId);
+        mkdirIfNotExist(path.join(offlineExpFolder, "recordings"));
+        var filePath = path.join(offlineExpFolder, "recordings", ""+exp_subject_id, file_guid, filename);
+        mkdirIfNotExist(path.join(offlineExpFolder, "recordings"));
+        mkdirIfNotExist(path.join(offlineExpFolder, "recordings", ""+exp_subject_id));
+        mkdirIfNotExist(path.join(offlineExpFolder, "recordings", ""+exp_subject_id, file_guid));
+
+        console.log("writing nwjs recording file for rec_session_id = "+rec_session_id);
 
         fs.writeFile(filePath, new Buffer(dataToSave), function (err) {
             if (err) {
@@ -67,10 +71,12 @@ if (is_nwjs()) {
     playerAjaxPost = function(route, p, callback, timeout) {
 
         if (route=="/startExpPlayer") {
-            $.get("exp.json", function(expJSON) {
+
+            var jsonPath = path.join(nw.App.dataPath, "studies", "exp_"+p.expId, "exp.json");
+            fs.readFile(jsonPath, function(err, rawdata) {
                 callback({
                     success: true,
-                    expData: JSON.parse(expJSON),
+                    expData: JSON.parse(rawdata),
                     country: null
                 });
             });
@@ -97,6 +103,7 @@ if (is_nwjs()) {
                 return db.rec_sessions.add(rec_session_data);
             }).then(function(new_id){
                 rec_session_id = new_id;
+                console.log("rec_session_id = "+rec_session_id);
 
                 // update list of recordings:
                 win.refreshList();
@@ -811,7 +818,7 @@ Player.prototype.preloadAllContent = function() {
         if (file_id) {
             var src = "/player/files/" + self.expSessionNr + "/" + file_id + "/" + file_orig_name;
             if (is_nwjs()) {
-                src = "files/" + file_id + "/" + file_orig_name;
+                src = path.join(nw.App.dataPath, "studies", "exp_"+player.expId, "files", ""+file_id, file_orig_name);
             }
             var fileSpec = {
                 id: file_id,
