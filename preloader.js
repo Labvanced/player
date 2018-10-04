@@ -81,7 +81,7 @@ PlayerPreloader.prototype.nwjsLoadNext = function(idx) {
     var fileReader = new FileReader();
     fileReader.readAsArrayBuffer(file);
     fileReader.onload = function(e) {
-        console.log('load complete '+idx);
+        //console.log('load complete '+idx);
         var arr = new Uint8Array(fileReader.result);
         var objectBlob = new Blob([arr]);
         var objectUrl = (window.URL || window.webkitURL).createObjectURL(objectBlob);
