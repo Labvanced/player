@@ -21,6 +21,7 @@ var PlayerFrame = function(frameData,frameDiv,player) {
     this.onFrameEndCallbacks = [];
     this.onGlobalEventCallbacks = [];
     this.onEyetrackingCoords = [];
+    this.websocketTriggerCallbacks = {};
     this.frameMouseX = null;
     this.frameMouseY = null;
     this.isPaused = ko.observable(false);

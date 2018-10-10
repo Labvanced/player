@@ -269,6 +269,8 @@ var Player = function() {
 
     var self = this;
 
+    this.externalWebsocket = null;
+
     // determine whether this is a crowdsourcingSession
     this.crowdsourcingCode = ko.observable('');
     this.isCrowdsourcingSession = ko.observable(false);
