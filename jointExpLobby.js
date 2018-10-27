@@ -415,6 +415,11 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
         else if (player.experiment.exp_data.studySettings.multiUserOnLeaveAction()=="Finish Study Correctly"){
             player.finishSession("Connection lost to another participant. You finished the study correctly.");
         }
+        else if (player.experiment.exp_data.studySettings.multiUserOnLeaveAction()=="Custom / Redirect"){
+            player.emitLeaveEvent();
+        }
+
+
 
     });
 };

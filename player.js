@@ -397,6 +397,7 @@ var Player = function() {
 
     this.sessionEnded = false;
     this.endExpSectionCustomText = ko.observable("");
+    this.currentNumberParticipants = ko.observable("");
     this.timeControlArray = [];
 
     this.eyetrackerLoaded = false;
@@ -546,7 +547,7 @@ Player.prototype.startExpPlayerResult = function(data) {
     self.experiment = new Experiment().fromJS(data.expData);
     self.experiment.setPointers();
     console.log("experiment deserialized.");
-
+    this.currentNumberParticipants(self.experiment.exp_data.numPartOfJointExp());
 
     self.expSessionNr = data.expSessionNr;
     console.log('expSessionNr: ' + self.expSessionNr);
@@ -756,6 +757,11 @@ Player.prototype.detectBrowserAndSystemSpecs = function() {
     this.experiment.exp_data.varSystemSpec().value().value(os);
     this.experiment.exp_data.varAgentSpec().value().value(nAgt);
 };
+
+Player.prototype.emitLeaveEvent = function () {
+  this.currentNumberParticipants(this.currentNumberParticipants()-1);
+};
+
 
 Player.prototype.desiredDelayInMs = 100;
 Player.prototype.timeMeasureControl = function() {
@@ -1823,7 +1829,6 @@ Player.prototype.addTrialViews = function (trialIndex,trialIter,task) {
     }
 
 };
-
 
 
 
