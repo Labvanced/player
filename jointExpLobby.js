@@ -416,11 +416,15 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
             player.finishSession("Connection lost to another participant. You finished the study correctly.");
         }
         else if (player.experiment.exp_data.studySettings.multiUserOnLeaveAction()=="Custom / Redirect"){
+            var nrSubj =  player.experiment.exp_data.numPartOfJointExp()-1;
+            self.socket.emit("updateNrSubjects",nrSubj );
             player.emitLeaveEvent();
         }
 
+    });
 
-
+    this.socket.on('newSubjNrSet', function(){
+        player.emitLeaveEvent();
     });
 };
 

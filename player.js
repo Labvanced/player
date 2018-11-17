@@ -759,6 +759,7 @@ Player.prototype.detectBrowserAndSystemSpecs = function() {
 };
 
 Player.prototype.emitLeaveEvent = function () {
+  this.experiment.exp_data.numPartOfJointExp(this.experiment.exp_data.numPartOfJointExp()-1);
   this.currentNumberParticipants(this.currentNumberParticipants()-1);
 };
 
