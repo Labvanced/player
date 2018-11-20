@@ -136,7 +136,8 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
             numPartOfJointExp: player.experiment.exp_data.numPartOfJointExp(),
             multiUserAllowReconnect: player.experiment.exp_data.studySettings.multiUserAllowReconnect(),
             multiUserReconnectTimeout: player.experiment.exp_data.studySettings.multiUserReconnectTimeout(),
-            multiUserPauseAfter: player.experiment.exp_data.studySettings.multiUserPauseAfter()
+            multiUserPauseAfter: player.experiment.exp_data.studySettings.multiUserPauseAfter(),
+            multiUserOnLeaveAction: player.experiment.exp_data.studySettings.multiUserOnLeaveAction()
         });
 
         if (self.readyToStartCheckbox()) {
@@ -406,7 +407,7 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
         throw new Error("error joint exp session not found on server!");
     });
 
-    this.socket.on('abort', function(){
+    this.socket.on('abort', function(data){
         checkContinue();
         console.log('Lost connection to other participants.');
         if (player.experiment.exp_data.studySettings.multiUserOnLeaveAction()=="Finish Study With Error"){
@@ -416,15 +417,10 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
             player.finishSession("Connection lost to another participant. You finished the study correctly.");
         }
         else if (player.experiment.exp_data.studySettings.multiUserOnLeaveAction()=="Custom / Redirect"){
-            var nrSubj =  player.experiment.exp_data.numPartOfJointExp()-1;
-            self.socket.emit("updateNrSubjects",nrSubj );
-            player.emitLeaveEvent();
+            var newNrSubj = data.nr_of_participants;
+            player.experiment.exp_data.numPartOfJointExp(newNrSubj);
+            player.currentNumberParticipants(newNrSubj);
         }
-
-    });
-
-    this.socket.on('newSubjNrSet', function(){
-        player.emitLeaveEvent();
     });
 };
 
