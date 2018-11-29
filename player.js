@@ -1470,6 +1470,11 @@ Player.prototype.startRecordingsOfNewTask = function(cb) {
 Player.prototype.recordData = function() {
     var self = this;
     if (!this.runOnlyTaskId && !this.isTestrun) {
+
+        if (this.trialIter === "waitForStart" || this.trialIter === "init") {
+            return;
+        }
+
         // record variables at end of trial:
         var recData = new RecData();
 
