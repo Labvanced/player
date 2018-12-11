@@ -555,12 +555,14 @@ Player.prototype.startExpPlayerResult = function(data) {
     // fast forward by strg+q
     if (self.experiment.exp_data.studySettings.allowSTRGQ()){
         function KeyPress(e) {
-            var evtobj = window.event? event : e
+            var evtobj = window.event? event : e;
             if (evtobj.keyCode == 81 && evtobj.ctrlKey  && !evtobj.altKey){
                 self.pressedShortcut(true);
-                self.currentFrame.finishFrame();
-                self.recordData();
-                self.jumpToNextTask();
+                if (self.currentFrame) {
+                    self.currentFrame.finishFrame();
+                    self.recordData();
+                    self.jumpToNextTask();
+                }
             }
         }
         document.onkeydown = KeyPress;
