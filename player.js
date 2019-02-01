@@ -827,7 +827,8 @@ Player.prototype.preloadAllContent = function() {
             }
             var fileSpec = {
                 id: file_id,
-                src: src
+                src: src,
+                timeout: 80000
             };
             if (!contentListById.hasOwnProperty(fileSpec.id)) {
                 contentList.push(fileSpec);
