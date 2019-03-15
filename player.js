@@ -909,11 +909,11 @@ Player.prototype.preloadAllContent = function() {
         });
     });
 
-    if (contentList.length>0){
-        this.playerPreloader.start(contentList);
-    }
-    else{
+    if (this.experiment.exp_data.studySettings.disablePreloadingResources() || contentList.length==0) {
         this.preloaderCompleted(true);
+    }
+    else {
+        this.playerPreloader.start(contentList);
     }
 };
 

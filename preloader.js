@@ -6,7 +6,7 @@ var PlayerPreloader = function(player) {
     this.queue = new createjs.LoadQueue(true);
     this.preloadedObjectUrlsById = {};
     this.progress = ko.observable(0);
-    this.contentList = []
+    this.contentList = [];
 
     this.queue.on("complete",function onComplete(event) {
         self.player.preloaderCompleted(true);
