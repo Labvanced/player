@@ -116,7 +116,8 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
                         join_lobby();
                     }
                     else {
-                        player.finishSessionWithError("The experiment failed, because of a bad internet connection (bad ping). Please use a faster internet connection to participate in this study.")
+                        player.finishSessionWithError("Dear participant, we are very sorry but your computer and/or internet connection are not compatible with the experiment's technical requirements. We apologize for any inconvenience. (ERROR 951)");
+                        //player.finishSessionWithError("The experiment failed, because of a bad internet connection (bad ping). Please use a faster internet connection to participate in this study.");
                     }
                 });
             }
@@ -200,7 +201,8 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
         if (self.pingTestInProgress()) {
             console.log( "ping test failed because the socket disconnected.");
             self.pingTestFailed(true);
-            player.finishSessionWithError("Your internet connection or your browser does not support a stable websocket connection. Therefore the experiment failed. Please use a more stable internet connection or more modern browser to participate in this study.")
+            //player.finishSessionWithError("Your internet connection or your browser does not support a stable websocket connection. Therefore the experiment failed. Please use a more stable internet connection or more modern browser to participate in this study.")
+            player.finishSessionWithError("Dear participant, we are very sorry but your computer and/or internet connection are not compatible with the experiment's technical requirements. We apologize for any inconvenience. (ERROR 952)");
         }
         else if (self.gotMatchedFromServer()) {
             console.log("disconnected during running experiment session... or this is the disconnect during a reconnect.");
@@ -411,10 +413,12 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
         checkContinue();
         console.log('Lost connection to other participants.');
         if (player.experiment.exp_data.studySettings.multiUserOnLeaveAction()=="Finish Study With Error"){
-            player.finishSessionWithError("Connection lost to another participant. Experiment aborted!");
+            player.finishSessionWithError("Dear participant, we are very sorry but we lost the connection to another participant. We apologize for any inconvenience. (ERROR 953)");
+            //player.finishSessionWithError("Connection lost to another participant. Experiment aborted!");
         }
         else if (player.experiment.exp_data.studySettings.multiUserOnLeaveAction()=="Finish Study Correctly"){
-            player.finishSession("Connection lost to another participant. You finished the study correctly.");
+            player.finishSessionWithError("Dear participant, we are very sorry but we lost the connection to another participant. You finished the study correctly. (ERROR 954)");
+            //player.finishSession("Connection lost to another participant. You finished the study correctly.");
         }
         else if (player.experiment.exp_data.studySettings.multiUserOnLeaveAction()=="Custom / Redirect"){
             var newNrSubj = data.nr_of_participants;

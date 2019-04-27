@@ -470,7 +470,8 @@ Player.prototype.startExpPlayer = function(parameters) {
 
         if (data.success == false) {
             if(data.msg==="timeout") {
-                self.finishSessionWithError("Error receiving experiment. Please check your internet connection.");
+                self.finishSessionWithError("Dear participant, we are very sorry but your computer and/or internet connection are not compatible with the experiment's technical requirements. We apologize for any inconvenience. (ERROR 955)");
+                //self.finishSessionWithError("Error receiving experiment. Please check your internet connection.");
             }
             else {
                 self.finishSessionWithError("Error: " + data.msg);
@@ -1120,7 +1121,8 @@ Player.prototype.startExperimentContinue = function() {
                 function (data) {
                     if (data.success == false) {
                         if(data.msg==="timeout") {
-                            self.finishSessionWithError("Our server is overloaded at the moment (error setting start time). Please come back later.");
+                            self.finishSessionWithError("Dear participant, we are very sorry but your computer and/or internet connection are not compatible with the experiment's technical requirements. We apologize for any inconvenience. (ERROR 956)");
+                            //self.finishSessionWithError("Our server is overloaded at the moment (error setting start time). Please come back later.");
                         }
                         else {
                             self.finishSessionWithError("Error: " + data.msg);
