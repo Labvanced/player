@@ -417,7 +417,7 @@ JointExpLobby.prototype.initSocketAndListeners = function() {
             //player.finishSessionWithError("Connection lost to another participant. Experiment aborted!");
         }
         else if (player.experiment.exp_data.studySettings.multiUserOnLeaveAction()=="Finish Study Correctly"){
-            player.finishSessionWithError("Dear participant, we are very sorry but we lost the connection to another participant. You finished the study correctly. (ERROR 954)");
+            player.finishSession("Dear participant, we are very sorry but we lost the connection to another participant. You finished the study correctly. (CODE 954)");
             //player.finishSession("Connection lost to another participant. You finished the study correctly.");
         }
         else if (player.experiment.exp_data.studySettings.multiUserOnLeaveAction()=="Custom / Redirect"){
