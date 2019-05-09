@@ -1652,92 +1652,6 @@ Player.prototype.startNextTrial = function(trialIndex) {
     }
 
     this.cleanUpCurrentTrial();
-    this.switchToNextPreloadedTrial();
-
-    // go into trial sequence:
-    this.currentSequence.currSelectedElement(null);
-    this.currentSequence.selectNextElement();
-    this.startNextPageOrFrame();
-
-    // preload next trial:
-    if (this.trialIndex + 1 < this.randomizedTrials.length) {
-        setTimeout(function(){
-            self.addTrialViews(self.trialIndex + 1,self.trialIter + 1, self.currentTask);
-        }, 1);
-    }
-};
-
-Player.prototype.startSpecificTrial = function(trialIndex) {
-
-    var self = this;
-
-    if (this.trialJumpInProgress) {
-        // the last trial jump did not yet finish completely (i.e. preloading of next trial is not yet finished)
-
-        // need to remember this call if no other call was there first:
-        if (this.trialJumpDelayedCb !== null) {
-            // remember this call as a callback that will be automatically executed, once the preloading is finished
-            this.trialJumpDelayedCb = function () {
-                self.startSpecificTrial(trialId);
-            };
-        }
-
-        // at the moment return and wait for delayed call once old call is finished:
-        return true;
-    }
-    this.trialJumpInProgress = true;
-
-    if (this.trialIter == "waitForStart") {
-        this.trialIter = 0;
-        this.trialIndex  = 0;
-    }
-    else {
-        this.recordData();
-        // start next trial:
-        this.trialIter++;
-        this.trialIndex = trialIndex;
-    }
-
-    if (this.trialIndex >= this.randomizedTrials.length) {
-        // trial loop finished:
-        console.log("task finished");
-        this.trialIter = "init"; // reset to init so that another trial loop in another block will start from the beginning
-        this.trialIndex = null;
-
-        if (this.webcamLoaded){
-            console.log("removing webcam");
-            Webcam.reset();
-            this.webcamLoaded = false;
-        }
-
-        self.jumpToNextTask();
-        return;
-    }
-
-    console.log("start trial iteration " + this.trialIter);
-    var trialSelection = this.randomizedTrials[this.trialIndex];
-
-    this.currentTrialId = trialSelection.trialVariation.uniqueId();
-    console.log("start randomized trial id " + this.currentTrialId);
-
-    // set some predefined variables for this trial:
-    this.experiment.exp_data.varTrialId().value().value(this.currentTrialId);
-    this.experiment.exp_data.varTrialNr().value().value(this.trialIter+1);
-    this.experiment.exp_data.varConditionId().value().value(trialSelection.condition.conditionIdx()); // TODO set condition id
-
-    // reset variables at start of trial:
-    for (var i=0; i<this.variablesToReset.length; i++){
-        this.variablesToReset[i].resetValueToStartValue();
-    }
-
-    // set factor values
-    for (var i=0; i<this.factorsVars.length; i++){
-        // TODO: this.factorsVars is not needed, because we could also just do this directly by reading out the factors that are within the condition:
-        var factorValue = trialSelection.condition.getCurrentValueOfFactor(this.factorsVars[i].id());
-        this.factorsVars[i].value().value(factorValue);
-    }
-
-    this.cleanUpCurrentTrial();
 
     // check if current preloaded next trial corresponds to the desired next trialIndex. If not, we need to preload it instead:
     if (this.currentPreloadedTrialIndex != trialIndex) {
@@ -1763,7 +1677,6 @@ Player.prototype.startSpecificTrial = function(trialIndex) {
         }, 1);
     }
 };
-
 
 Player.prototype.startNextPageOrFrame = function() {
     // this function is just interposed to manage synchronization.
