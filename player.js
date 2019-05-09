@@ -372,6 +372,9 @@ var Player = function() {
     this.nextSequence = null;
     this.currentFrame = null;
 
+    this.trialJumpInProgress = false; // to synchronize (and block) calls to startNextTrial and startSpecificTrial
+    this.trialJumpDelayedCb = null; // holds callback for the next trial jump (if there is any jump while the previous jump was not finished yet)
+
     this.pressedShortcut = ko.observable(false);
 
     this.webcamLoaded = false;
@@ -1375,7 +1378,7 @@ Player.prototype.startFirstTrialInitialization = function(){
                     $('#experimentViewPort').css({
                         "cursor": 'default'
                     });
-                    self.startNextTrial();
+                    self.startNextTrial(0);
                 }, 3000);
             }
             else {
@@ -1383,7 +1386,7 @@ Player.prototype.startFirstTrialInitialization = function(){
                 // $('#countdown').text("preloading task");
                 setTimeout(function () {
                     //  $('#countdownSection').hide();
-                    self.startNextTrial();
+                    self.startNextTrial(0);
                 }, 500);
             }
         });
@@ -1579,20 +1582,35 @@ Player.prototype.switchToNextPreloadedTrial = function() {
     this.nextSequence = null;
 };
 
-Player.prototype.startNextTrial = function() {
+Player.prototype.startNextTrial = function(trialIndex) {
     var self = this;
+
+    if (this.trialJumpInProgress) {
+        // the last trial jump did not yet finish completely (i.e. preloading of next trial is not yet finished)
+
+        // need to remember this call if no other call was there first:
+        if (this.trialJumpDelayedCb !== null) {
+            // remember this call as a callback that will be automatically executed, once the preloading is finished
+            this.trialJumpDelayedCb = function () {
+                self.startNextTrial(trialIndex);
+            };
+        }
+
+        // at the moment return and wait for delayed call once old call is finished:
+        return true;
+    }
+    this.trialJumpInProgress = true;
 
     if (this.trialIter == "waitForStart") {
         this.trialIter = 0;
         this.trialIndex = 0;
     }
     else {
-        this. recordData();
+        this.recordData();
         // start next trial:
         this.trialIter++;
-        this.trialIndex++;
+        this.trialIndex = trialIndex;
     }
-
 
     if (this.trialIndex >= this.randomizedTrials.length) {
         // trial loop finished:
@@ -1649,37 +1667,38 @@ Player.prototype.startNextTrial = function() {
     }
 };
 
-
-Player.prototype.startSpecificTrial = function(trialId) {
+Player.prototype.startSpecificTrial = function(trialIndex) {
 
     var self = this;
+
+    if (this.trialJumpInProgress) {
+        // the last trial jump did not yet finish completely (i.e. preloading of next trial is not yet finished)
+
+        // need to remember this call if no other call was there first:
+        if (this.trialJumpDelayedCb !== null) {
+            // remember this call as a callback that will be automatically executed, once the preloading is finished
+            this.trialJumpDelayedCb = function () {
+                self.startSpecificTrial(trialId);
+            };
+        }
+
+        // at the moment return and wait for delayed call once old call is finished:
+        return true;
+    }
+    this.trialJumpInProgress = true;
 
     if (this.trialIter == "waitForStart") {
         this.trialIter = 0;
         this.trialIndex  = 0;
     }
-
-    var trialIds = [];
-    for (var j = 0; j< this.randomizedTrials.length; j++){
-        trialIds.push( this.randomizedTrials[j].trialVariation.uniqueId());
-    }
-
-    var indexOfNewTrial = trialIds.indexOf(parseInt(trialId));
-    if (indexOfNewTrial instanceof Array){
-        var trialIndex  = indexOfNewTrial[0];
-    }
-    else if (indexOfNewTrial >=0){
-        var trialIndex  = indexOfNewTrial;
-    }
     else {
-        var trialIndex  = this.trialIter+1;
+        this.recordData();
+        // start next trial:
+        this.trialIter++;
+        this.trialIndex = trialIndex;
     }
 
-    this.trialIter++;
-    this.trialIndex = trialIndex;
-
-
-    if (trialIndex >= this.randomizedTrials.length) {
+    if (this.trialIndex >= this.randomizedTrials.length) {
         // trial loop finished:
         console.log("task finished");
         this.trialIter = "init"; // reset to init so that another trial loop in another block will start from the beginning
@@ -1699,10 +1718,7 @@ Player.prototype.startSpecificTrial = function(trialId) {
     var trialSelection = this.randomizedTrials[this.trialIndex];
 
     this.currentTrialId = trialSelection.trialVariation.uniqueId();
-     if (trialId !=  this.currentTrialId){
-         console.log("Error: Trial ID is false!");
-     }
-     console.log("start randomized trial id " + this.currentTrialId);
+    console.log("start randomized trial id " + this.currentTrialId);
 
     // set some predefined variables for this trial:
     this.experiment.exp_data.varTrialId().value().value(this.currentTrialId);
@@ -1721,12 +1737,19 @@ Player.prototype.startSpecificTrial = function(trialId) {
         this.factorsVars[i].value().value(factorValue);
     }
 
-    //this.cleanUpCurrentTrial();
+    this.cleanUpCurrentTrial();
 
-    // preload next trial, and start it
-    this.addTrialViews(this.trialIndex, this.trialIter, this.currentTask);
+    // check if current preloaded next trial corresponds to the desired next trialIndex. If not, we need to preload it instead:
+    if (this.currentPreloadedTrialIndex != trialIndex) {
+        // need to clean up the previously preloaded trial that is unfortunately not matching to the next desired trial:
+        this.switchToNextPreloadedTrial();
+        this.cleanUpCurrentTrial();
+
+        // preload desired next trial:
+        this.addTrialViews(this.trialIndex, this.trialIter, this.currentTask);
+    }
+
     this.switchToNextPreloadedTrial();
-
 
     // go into trial sequence:
     this.currentSequence.currSelectedElement(null);
@@ -1782,7 +1805,7 @@ Player.prototype.startNextPageOrFrameOriginal = function() {
             break;
         case 'EndOfSequence':
             console.log("starting next trial");
-            this.startNextTrial();
+            this.startNextTrial(this.trialIndex + 1);
             break;
         default:
             console.error("type "+ currentElement.type + " is not defined.");
@@ -1821,6 +1844,8 @@ Player.prototype.addTrialViews = function (trialIndex,trialIter,task) {
         playerFrame.init();
         this.nextTrialFrames[frameDataArr[frameIdx].id()] = playerFrame;
     }
+
+    this.currentPreloadedTrialIndex = trialIndex;
 
 };
 
