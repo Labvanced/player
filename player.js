@@ -1624,6 +1624,10 @@ Player.prototype.startNextTrial = function(trialIndex) {
             this.webcamLoaded = false;
         }
 
+        // reset variables that would track concurrent calls to startNextTrial
+        this.trialJumpInProgress = false;
+        this.trialJumpDelayedCb = null;
+
         self.jumpToNextTask();
         return;
     }
@@ -1674,6 +1678,17 @@ Player.prototype.startNextTrial = function(trialIndex) {
     if (this.trialIndex + 1 < this.randomizedTrials.length) {
         setTimeout(function(){
             self.addTrialViews(self.trialIndex + 1,self.trialIter + 1, self.currentTask);
+
+            // now trial jump is completely finished:
+            self.trialJumpInProgress = false;
+
+            // if there was a call to startNextTrial in the mean time, then this will now be executed:
+            if (self.trialJumpDelayedCb !== null) {
+                // execute delayed call to startNextTrial that was delayed because previous trial jump was still in progress:
+                self.trialJumpDelayedCb();
+                self.trialJumpDelayedCb = null;
+            }
+
         }, 1);
     }
 };
