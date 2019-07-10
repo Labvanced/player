@@ -2240,16 +2240,16 @@ Player.prototype.determineNextSessionStartWindow = function(prevSessionEndTime,c
                 var plusMinStart = parseInt(sessionTimeData.startTime().substring(3,5));
                 startDate.setMinutes(prevSessionEndTime.getMinutes() +plusMinStart);
                 var plusHourStart = parseInt(sessionTimeData.startTime().substring(0,2));
-                startDate.setHours(prevSessionEndTime.getHours() +plusHourStart);
+                startDate.setHours(startDate.getHours() +plusHourStart);
                 var plusDaysStart = parseInt( sessionTimeData.minimalDaysAfterLast());
-                startDate.setDate(prevSessionEndTime.getDate() +plusDaysStart);
+                startDate.setDate(startDate.getDate() +plusDaysStart);
 
                 var plusMinEnd = parseInt(sessionTimeData.endTime().substring(3,5));
                 endDate.setMinutes(prevSessionEndTime.getMinutes() +plusMinEnd);
                 var plusHoursEnd = parseInt(sessionTimeData.endTime().substring(0,2));
-                endDate.setHours(prevSessionEndTime.getHours() +plusHoursEnd);
+                endDate.setHours(endDate.getHours() +plusHoursEnd);
                 var plusDaysEnd = parseInt( sessionTimeData.maximalDaysAfterLast());
-                endDate.setDate(prevSessionEndTime.getDate() +plusDaysEnd);
+                endDate.setDate(endDate.getDate() +plusDaysEnd);
 
             }
             else{
