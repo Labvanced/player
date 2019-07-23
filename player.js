@@ -959,17 +959,19 @@ Player.prototype.setSubjectGroupNr = function(groupNr, sessionNr){
     this.blocks.forEach(function(block){
         if (block.taskRandomization()=="permutation"){
             var n = block.subTasks().length;
-            var perm = [];
-            for (var i = 0; i<n; i++){
-                perm.push(i);
-            }
-            block.subTasks()[0].reshuffle(perm);
+            if (n > 0) {
+                var perm = [];
+                for (var i = 0; i < n; i++) {
+                    perm.push(i);
+                }
+                block.subTasks()[0].reshuffle(perm);
 
-            var newArr = [];
-            for (var i = 0; i<n; i++){
-                newArr.push(block.subTasks()[perm[i]])
+                var newArr = [];
+                for (var i = 0; i < n; i++) {
+                    newArr.push(block.subTasks()[perm[i]])
+                }
+                block.subTasks(newArr);
             }
-            block.subTasks(newArr);
         }
     });
 
