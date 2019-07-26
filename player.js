@@ -483,7 +483,7 @@ Player.prototype.startExpPlayer = function(parameters) {
             return;
         }
         self.startExpPlayerResult(data);
-    }, 3 * 60 * 1000);
+    }, 5 * 60 * 1000);
 };
 
 Player.prototype.startExpPlayerResult = function(data) {
