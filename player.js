@@ -941,19 +941,22 @@ Player.prototype.setSubjectGroupNr = function(groupNr, sessionNr){
     // randomize Block Order
     if (this.exp_session.blockRandomization()=="permutation"){
         var n = this.exp_session.blocks().length;
-        var perm = [];
-        for (var i = 0; i<n; i++){
-            perm.push(i);
-        }
-        this.exp_session.blocks()[0].subTasks()[0].reshuffle(perm);
+        if (n > 0) {
+            var perm = [];
+            for (var i = 0; i < n; i++) {
+                perm.push(i);
+            }
+            ExpTrialLoop.prototype.reshuffle(perm);
 
-        var newArr = [];
-        for (var i = 0; i<n; i++){
-            newArr.push(this.exp_session.blocks()[perm[i]])
+            var newArr = [];
+            for (var i = 0; i < n; i++) {
+                newArr.push(this.exp_session.blocks()[perm[i]])
+            }
+            this.exp_session.blocks(newArr);
         }
-        this.exp_session.blocks(newArr);
     }
     this.blocks = this.exp_session.blocks();
+
     // randomize Task Order
     var self=this;
     this.blocks.forEach(function(block){
@@ -964,7 +967,7 @@ Player.prototype.setSubjectGroupNr = function(groupNr, sessionNr){
                 for (var i = 0; i < n; i++) {
                     perm.push(i);
                 }
-                block.subTasks()[0].reshuffle(perm);
+                ExpTrialLoop.prototype.reshuffle(perm);
 
                 var newArr = [];
                 for (var i = 0; i < n; i++) {
