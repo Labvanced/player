@@ -1344,6 +1344,10 @@ Player.prototype.startRunningTask = function() {
         } else {                                        // 'regular' non-joint Experiment
             // start randomization:
             this.randomizedTrials = this.currentTask.doTrialRandomization(self.subjCounterGlobal, self.subjCounterPerGroup);
+            if (this.randomizedTrials.length == 0) {
+                self.finishSessionWithError("The trial randomization settings in this task are defined such no trial was selected for displaying.");
+                return;
+            }
             this.startFirstTrialInitialization();
         }
     }
@@ -1357,42 +1361,42 @@ Player.prototype.startFirstTrialInitialization = function(){
 
     var self = this;
 
-        console.log("randomization finished... start first trial initialization...");
-        this.addTrialViews(0,0, this.currentTask);
+    console.log("randomization finished... start first trial initialization...");
+    this.addTrialViews(0,0, this.currentTask);
 
-        self.trialIter = "waitForStart";
-        self.startRecordingsOfNewTask(function() {
+    self.trialIter = "waitForStart";
+    self.startRecordingsOfNewTask(function() {
 
-            if (self.currentTask.displayInitialCountdown()) {
+        if (self.currentTask.displayInitialCountdown()) {
+            $('#experimentViewPort').css({
+                "cursor": 'none'
+            });
+
+            $('#countdownSection').show();
+            $('#countdown').text("3");
+            setTimeout(function () {
+                $('#countdown').text("2");
+            }, 1000);
+            setTimeout(function () {
+                $('#countdown').text("1");
+            }, 2000);
+            setTimeout(function () {
+                $('#countdownSection').hide();
                 $('#experimentViewPort').css({
-                    "cursor": 'none'
+                    "cursor": 'default'
                 });
-
-                $('#countdownSection').show();
-                $('#countdown').text("3");
-                setTimeout(function () {
-                    $('#countdown').text("2");
-                }, 1000);
-                setTimeout(function () {
-                    $('#countdown').text("1");
-                }, 2000);
-                setTimeout(function () {
-                    $('#countdownSection').hide();
-                    $('#experimentViewPort').css({
-                        "cursor": 'default'
-                    });
-                    self.startNextTrial(0);
-                }, 3000);
-            }
-            else {
-                // $('#countdownSection').show();
-                // $('#countdown').text("preloading task");
-                setTimeout(function () {
-                    //  $('#countdownSection').hide();
-                    self.startNextTrial(0);
-                }, 500);
-            }
-        });
+                self.startNextTrial(0);
+            }, 3000);
+        }
+        else {
+            // $('#countdownSection').show();
+            // $('#countdown').text("preloading task");
+            setTimeout(function () {
+                //  $('#countdownSection').hide();
+                self.startNextTrial(0);
+            }, 500);
+        }
+    });
 };
 
 Player.prototype.syncTrialOrder = function() {
