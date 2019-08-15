@@ -1838,7 +1838,7 @@ Player.prototype.finishSessionWithError = function(err_msg) {
         return;
     }
     this.sessionEnded = true;
-    $("#pauseScreen").remove();
+    $("#pauseScreen").empty();
     console.log("error during experiment...");
     playerAjaxPost(
         '/errExpSession',
@@ -1867,7 +1867,7 @@ Player.prototype.finishSession = function(showEndPage) {
         // This is very important, so that the server is not DoS's in case of a player bug. Only allow sessionEnd once!
         return;
     }
-    $("#pauseScreen").remove();
+    $("#pauseScreen").empty();
     this.sessionEnded = true;
 
     if (typeof showEndPage == "string") {
