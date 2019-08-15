@@ -1053,18 +1053,23 @@ Player.prototype.startExperiment = function() {
     // enable microphone access:
     if (self.experiment.exp_data.studySettings.isAudioRecEnabled()){
         // Request permissions to record audio
-        navigator.mediaDevices.getUserMedia({audio: true})
-            .then(function (stream) {
-                self.microphone_stream = stream;
-                self.audioContext = new AudioContext();
-                setTimeout(function() {
-                    self.startExperimentContinue();
-                }, 1);
-            })
-            .catch(function (err) {
-                console.log("cannot get mic access: error: "+err);
-                self.finishSessionWithError("Error accessing your microphone. Please check your PC and browser settings and restart the experiment. Supported browsers are Chrome, Firefox and Microsoft Edge.");
-            });
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({audio: true})
+                .then(function (stream) {
+                    self.microphone_stream = stream;
+                    self.audioContext = new AudioContext();
+                    setTimeout(function() {
+                        self.startExperimentContinue();
+                    }, 1);
+                })
+                .catch(function (err) {
+                    console.log("cannot get mic access: error: "+err);
+                    self.finishSessionWithError("Error accessing your microphone. Please check your PC and browser settings and restart the experiment. Supported browsers are Chrome, Firefox and Microsoft Edge.");
+                });
+        }
+        else {
+            self.finishSessionWithError("Error accessing your microphone. Please check your PC and browser settings and restart the experiment. Supported browsers are Chrome, Firefox and Microsoft Edge.");
+        }
     }
     else {
         self.startExperimentContinue();
