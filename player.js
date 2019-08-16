@@ -1151,11 +1151,41 @@ Player.prototype.startExperimentContinue = function() {
                     self.experiment.exp_data.varSubjectNr().value().setValue(data.subjCounterGlobal);
                     self.experiment.exp_data.varSubjectNrPerSubjGroup().value().setValue(data.subjCounterPerGroup);
 
+                    // add routes to save meta data
+                    var var_data = {
+                        browserSpec: self.experiment.exp_data.varBrowserSpec().value().toJS(),
+                        versionSpec: self.experiment.exp_data.varBrowserVersionSpec().value().toJS(),
+                        systemSpec: self.experiment.exp_data.varSystemSpec().value().toJS(),
+                        agentSpec: self.experiment.exp_data.varAgentSpec().value().toJS(),
+                        crowdsourcinSubjId: self.experiment.exp_data.varCrowdsourcingSubjId().value().toJS(),
+                        crowdsourcingCode:self.experiment.exp_data.varCrowdsourcingCode().value().toJS(),
+                        subjCounterGlobal:  self.experiment.exp_data.varSubjectNr().value().toJS(),
+                        subjCounterPerGroup:  self.experiment.exp_data.varSubjectNrPerSubjGroup().value().toJS(),
+                        roleId: self.experiment.exp_data.varRoleId().value().toJS(),
+                        displayedLanguage: self.experiment.exp_data.varDisplayedLanguage().value().toJS()
+                    };
+                    playerAjaxPost(
+                        '/addMetaInfo',
+                        {
+                            expSessionNr: self.expSessionNr,
+                            var_data: var_data,
+                            expId: self.expId
+                        },
+                        function(data) {
+                            if (data.success == false) {
+                                self.finishSessionWithError("Error: " + data.msg);
+                                return
+                            }
+                            console.log('recorded meta info');
+                            startRunning();
+                        }
 
-                    startRunning();
+                    );
+
                 },
                 20 * 1000
             );
+
         }
         else {
             self.subjCounterGlobal = 1;
