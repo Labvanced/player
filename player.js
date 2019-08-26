@@ -784,6 +784,7 @@ Player.prototype.getAllFramesOrPagesInSession = function() {
     var expSessionSpec = this.experiment.exp_data.availableGroups()[this.groupNr-1].sessions()[this.sessionNr-1];
     if (!expSessionSpec) {
         this.finishSessionWithError("experiment session sessionNr="+this.sessionNr+" is not defined in subject group groupNr="+this.groupNr);
+        return;
     }
     var blocks = expSessionSpec.blocks();
     for (var i = 0; i<blocks.length; i++){
