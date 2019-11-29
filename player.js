@@ -260,12 +260,20 @@ var Player = function() {
 
     this.externalWebsocket = null;
 
+    function getParameterByName(name) {
+        name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+        var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+            results = regex.exec(location.search);
+        return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+    }
+
     // determine whether this is a crowdsourcingSession
     this.crowdsourcingCode = ko.observable('');
     this.isCrowdsourcingSession = ko.observable(false);
     this.crowdsourcingType= ko.observable("code");
     var isCrowdsourcingSession = getParameterByName("crowdsourcing");
     var csType = getParameterByName("type");
+
     if (isCrowdsourcingSession =="true"){
         this.crowdsourcingCode(guid());
         this.isCrowdsourcingSession(true);
@@ -275,9 +283,10 @@ var Player = function() {
         else if (csType =="code"){
             this.crowdsourcingType("code");
         }
-
+        else if (csType =="csv"){
+            this.crowdsourcingType("csv");
+        }
     }
-
 
     // readout userName
     this.registeredUserSession = false;
@@ -293,13 +302,6 @@ var Player = function() {
 
     this.playerPreloader = new PlayerPreloader(this);
     this.playerFileUploader = new PlayerFileUploader(this);
-
-    function getParameterByName(name) {
-        name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-        var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-            results = regex.exec(location.search);
-        return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-    }
 
     this.expId = getParameterByName("id");
     this.guid = getParameterByName("guid");
@@ -329,6 +331,8 @@ var Player = function() {
     }
     this.subject_code = getParameterByName("subject_code");
 
+    this.crowdsourcinSubjId = getParameterByName("user_id"); // this can be supplied by clickworker as the clickworker-ID and will be autofilled in the startup page
+    
     this.token = getParameterByName("token");
     this.prevSessionData = null;
 
@@ -521,7 +525,11 @@ Player.prototype.startExpPlayerResult = function(data) {
     }
 
     console.log("experiment spec loaded from server.");
-
+    if (data.hasOwnProperty('crowdsourcingCodeCsv')) {
+        if (self.isCrowdsourcingSession() && self.crowdsourcingType() == "csv") {
+            self.crowdsourcingCode(data.crowdsourcingCodeCsv);
+        }
+    }
     if (data.groupNr) {
         self.groupNrAssignedByServer = data.groupNr;
     }
