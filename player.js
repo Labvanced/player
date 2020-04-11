@@ -273,19 +273,21 @@ var Player = function () {
     this.crowdsourcingType = ko.observable("code");
     var isCrowdsourcingSession = getParameterByName("crowdsourcing");
     var csType = getParameterByName("type");
-    this.sonaCompletionLink = ko.observable("");
 
-    if (isCrowdsourcingSession == "true") {
+    if (isCrowdsourcingSession == "true" || csType) {
         this.crowdsourcingCode(guid());
         this.isCrowdsourcingSession(true);
         if (csType == "link") {
-            this.crowdsourcingType("link");
+            this.crowdsourcingType("link")
         }
         else if (csType == "code") {
             this.crowdsourcingType("code");
         }
         else if (csType == "csv") {
             this.crowdsourcingType("csv");
+        }
+        else if (csType == "sona") {
+            this.crowdsourcingType("sona");
         }
     }
     if (csType == "sona") {
@@ -1912,9 +1914,6 @@ Player.prototype.finishSessionWithError = function (err_msg) {
 
 Player.prototype.finishSession = function (showEndPage) {
     var self = this;
-    var link = this.experiment.publishing_data.completionLink() + '&survey_code=' + this.subject_code;
-    console.log(link);
-    this.sonaCompletionLink(link);
     if (this.sessionEnded) {
         // This is very important, so that the server is not DoS's in case of a player bug. Only allow sessionEnd once!
         return;
