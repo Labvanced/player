@@ -269,30 +269,30 @@ var Player = function () {
 
     // determine whether this is a crowdsourcingSession
     this.crowdsourcingCode = ko.observable('');
-    this.isCrowdsourcingSession = ko.observable(false);
+    this.isPlayerCalledWithType = ko.observable(false);
     this.crowdsourcingType = ko.observable("code");
     var isCrowdsourcingSession = getParameterByName("crowdsourcing");
     var csType = getParameterByName("type");
+    this.askForWorkerId = ko.observable(false);
 
-    if (isCrowdsourcingSession == "true") {
+    if (csType || isCrowdsourcingSession == "true") {
         this.crowdsourcingCode(guid());
-        this.isCrowdsourcingSession(true);
+        this.isPlayerCalledWithType(true);
         if (csType == "link") {
             this.crowdsourcingType("link")
+            this.askForWorkerId(true);
         }
         else if (csType == "code") {
             this.crowdsourcingType("code");
+            this.askForWorkerId(true);
         }
         else if (csType == "csv") {
             this.crowdsourcingType("csv");
+            this.askForWorkerId(true);
         }
         else if (csType == "sona") {
             this.crowdsourcingType("sona");
         }
-    }
-    if (csType == "sona") {
-        this.crowdsourcingType("sona");
-
     }
 
     // readout userName
@@ -533,7 +533,7 @@ Player.prototype.startExpPlayerResult = function (data) {
 
     console.log("experiment spec loaded from server.");
     if (data.hasOwnProperty('crowdsourcingCodeCsv')) {
-        if (self.isCrowdsourcingSession() && self.crowdsourcingType() == "csv") {
+        if (self.isPlayerCalledWithType() && self.crowdsourcingType() == "csv") {
             self.crowdsourcingCode(data.crowdsourcingCodeCsv);
         }
     }
@@ -1952,7 +1952,7 @@ Player.prototype.finishSession = function (showEndPage) {
     //  this.experiment.exp_data.varTimeMeasureSpecMax().value().value(maxDelay);
 
     // set crowdsourcingCode
-    if (this.isCrowdsourcingSession()) {
+    if (this.isPlayerCalledWithType()) {
         this.experiment.exp_data.varCrowdsourcingCode().value().value(this.crowdsourcingCode());
     }
 
