@@ -1,10 +1,10 @@
 // copyright by Caspar Goeke and Holger Finger
 
 
-function is_nwjs(){
-    try{
+function is_nwjs() {
+    try {
         return (typeof require('nw.gui') !== "undefined");
-    } catch (e){
+    } catch (e) {
         return false;
     }
 }
@@ -37,14 +37,14 @@ if (is_nwjs()) {
 
     function writeFileNwjs(dataToSave, filename, callback) {
         var file_guid = sec_file_guid();
-        var offlineExpFolder = path.join(nw.App.dataPath, "studies", "exp_"+player.expId);
+        var offlineExpFolder = path.join(nw.App.dataPath, "studies", "exp_" + player.expId);
         mkdirIfNotExist(path.join(offlineExpFolder, "recordings"));
-        var filePath = path.join(offlineExpFolder, "recordings", ""+exp_subject_id, file_guid, filename);
+        var filePath = path.join(offlineExpFolder, "recordings", "" + exp_subject_id, file_guid, filename);
         mkdirIfNotExist(path.join(offlineExpFolder, "recordings"));
-        mkdirIfNotExist(path.join(offlineExpFolder, "recordings", ""+exp_subject_id));
-        mkdirIfNotExist(path.join(offlineExpFolder, "recordings", ""+exp_subject_id, file_guid));
+        mkdirIfNotExist(path.join(offlineExpFolder, "recordings", "" + exp_subject_id));
+        mkdirIfNotExist(path.join(offlineExpFolder, "recordings", "" + exp_subject_id, file_guid));
 
-        console.log("writing nwjs recording file for rec_session_id = "+rec_session_id);
+        console.log("writing nwjs recording file for rec_session_id = " + rec_session_id);
 
         fs.writeFile(filePath, new Buffer(dataToSave), function (err) {
             if (err) {
@@ -58,22 +58,22 @@ if (is_nwjs()) {
                     file_guid: file_guid,
                     filename: filename
                 };
-                db.rec_files.add(rec_file_data).then(function(rec_file_id){
+                db.rec_files.add(rec_file_data).then(function (rec_file_id) {
                     callback(file_guid);
-                }).catch(function(error) {
-                    alert ("Ooops: " + error);
+                }).catch(function (error) {
+                    alert("Ooops: " + error);
                 });
             }
         });
     };
 
     // replace server routes with alternatives for offline version:
-    playerAjaxPost = function(route, p, callback, timeout) {
+    playerAjaxPost = function (route, p, callback, timeout) {
 
-        if (route=="/startExpPlayer") {
+        if (route == "/startExpPlayer") {
 
-            var jsonPath = path.join(nw.App.dataPath, "studies", "exp_"+p.expId, "exp.json");
-            fs.readFile(jsonPath, function(err, rawdata) {
+            var jsonPath = path.join(nw.App.dataPath, "studies", "exp_" + p.expId, "exp.json");
+            fs.readFile(jsonPath, function (err, rawdata) {
                 callback({
                     success: true,
                     expData: JSON.parse(rawdata),
@@ -82,7 +82,7 @@ if (is_nwjs()) {
             });
         }
 
-        if (route=="/startFirstPlayerSession") {
+        if (route == "/startFirstPlayerSession") {
             sessionNr = player.sessionNr;
             groupNr = player.groupNr;
             var exp_subject_data = {
@@ -93,7 +93,7 @@ if (is_nwjs()) {
                 last_completed_session_nr: p.last_completed_session_nr,
                 add_time: pgFormatDate(new Date())
             };
-            db.exp_subjects.add(exp_subject_data).then(function(new_id){
+            db.exp_subjects.add(exp_subject_data).then(function (new_id) {
                 exp_subject_id = new_id;
                 var rec_session_data = {
                     exp_subject_id: exp_subject_id,
@@ -101,9 +101,9 @@ if (is_nwjs()) {
                     start_time: null
                 };
                 return db.rec_sessions.add(rec_session_data);
-            }).then(function(new_id){
+            }).then(function (new_id) {
                 rec_session_id = new_id;
-                console.log("rec_session_id = "+rec_session_id);
+                console.log("rec_session_id = " + rec_session_id);
 
                 // update list of recordings:
                 win.refreshList();
@@ -114,12 +114,12 @@ if (is_nwjs()) {
                         success: true
                     });
                 }
-            }).catch(function(error) {
-                alert ("Ooops: " + error);
+            }).catch(function (error) {
+                alert("Ooops: " + error);
             });
         }
 
-        if (route=="/setPlayerSessionStartedTime") {
+        if (route == "/setPlayerSessionStartedTime") {
             // set start time of session:
             var rec_session_changes = {
                 start_time: p.start_time
@@ -132,7 +132,7 @@ if (is_nwjs()) {
             });
         }
 
-        if (route=="/recordStartTask") {
+        if (route == "/recordStartTask") {
             var rec_task_data = {
                 rec_session_id: rec_session_id,
                 block_nr: p.blockNr,
@@ -141,7 +141,7 @@ if (is_nwjs()) {
                 task_id: p.taskId,
                 start_time: p.start_time
             };
-            db.rec_task.add(rec_task_data).then (function(new_id){
+            db.rec_task.add(rec_task_data).then(function (new_id) {
                 rec_task_id = new_id;
                 if (callback) {
                     callback({
@@ -149,12 +149,12 @@ if (is_nwjs()) {
                         recTaskId: rec_task_id
                     });
                 }
-            }).catch(function(error) {
-                alert ("Ooops: " + error);
+            }).catch(function (error) {
+                alert("Ooops: " + error);
             });
         }
 
-        if (route=="/recordTrial") {
+        if (route == "/recordTrial") {
             var rec_trial_data = {
                 rec_task_id: p.recTaskId,
                 trial_nr: p.trialNr,
@@ -162,18 +162,18 @@ if (is_nwjs()) {
             };
 
             // TODO check whether entry for the current trial already exists. If it does replace instead of insert the variables.
-            db.rec_trial.put(rec_trial_data).then(function(){
+            db.rec_trial.put(rec_trial_data).then(function () {
                 if (callback) {
                     callback({
                         success: true
                     });
                 }
-            }).catch(function(error) {
-                alert ("Ooops: " + error);
+            }).catch(function (error) {
+                alert("Ooops: " + error);
             });
         }
 
-        if (route=="/errExpSession") {
+        if (route == "/errExpSession") {
             if (callback) {
                 callback({
                     success: true
@@ -181,11 +181,11 @@ if (is_nwjs()) {
             }
         }
 
-        if (route=="/finishExpSession") {
+        if (route == "/finishExpSession") {
             // add end time to session:
             var rec_session_changes = {
                 end_time: p.end_time,
-                var_data:p.var_data
+                var_data: p.var_data
             };
             db.rec_sessions.update(rec_session_id, rec_session_changes);
 
@@ -214,7 +214,7 @@ else {
 
     // all player routes must return a result with a boolean success field!
 
-    playerAjaxPost = function(route, p, callback, timeout) {
+    playerAjaxPost = function (route, p, callback, timeout) {
         if (timeout === undefined) {
             timeout = 5 * 60 * 1000; // 5 minutes is default timeout
         }
@@ -233,15 +233,15 @@ else {
             url: route,
             data: p,
             timeout: timeout,
-            error: function(jqXHR, textStatus, errorThrown) {
+            error: function (jqXHR, textStatus, errorThrown) {
                 callback({
                     success: false,
                     errorThrown: errorThrown,
                     msg: textStatus
                 });
-                console.error("error in ajax post...",errorThrown);
+                console.error("error in ajax post...", errorThrown);
             },
-            success: function(data, textStatus, jqXHR) {
+            success: function (data, textStatus, jqXHR) {
                 if (player.recordServerResponseTimes) {
                     var finishTime = (new Date()).getTime();
                     player.serverResponseTimes[serverResponseIdx].finishTime = finishTime;
@@ -254,7 +254,7 @@ else {
 
 }
 
-var Player = function() {
+var Player = function () {
 
     var self = this;
 
@@ -270,28 +270,31 @@ var Player = function() {
     // determine whether this is a crowdsourcingSession
     this.crowdsourcingCode = ko.observable('');
     this.isCrowdsourcingSession = ko.observable(false);
-    this.crowdsourcingType= ko.observable("code");
+    this.crowdsourcingType = ko.observable("code");
     var isCrowdsourcingSession = getParameterByName("crowdsourcing");
     var csType = getParameterByName("type");
 
-    if (isCrowdsourcingSession =="true"){
+    if (isCrowdsourcingSession == "true" || csType) {
         this.crowdsourcingCode(guid());
         this.isCrowdsourcingSession(true);
-        if (csType =="link"){
+        if (csType == "link") {
             this.crowdsourcingType("link")
         }
-        else if (csType =="code"){
+        else if (csType == "code") {
             this.crowdsourcingType("code");
         }
-        else if (csType =="csv"){
+        else if (csType == "csv") {
             this.crowdsourcingType("csv");
+        }
+        else if (csType == "sona") {
+            this.crowdsourcingType("sona");
         }
     }
 
     // readout userName
     this.registeredUserSession = false;
     this.username = getParameterByName("username");
-    if (this.username){
+    if (this.username) {
         this.registeredUserSession = true;
     }
 
@@ -323,7 +326,7 @@ var Player = function() {
         this.askSubjData = false;
     }
     this.isTestrun = getParameterByName("testrun");
-    if (this.isTestrun == "" || this.isTestrun == "0" || this.isTestrun == "false" || this.isTestrun==false) {
+    if (this.isTestrun == "" || this.isTestrun == "0" || this.isTestrun == "false" || this.isTestrun == false) {
         this.isTestrun = false;
     }
     else {
@@ -332,7 +335,7 @@ var Player = function() {
     this.subject_code = getParameterByName("subject_code");
 
     this.crowdsourcinSubjId = getParameterByName("user_id"); // this can be supplied by clickworker as the clickworker-ID and will be autofilled in the startup page
-    
+
     this.token = getParameterByName("token");
     this.prevSessionData = null;
 
@@ -425,7 +428,7 @@ var Player = function() {
     });
 
     this.wasPaused = this.isPaused();
-    this.isPaused.subscribe(function(isPausedNew) {
+    this.isPaused.subscribe(function (isPausedNew) {
         if (!self.wasPaused && isPausedNew) {
             if (self.currentFrame) {
                 self.currentFrame.pauseFrame();
@@ -443,8 +446,8 @@ var Player = function() {
         self.wasPaused = isPausedNew;
     });
 
-    Webcam.on("error", function(err_msg){
-        console.log("webcam error: "+err_msg);
+    Webcam.on("error", function (err_msg) {
+        console.log("webcam error: " + err_msg);
         self.finishSessionWithError(err_msg);
     });
 
@@ -458,7 +461,7 @@ var Player = function() {
         askSubjData: this.askSubjData
     };
 
-    createExpDesignComponents(function() {
+    createExpDesignComponents(function () {
 
         if (parameters.expId == "" && !is_nwjs()) {
             self.finishSessionWithError("Error: No Experiment specified.");
@@ -470,14 +473,14 @@ var Player = function() {
 
 };
 
-Player.prototype.startExpPlayer = function(parameters) {
+Player.prototype.startExpPlayer = function (parameters) {
     var self = this;
     playerAjaxPost('/startExpPlayer', parameters, function (data) {
 
         $("#loadingExpData").hide();
 
         if (data.success == false) {
-            if(data.msg==="timeout") {
+            if (data.msg === "timeout") {
                 self.finishSessionWithError("Dear participant, we are very sorry but your computer and/or internet connection are not compatible with the experiment's technical requirements. We apologize for any inconvenience. (ERROR 955)");
                 //self.finishSessionWithError("Error receiving experiment. Please check your internet connection.");
             }
@@ -490,13 +493,13 @@ Player.prototype.startExpPlayer = function(parameters) {
     }, 5 * 60 * 1000);
 };
 
-Player.prototype.startExpPlayerResult = function(data) {
+Player.prototype.startExpPlayerResult = function (data) {
 
     var self = this;
 
     if (data.hasOwnProperty('success') && data.success == false) {
         self.playerPreloader.cancel();
-        self.finishSessionWithError("Error: "+data.msg);
+        self.finishSessionWithError("Error: " + data.msg);
         return;
     }
 
@@ -508,7 +511,7 @@ Player.prototype.startExpPlayerResult = function(data) {
         newContent.load("/html_views/PasswordRequest.html", function () {
             newContent.prependTo('#passwordRequest');
             ko.applyBindings(pwRequest, newContent[0]);
-            pwRequest.init(function(password) {
+            pwRequest.init(function (password) {
                 $('#passwordRequest').remove();
                 var parameters = {
                     expId: self.expId,
@@ -555,10 +558,10 @@ Player.prototype.startExpPlayerResult = function(data) {
     console.log('expSessionNr: ' + self.expSessionNr);
 
     // fast forward by strg+q
-    if (self.experiment.exp_data.studySettings.allowSTRGQ()){
+    if (self.experiment.exp_data.studySettings.allowSTRGQ()) {
         function KeyPress(e) {
-            var evtobj = window.event? event : e;
-            if (evtobj.keyCode == 81 && evtobj.ctrlKey  && !evtobj.altKey){
+            var evtobj = window.event ? event : e;
+            if (evtobj.keyCode == 81 && evtobj.ctrlKey && !evtobj.altKey) {
                 self.pressedShortcut(true);
                 if (self.currentFrame) {
                     self.currentFrame.finishFrame();
@@ -590,7 +593,7 @@ Player.prototype.startExpPlayerResult = function(data) {
         self.expId = self.experiment.exp_id();
     }
 
-    var expPrev =  new ExperimentStartupScreen(self.experiment);
+    var expPrev = new ExperimentStartupScreen(self.experiment);
     var newContent = jQuery('<div/>');
     newContent.load("/html_views/ExperimentStartupScreen.html", function () {
         newContent.prependTo('#expPreview');
@@ -601,7 +604,7 @@ Player.prototype.startExpPlayerResult = function(data) {
 };
 
 
-Player.prototype.detectBrowserAndSystemSpecs = function() {
+Player.prototype.detectBrowserAndSystemSpecs = function () {
     var unknown = '-';
 
     // screen
@@ -614,10 +617,10 @@ Player.prototype.detectBrowserAndSystemSpecs = function() {
 
     var nVer = navigator.appVersion;
     var nAgt = navigator.userAgent;
-    var browser  = navigator.appName;
-    var version  = ''+parseFloat(navigator.appVersion);
-    var majorVersion = parseInt(navigator.appVersion,10);
-    var nameOffset,verOffset,ix;
+    var browser = navigator.appName;
+    var version = '' + parseFloat(navigator.appVersion);
+    var majorVersion = parseInt(navigator.appVersion, 10);
+    var nameOffset, verOffset, ix;
 
     // Opera
     if ((verOffset = nAgt.indexOf('Opera')) != -1) {
@@ -699,32 +702,32 @@ Player.prototype.detectBrowserAndSystemSpecs = function() {
     // system
     var os = unknown;
     var clientStrings = [
-        {s:'Windows 10', r:/(Windows 10.0|Windows NT 10.0)/},
-        {s:'Windows 8.1', r:/(Windows 8.1|Windows NT 6.3)/},
-        {s:'Windows 8', r:/(Windows 8|Windows NT 6.2)/},
-        {s:'Windows 7', r:/(Windows 7|Windows NT 6.1)/},
-        {s:'Windows Vista', r:/Windows NT 6.0/},
-        {s:'Windows Server 2003', r:/Windows NT 5.2/},
-        {s:'Windows XP', r:/(Windows NT 5.1|Windows XP)/},
-        {s:'Windows 2000', r:/(Windows NT 5.0|Windows 2000)/},
-        {s:'Windows ME', r:/(Win 9x 4.90|Windows ME)/},
-        {s:'Windows 98', r:/(Windows 98|Win98)/},
-        {s:'Windows 95', r:/(Windows 95|Win95|Windows_95)/},
-        {s:'Windows NT 4.0', r:/(Windows NT 4.0|WinNT4.0|WinNT|Windows NT)/},
-        {s:'Windows CE', r:/Windows CE/},
-        {s:'Windows 3.11', r:/Win16/},
-        {s:'Android', r:/Android/},
-        {s:'Open BSD', r:/OpenBSD/},
-        {s:'Sun OS', r:/SunOS/},
-        {s:'Linux', r:/(Linux|X11)/},
-        {s:'iOS', r:/(iPhone|iPad|iPod)/},
-        {s:'Mac OS X', r:/Mac OS X/},
-        {s:'Mac OS', r:/(MacPPC|MacIntel|Mac_PowerPC|Macintosh)/},
-        {s:'QNX', r:/QNX/},
-        {s:'UNIX', r:/UNIX/},
-        {s:'BeOS', r:/BeOS/},
-        {s:'OS/2', r:/OS\/2/},
-        {s:'Search Bot', r:/(nuhk|Googlebot|Yammybot|Openbot|Slurp|MSNBot|Ask Jeeves\/Teoma|ia_archiver)/}
+        { s: 'Windows 10', r: /(Windows 10.0|Windows NT 10.0)/ },
+        { s: 'Windows 8.1', r: /(Windows 8.1|Windows NT 6.3)/ },
+        { s: 'Windows 8', r: /(Windows 8|Windows NT 6.2)/ },
+        { s: 'Windows 7', r: /(Windows 7|Windows NT 6.1)/ },
+        { s: 'Windows Vista', r: /Windows NT 6.0/ },
+        { s: 'Windows Server 2003', r: /Windows NT 5.2/ },
+        { s: 'Windows XP', r: /(Windows NT 5.1|Windows XP)/ },
+        { s: 'Windows 2000', r: /(Windows NT 5.0|Windows 2000)/ },
+        { s: 'Windows ME', r: /(Win 9x 4.90|Windows ME)/ },
+        { s: 'Windows 98', r: /(Windows 98|Win98)/ },
+        { s: 'Windows 95', r: /(Windows 95|Win95|Windows_95)/ },
+        { s: 'Windows NT 4.0', r: /(Windows NT 4.0|WinNT4.0|WinNT|Windows NT)/ },
+        { s: 'Windows CE', r: /Windows CE/ },
+        { s: 'Windows 3.11', r: /Win16/ },
+        { s: 'Android', r: /Android/ },
+        { s: 'Open BSD', r: /OpenBSD/ },
+        { s: 'Sun OS', r: /SunOS/ },
+        { s: 'Linux', r: /(Linux|X11)/ },
+        { s: 'iOS', r: /(iPhone|iPad|iPod)/ },
+        { s: 'Mac OS X', r: /Mac OS X/ },
+        { s: 'Mac OS', r: /(MacPPC|MacIntel|Mac_PowerPC|Macintosh)/ },
+        { s: 'QNX', r: /QNX/ },
+        { s: 'UNIX', r: /UNIX/ },
+        { s: 'BeOS', r: /BeOS/ },
+        { s: 'OS/2', r: /OS\/2/ },
+        { s: 'Search Bot', r: /(nuhk|Googlebot|Yammybot|Openbot|Slurp|MSNBot|Ask Jeeves\/Teoma|ia_archiver)/ }
     ];
     for (var id in clientStrings) {
         var cs = clientStrings[id];
@@ -763,45 +766,45 @@ Player.prototype.detectBrowserAndSystemSpecs = function() {
 };
 
 Player.prototype.desiredDelayInMs = 100;
-Player.prototype.timeMeasureControl = function() {
+Player.prototype.timeMeasureControl = function () {
 
     var self = this;
     var distanceBetweenMeasures = 5000;
     var timerHandle = null;
 
-    function measureTime(){
+    function measureTime() {
         var oldTime = new Date().getTime();
-        setTimeout(function() {
+        setTimeout(function () {
             var newTime = new Date().getTime();
-            var timeDifference = newTime-oldTime;
+            var timeDifference = newTime - oldTime;
             self.timeControlArray.push(timeDifference);
             if (self.sessionEnded && timerHandle) {
                 clearTimeout(timerHandle);
             }
-        },Player.prototype.desiredDelayInMs)
+        }, Player.prototype.desiredDelayInMs)
     }
 
-    timerHandle = setInterval(measureTime,distanceBetweenMeasures);
+    timerHandle = setInterval(measureTime, distanceBetweenMeasures);
     measureTime();
 
 };
 
 
-Player.prototype.getAllFramesOrPagesInSession = function() {
+Player.prototype.getAllFramesOrPagesInSession = function () {
     var allFramesOrPages = [];
-    var expSessionSpec = this.experiment.exp_data.availableGroups()[this.groupNr-1].sessions()[this.sessionNr-1];
+    var expSessionSpec = this.experiment.exp_data.availableGroups()[this.groupNr - 1].sessions()[this.sessionNr - 1];
     if (!expSessionSpec) {
-        this.finishSessionWithError("experiment session sessionNr="+this.sessionNr+" is not defined in subject group groupNr="+this.groupNr);
+        this.finishSessionWithError("experiment session sessionNr=" + this.sessionNr + " is not defined in subject group groupNr=" + this.groupNr);
         return;
     }
     var blocks = expSessionSpec.blocks();
-    for (var i = 0; i<blocks.length; i++){
+    for (var i = 0; i < blocks.length; i++) {
         var subTasks = blocks[i].subTasks();
-        for (var j = 0; j<subTasks.length; j++) {
+        for (var j = 0; j < subTasks.length; j++) {
             var subSequences = subTasks[j].subSequencePerFactorGroup();
-            for (var l = 0; l<subSequences.length;l++) {
+            for (var l = 0; l < subSequences.length; l++) {
                 var elements = subSequences[l].elements();
-                for (var m= 0; m<elements.length;m++) {
+                for (var m = 0; m < elements.length; m++) {
                     var entity = elements[m];
                     if (entity instanceof FrameData) {
                         allFramesOrPages.push(entity);
@@ -816,7 +819,7 @@ Player.prototype.getAllFramesOrPagesInSession = function() {
     return allFramesOrPages;
 };
 
-Player.prototype.preloadAllContent = function() {
+Player.prototype.preloadAllContent = function () {
 
     var self = this;
     var contentList = [];
@@ -826,7 +829,7 @@ Player.prototype.preloadAllContent = function() {
         if (file_id) {
             var src = "/player/files/" + self.expSessionNr + "/" + file_id + "/" + file_orig_name;
             if (is_nwjs()) {
-                src = path.join(nw.App.dataPath, "studies", "exp_"+player.expId, "files", ""+file_id, file_orig_name);
+                src = path.join(nw.App.dataPath, "studies", "exp_" + player.expId, "files", "" + file_id, file_orig_name);
             }
             var fileSpec = {
                 id: file_id,
@@ -842,7 +845,7 @@ Player.prototype.preloadAllContent = function() {
 
     function deepDive(arr) {
         var t;
-        if (arr.length>0 && arr[0].constructor === Array) {
+        if (arr.length > 0 && arr[0].constructor === Array) {
             // recursive call:
             for (t = 0; t < arr.length; t++) {
                 deepDive(arr[t]);
@@ -859,16 +862,16 @@ Player.prototype.preloadAllContent = function() {
 
     // preload file in file variables
     var contentElements = this.experiment.exp_data.entities();
-    $.each(contentElements, function(idx, elem) {
-        if (elem instanceof GlobalVar  ){
-            if(elem.dataType() == "file"){
-                if(elem.dataFormat() == "scalar"){
+    $.each(contentElements, function (idx, elem) {
+        if (elem instanceof GlobalVar) {
+            if (elem.dataType() == "file") {
+                if (elem.dataFormat() == "scalar") {
                     var fileValue = elem.getValue();
                     addToContents(fileValue.id(), fileValue.name());
                 }
-                else if(elem.dataFormat() == "array"){
+                else if (elem.dataFormat() == "array") {
                     var fileValues = elem.value().getValues();
-                    $.each(fileValues, function(idx2, subFile) {
+                    $.each(fileValues, function (idx2, subFile) {
                         addToContents(subFile.id, subFile.name);
                     })
                 }
@@ -878,7 +881,7 @@ Player.prototype.preloadAllContent = function() {
 
     // parse images, video and audio elements in current session:
     var allFramesOrPages = this.getAllFramesOrPagesInSession();
-    $.each(allFramesOrPages, function(frameIdx, entity) {
+    $.each(allFramesOrPages, function (frameIdx, entity) {
 
         var contentElements = entity.elements();
         for (var k = 0; k < contentElements.length; k++) {
@@ -900,19 +903,19 @@ Player.prototype.preloadAllContent = function() {
 
         // now also add the fileIds in the actions:
         var actionsArr = [];
-        $.each(entity.events(), function(idx, event) {
+        $.each(entity.events(), function (idx, event) {
             event.getAllActions(actionsArr);
         });
-        $.each(actionsArr, function(idx, action) {
+        $.each(actionsArr, function (idx, action) {
             if (action instanceof ActionLoadFileIds) {
-                $.each(action.files(), function(fileIdx, fileSpec) {
+                $.each(action.files(), function (fileIdx, fileSpec) {
                     addToContents(fileSpec.id, fileSpec.name_original);
                 });
             }
         });
     });
 
-    if (this.experiment.exp_data.studySettings.disablePreloadingResources() || contentList.length==0) {
+    if (this.experiment.exp_data.studySettings.disablePreloadingResources() || contentList.length == 0) {
         this.preloaderCompleted(true);
     }
     else {
@@ -920,20 +923,20 @@ Player.prototype.preloadAllContent = function() {
     }
 };
 
-Player.prototype.setSubjectGroupNr = function(groupNr, sessionNr){
+Player.prototype.setSubjectGroupNr = function (groupNr, sessionNr) {
     this.groupNr = groupNr;
     this.sessionNr = sessionNr;
 
-    console.log("groupNr="+groupNr+ " sessionNr="+sessionNr);
+    console.log("groupNr=" + groupNr + " sessionNr=" + sessionNr);
 
-    this.subj_group = this.experiment.exp_data.availableGroups()[this.groupNr-1];
+    this.subj_group = this.experiment.exp_data.availableGroups()[this.groupNr - 1];
     if (!this.subj_group) {
         console.log(this.experiment.exp_data.staticStrings().playerErrorNoSubjGroup);
         this.finishSessionWithError(this.experiment.exp_data.staticStrings().playerErrorNoSubjGroup);
         return;
     }
 
-    this.exp_session = this.subj_group.sessions()[this.sessionNr-1];
+    this.exp_session = this.subj_group.sessions()[this.sessionNr - 1];
     if (!this.exp_session) {
         console.log(this.experiment.exp_data.staticStrings().playerErrorNoSession);
         this.finishSessionWithError(this.experiment.exp_data.staticStrings().playerErrorNoSession);
@@ -948,7 +951,7 @@ Player.prototype.setSubjectGroupNr = function(groupNr, sessionNr){
     }
 
     // randomize Block Order
-    if (this.exp_session.blockRandomization()=="permutation"){
+    if (this.exp_session.blockRandomization() == "permutation") {
         var n = this.exp_session.blocks().length;
         if (n > 0) {
             var perm = [];
@@ -967,9 +970,9 @@ Player.prototype.setSubjectGroupNr = function(groupNr, sessionNr){
     this.blocks = this.exp_session.blocks();
 
     // randomize Task Order
-    var self=this;
-    this.blocks.forEach(function(block){
-        if (block.taskRandomization()=="permutation"){
+    var self = this;
+    this.blocks.forEach(function (block) {
+        if (block.taskRandomization() == "permutation") {
             var n = block.subTasks().length;
             if (n > 0) {
                 var perm = [];
@@ -999,17 +1002,17 @@ Player.prototype.setSubjectGroupNr = function(groupNr, sessionNr){
 
 };
 
-Player.prototype.runCalibration = function(callback) {
+Player.prototype.runCalibration = function (callback) {
     var self = this;
 
     var picWidthHeightRatio = 85.60 / 53.98;
-    var displayDiagInPx = Math.sqrt(screen.width*screen.width + screen.height*screen.height);
+    var displayDiagInPx = Math.sqrt(screen.width * screen.width + screen.height * screen.height);
     var convertInchToMM = 0.0393700787402;
 
-    $( "#creditCard" ).resizable({
+    $("#creditCard").resizable({
         aspectRatio: picWidthHeightRatio,
-        handles: { 'e': '.ui-resizable-e'},
-        resize: function(event, ui){
+        handles: { 'e': '.ui-resizable-e' },
+        resize: function (event, ui) {
             var creditWidthInPixel = ui.size.width;
             self.PixelDensityPerMM = creditWidthInPixel / 85.60;
 
@@ -1018,7 +1021,7 @@ Player.prototype.runCalibration = function(callback) {
             var displayDiagInInch = displayDiagInMM * convertInchToMM;
             $("#calibrationInput").val(displayDiagInInch);
 
-            console.log("creditWidthInPixel=" + creditWidthInPixel + " PixelDensityPerMM="+self.PixelDensityPerMM);
+            console.log("creditWidthInPixel=" + creditWidthInPixel + " PixelDensityPerMM=" + self.PixelDensityPerMM);
         }
     });
 
@@ -1029,10 +1032,10 @@ Player.prototype.runCalibration = function(callback) {
 
         // set size of image:
         var creditWidthInPixel = self.PixelDensityPerMM * 85.60;
-        $( "#creditCard" ).width(creditWidthInPixel);
-        $( "#creditCard" ).height(creditWidthInPixel / picWidthHeightRatio);
+        $("#creditCard").width(creditWidthInPixel);
+        $("#creditCard").height(creditWidthInPixel / picWidthHeightRatio);
 
-        console.log("displayDiagInPx="+displayDiagInPx+" displayDiagInMM="+displayDiagInMM+" PixelDensityPerMM="+self.PixelDensityPerMM);
+        console.log("displayDiagInPx=" + displayDiagInPx + " displayDiagInMM=" + displayDiagInMM + " PixelDensityPerMM=" + self.PixelDensityPerMM);
     }
     $("#calibrationInput").on('change keyup mouseup', numberInputChanged);
 
@@ -1048,7 +1051,7 @@ Player.prototype.runCalibration = function(callback) {
 };
 
 
-Player.prototype.setupPlayerDesign = function() {
+Player.prototype.setupPlayerDesign = function () {
 
     $('#experimentViewPort').css({
         "background-color": this.experiment.exp_data.studySettings.bgColor()
@@ -1056,23 +1059,23 @@ Player.prototype.setupPlayerDesign = function() {
 };
 
 
-Player.prototype.startExperiment = function() {
+Player.prototype.startExperiment = function () {
     var self = this;
 
     // enable microphone access:
-    if (self.experiment.exp_data.studySettings.isAudioRecEnabled()){
+    if (self.experiment.exp_data.studySettings.isAudioRecEnabled()) {
         // Request permissions to record audio
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-            navigator.mediaDevices.getUserMedia({audio: true})
+            navigator.mediaDevices.getUserMedia({ audio: true })
                 .then(function (stream) {
                     self.microphone_stream = stream;
                     self.audioContext = new AudioContext();
-                    setTimeout(function() {
+                    setTimeout(function () {
                         self.startExperimentContinue();
                     }, 1);
                 })
                 .catch(function (err) {
-                    console.log("cannot get mic access: error: "+err);
+                    console.log("cannot get mic access: error: " + err);
                     self.finishSessionWithError("Error accessing your microphone. Please check your PC and browser settings and restart the experiment. Supported browsers are Chrome, Firefox and Microsoft Edge.");
                 });
         }
@@ -1085,14 +1088,14 @@ Player.prototype.startExperiment = function() {
     }
 };
 
-Player.prototype.startExperimentContinue = function() {
+Player.prototype.startExperimentContinue = function () {
 
     this.timeMeasureControl();
 
     this.setupPlayerDesign();
 
     var self = this;
-    if (this.runOnlyTaskId){
+    if (this.runOnlyTaskId) {
         // run a test task session:
         this.currentTaskIdx = NaN;
 
@@ -1102,7 +1105,7 @@ Player.prototype.startExperimentContinue = function() {
         this.currentTask = this.experiment.exp_data.entities.byId[this.runOnlyTaskId];
         if (this.currentTask.zoomMode() === "visualDegree" || this.currentTask.zoomMode() === "millimeter") {
             // first run calibration:
-            this.runCalibration(function() {
+            this.runCalibration(function () {
                 self.startRunningTask();
             });
         }
@@ -1126,7 +1129,7 @@ Player.prototype.startExperimentContinue = function() {
         function startRunning() {
             if (needsCalibration) {
                 // first run calibration:
-                self.runCalibration(function() {
+                self.runCalibration(function () {
                     self.startNextBlock();
                 });
             }
@@ -1143,7 +1146,7 @@ Player.prototype.startExperimentContinue = function() {
                 },
                 function (data) {
                     if (data.success == false) {
-                        if(data.msg==="timeout") {
+                        if (data.msg === "timeout") {
                             self.finishSessionWithError("Dear participant, we are very sorry but your computer and/or internet connection are not compatible with the experiment's technical requirements. We apologize for any inconvenience. (ERROR 956)");
                             //self.finishSessionWithError("Our server is overloaded at the moment (error setting start time). Please come back later.");
                         }
@@ -1167,9 +1170,9 @@ Player.prototype.startExperimentContinue = function() {
                         systemSpec: self.experiment.exp_data.varSystemSpec().value().toJS(),
                         agentSpec: self.experiment.exp_data.varAgentSpec().value().toJS(),
                         crowdsourcinSubjId: self.experiment.exp_data.varCrowdsourcingSubjId().value().toJS(),
-                        crowdsourcingCode:self.experiment.exp_data.varCrowdsourcingCode().value().toJS(),
-                        subjCounterGlobal:  self.experiment.exp_data.varSubjectNr().value().toJS(),
-                        subjCounterPerGroup:  self.experiment.exp_data.varSubjectNrPerSubjGroup().value().toJS(),
+                        crowdsourcingCode: self.experiment.exp_data.varCrowdsourcingCode().value().toJS(),
+                        subjCounterGlobal: self.experiment.exp_data.varSubjectNr().value().toJS(),
+                        subjCounterPerGroup: self.experiment.exp_data.varSubjectNrPerSubjGroup().value().toJS(),
                         roleId: self.experiment.exp_data.varRoleId().value().toJS(),
                         displayedLanguage: self.experiment.exp_data.varDisplayedLanguage().value().toJS()
                     };
@@ -1180,7 +1183,7 @@ Player.prototype.startExperimentContinue = function() {
                             var_data: var_data,
                             expId: self.expId
                         },
-                        function(data) {
+                        function (data) {
                             if (data.success == false) {
                                 self.finishSessionWithError("Error: " + data.msg);
                                 return
@@ -1208,21 +1211,21 @@ Player.prototype.startExperimentContinue = function() {
     }
 };
 
-Player.prototype.startNextBlock = function() {
+Player.prototype.startNextBlock = function () {
     this.currentBlockIdx++;
-    if (this.blocks.length <= this.currentBlockIdx){
+    if (this.blocks.length <= this.currentBlockIdx) {
         console.log("experiment session finished");
         this.finishSession(true);
     }
     else {
-        console.log("starting block "+this.currentBlockIdx);
+        console.log("starting block " + this.currentBlockIdx);
         this.currentBlock = this.blocks[this.currentBlockIdx];
         this.currentTaskIdx = -1;
         this.jumpToNextTask();
     }
 };
 
-Player.prototype.jumpToNextTask = function() {
+Player.prototype.jumpToNextTask = function () {
     if (this.runOnlyTaskId) {
         this.finishSession(true);
     }
@@ -1236,14 +1239,14 @@ Player.prototype.jumpToNextTask = function() {
     }
 };
 
-Player.prototype.setSpecificBlockAndTask = function(blockIndex,taskIndex) {
+Player.prototype.setSpecificBlockAndTask = function (blockIndex, taskIndex) {
     this.currentBlockIdx = blockIndex;
-    if (this.blocks.length <= this.currentBlockIdx){
+    if (this.blocks.length <= this.currentBlockIdx) {
         console.log("experiment session finished");
         this.finishSession(true);
     }
     else {
-        console.log("starting block "+this.currentBlockIdx);
+        console.log("starting block " + this.currentBlockIdx);
         this.currentBlock = this.blocks[this.currentBlockIdx];
         this.currentTaskIdx = taskIndex;
         this.currentTask = this.currentBlock.subTasks()[this.currentTaskIdx];
@@ -1252,7 +1255,7 @@ Player.prototype.setSpecificBlockAndTask = function(blockIndex,taskIndex) {
 };
 
 
-Player.prototype.jumpToSpecificTask = function(taskToJumpId) {
+Player.prototype.jumpToSpecificTask = function (taskToJumpId) {
     if (this.runOnlyTaskId) {
         this.finishSession(true);
     }
@@ -1262,12 +1265,12 @@ Player.prototype.jumpToSpecificTask = function(taskToJumpId) {
 
         var found = false;
         var blockIdx = this.currentBlockIdx;
-        while (!found && blockIdx<this.blocks.length){
+        while (!found && blockIdx < this.blocks.length) {
             var tasks = this.blocks[blockIdx].subTasks();
             var taskIdx = 0;
-            while (!found && taskIdx<tasks.length){
-                if (tasks[taskIdx].id()===taskToJumpId){ // taskID found
-                    this.setSpecificBlockAndTask(blockIdx,taskIdx);
+            while (!found && taskIdx < tasks.length) {
+                if (tasks[taskIdx].id() === taskToJumpId) { // taskID found
+                    this.setSpecificBlockAndTask(blockIdx, taskIdx);
                     found = true;
                 }
                 taskIdx++;
@@ -1278,7 +1281,7 @@ Player.prototype.jumpToSpecificTask = function(taskToJumpId) {
 };
 
 
-Player.prototype.jumpToSpecificBlock = function(blockToJumpId) {
+Player.prototype.jumpToSpecificBlock = function (blockToJumpId) {
     if (this.runOnlyTaskId) {
         this.finishSession(true);
     }
@@ -1288,9 +1291,9 @@ Player.prototype.jumpToSpecificBlock = function(blockToJumpId) {
 
         var found = false;
         var blockIdx = 0;//this.currentBlockIdx+1;
-        while (!found && blockIdx<this.blocks.length){
-            if (this.blocks[blockIdx].id()===blockToJumpId){ // taskID found
-                this.setSpecificBlockAndTask(blockIdx,0);
+        while (!found && blockIdx < this.blocks.length) {
+            if (this.blocks[blockIdx].id() === blockToJumpId) { // taskID found
+                this.setSpecificBlockAndTask(blockIdx, 0);
                 found = true;
             }
             blockIdx++;
@@ -1299,21 +1302,21 @@ Player.prototype.jumpToSpecificBlock = function(blockToJumpId) {
 };
 
 
-Player.prototype.startRunningTask = function() {
+Player.prototype.startRunningTask = function () {
     var self = this;
 
-    if (this.currentTask){
+    if (this.currentTask) {
         // start initialization of trials: Randomization and Preloading:
         this.trialIter = "init";
         console.log("start initialization of trials: Randomization and Preloading");
 
-        if (this.currentTask.webcamEnabled() && !this.webcamLoaded){
+        if (this.currentTask.webcamEnabled() && !this.webcamLoaded) {
             Webcam.attach("#my_camera");
-            Webcam.on("load", function() {
+            Webcam.on("load", function () {
                 Webcam.off("load");
                 console.log("webcam loaded");
                 self.webcamLoaded = true;
-                setTimeout(function(){
+                setTimeout(function () {
                     self.jumpToNextTask();
                 }, 1000);
             });
@@ -1322,7 +1325,7 @@ Player.prototype.startRunningTask = function() {
 
         // create array with variables that need to be reset after each trial: (the actual reset is done further below)
         var allFrameDataInTrial = [];
-        $.each(this.currentTask.subSequencePerFactorGroup(), function(idx, subSequence) {
+        $.each(this.currentTask.subSequencePerFactorGroup(), function (idx, subSequence) {
             allFrameDataInTrial = allFrameDataInTrial.concat(subSequence.elements());
         });
         this.variablesToReset = [];
@@ -1331,12 +1334,12 @@ Player.prototype.startRunningTask = function() {
         var variablesToResetById = {};
         var variablesToRecordById = {};
 
-        for (var i=0; i<allFrameDataInTrial.length; i++){
+        for (var i = 0; i < allFrameDataInTrial.length; i++) {
             var allVariablesInFrame = allFrameDataInTrial[i].localWorkspaceVars();
 
-            for (var j=0; j<allVariablesInFrame.length; j++){
+            for (var j = 0; j < allVariablesInFrame.length; j++) {
                 // if variable was not initialized then do it now:
-                if (allVariablesInFrame[j].value()==null) {
+                if (allVariablesInFrame[j].value() == null) {
                     allVariablesInFrame[j].initValue();
                 }
                 if (allVariablesInFrame[j].resetAtTrialStart()) {
@@ -1362,15 +1365,15 @@ Player.prototype.startRunningTask = function() {
         this.variablesToRecord.push(this.experiment.exp_data.varConditionId());
 
         // ad role id if experiment is joint experiment
-        if(this.experiment.exp_data.isJointExp()){
+        if (this.experiment.exp_data.isJointExp()) {
             this.variablesToRecord.push(this.experiment.exp_data.varRoleId());
         }
 
         // add all factor vars to recordings
         var allEntities = this.experiment.exp_data.entities();
-        for (var i=0; i<allEntities.length; i++){
+        for (var i = 0; i < allEntities.length; i++) {
             if (allEntities[i].type == "GlobalVar") {
-                if(allEntities[i].isFactor() && allEntities[i].levels().length>1){
+                if (allEntities[i].isFactor() && allEntities[i].levels().length > 1) {
                     this.factorsVars.push(allEntities[i]);
                     this.variablesToRecord.push(allEntities[i]);
                 }
@@ -1381,9 +1384,9 @@ Player.prototype.startRunningTask = function() {
         if (this.currentBlock) {
             this.experiment.exp_data.varBlockName().value().value(this.currentBlock.name());
         }
-        this.experiment.exp_data.varBlockNr().value().value(this.currentBlockIdx+1);
+        this.experiment.exp_data.varBlockNr().value().value(this.currentBlockIdx + 1);
         this.experiment.exp_data.varTaskName().value().value(this.currentTask.name());
-        this.experiment.exp_data.varTaskNr().value().value(this.currentTaskIdx+1);
+        this.experiment.exp_data.varTaskNr().value().value(this.currentTaskIdx + 1);
 
         if (this.experiment.exp_data.isJointExp()) {    // synchronize trials among participants
             self.syncTrialOrder();
@@ -1398,21 +1401,21 @@ Player.prototype.startRunningTask = function() {
             this.startFirstTrialInitialization();
         }
     }
-    else{
+    else {
         this.startNextBlock();
     }
 
 };
 
-Player.prototype.startFirstTrialInitialization = function(){
+Player.prototype.startFirstTrialInitialization = function () {
 
     var self = this;
 
     console.log("randomization finished... start first trial initialization...");
-    this.addTrialViews(0,0, this.currentTask);
+    this.addTrialViews(0, 0, this.currentTask);
 
     self.trialIter = "waitForStart";
-    self.startRecordingsOfNewTask(function() {
+    self.startRecordingsOfNewTask(function () {
 
         if (self.currentTask.displayInitialCountdown()) {
             $('#experimentViewPort').css({
@@ -1446,7 +1449,7 @@ Player.prototype.startFirstTrialInitialization = function(){
     });
 };
 
-Player.prototype.syncTrialOrder = function() {
+Player.prototype.syncTrialOrder = function () {
 
     // Do randomization first (even if other randomization will be assigned from server)
 
@@ -1455,7 +1458,7 @@ Player.prototype.syncTrialOrder = function() {
 
     var trialOrderData = [];
 
-    for(var i=0; i<this.randomizedTrials.length; i++){
+    for (var i = 0; i < this.randomizedTrials.length; i++) {
 
         // retrieve relevant data
         var trialVariation = this.randomizedTrials[i].trialVariation;
@@ -1480,7 +1483,7 @@ Player.prototype.syncTrialOrder = function() {
 
 };
 
-Player.prototype.startRecordingsOfNewTask = function(cb) {
+Player.prototype.startRecordingsOfNewTask = function (cb) {
     var self = this;
     if (!this.runOnlyTaskId && !this.isTestrun) {
 
@@ -1500,7 +1503,7 @@ Player.prototype.startRecordingsOfNewTask = function(cb) {
         playerAjaxPost(
             '/recordStartTask',
             recordData,
-            function(result) {
+            function (result) {
                 if (result.success) {
                     self.recTaskId = result.recTaskId;
                     cb();
@@ -1518,7 +1521,7 @@ Player.prototype.startRecordingsOfNewTask = function(cb) {
     }
 };
 
-Player.prototype.recordData = function() {
+Player.prototype.recordData = function () {
     var self = this;
     if (!this.runOnlyTaskId && !this.isTestrun) {
 
@@ -1550,7 +1553,7 @@ Player.prototype.recordData = function() {
     }
 };
 
-Player.prototype.processRecordTrialQueue = function() {
+Player.prototype.processRecordTrialQueue = function () {
     var self = this;
     if (this.recordTrialQueueIsUploading) {
         console.log("some previous trial upload is still in prgress...");
@@ -1575,8 +1578,8 @@ Player.prototype.processRecordTrialQueue = function() {
                         else {
                             self.retryCounter += 1;
                             var retryInMs = self.retryCounter * 300;
-                            console.log("error uploading trial data... retry in "+retryInMs+" ms...");
-                            setTimeout(function() {
+                            console.log("error uploading trial data... retry in " + retryInMs + " ms...");
+                            setTimeout(function () {
                                 self.recordTrialQueueIsUploading = false;
                                 self.processRecordTrialQueue();
                             }, retryInMs);
@@ -1598,21 +1601,21 @@ Player.prototype.processRecordTrialQueue = function() {
     }
 };
 
-Player.prototype.cleanUpCurrentTask = function() {
+Player.prototype.cleanUpCurrentTask = function () {
     this.cleanUpCurrentTrial();
     this.cleanUpNextTrial();
 };
 
-Player.prototype.cleanUpNextTrial = function() {
+Player.prototype.cleanUpNextTrial = function () {
     this.cleanUpTrial(this.nextTrialFrames, this.nextTrialDiv, this.nextSequence);
     this.nextTrialIndexPreloaded = "NOTLOADED";
 };
 
-Player.prototype.cleanUpCurrentTrial = function() {
+Player.prototype.cleanUpCurrentTrial = function () {
     this.cleanUpTrial(this.currentTrialFrames, this.currentTrialDiv, this.currentSequence);
 };
 
-Player.prototype.cleanUpTrial = function(currentTrialFrames, currentTrialDiv, currentSequence) {
+Player.prototype.cleanUpTrial = function (currentTrialFrames, currentTrialDiv, currentSequence) {
     if (currentTrialFrames) {
         for (var oldTrialFrameKeys in currentTrialFrames) {
             if (currentTrialFrames.hasOwnProperty(oldTrialFrameKeys)) {
@@ -1626,12 +1629,12 @@ Player.prototype.cleanUpTrial = function(currentTrialFrames, currentTrialDiv, cu
         currentTrialDiv.remove();
     }
 
-    if (currentSequence){
+    if (currentSequence) {
         currentSequence.dispose();
     }
 };
 
-Player.prototype.switchToNextPreloadedTrial = function() {
+Player.prototype.switchToNextPreloadedTrial = function () {
     // select next element from preload
     this.currentTrialFrames = this.nextTrialFrames;
     this.currentTrialDiv = this.nextTrialDiv;
@@ -1642,7 +1645,7 @@ Player.prototype.switchToNextPreloadedTrial = function() {
     this.nextSequence = null;
 };
 
-Player.prototype.startNextTrial = function(trialIndex) {
+Player.prototype.startNextTrial = function (trialIndex) {
     var self = this;
 
     if (this.trialJumpInProgress) {
@@ -1678,7 +1681,7 @@ Player.prototype.startNextTrial = function(trialIndex) {
         this.trialIter = "init"; // reset to init so that another trial loop in another block will start from the beginning
         this.trialIndex = null;
 
-        if (this.webcamLoaded){
+        if (this.webcamLoaded) {
             console.log("removing webcam");
             Webcam.reset();
             this.webcamLoaded = false;
@@ -1703,16 +1706,16 @@ Player.prototype.startNextTrial = function(trialIndex) {
 
     // set some predefined variables for this trial:
     this.experiment.exp_data.varTrialId().value().value(this.currentTrialId);
-    this.experiment.exp_data.varTrialNr().value().value(this.trialIter+1);
+    this.experiment.exp_data.varTrialNr().value().value(this.trialIter + 1);
     this.experiment.exp_data.varConditionId().value().value(trialSelection.condition.conditionIdx());
 
     // reset variables at start of trial:
-    for (var i=0; i<this.variablesToReset.length; i++){
+    for (var i = 0; i < this.variablesToReset.length; i++) {
         this.variablesToReset[i].resetValueToStartValue();
     }
 
     // set factor values
-    for (var i=0; i<this.factorsVars.length; i++){
+    for (var i = 0; i < this.factorsVars.length; i++) {
         // TODO: this.factorsVars is not needed, because we could also just do this directly by reading out the factors that are within the condition:
         var factorValue = trialSelection.condition.getCurrentValueOfFactor(this.factorsVars[i].id());
         this.factorsVars[i].value().value(factorValue);
@@ -1727,7 +1730,7 @@ Player.prototype.startNextTrial = function(trialIndex) {
         this.addTrialViews(this.trialIndex, this.trialIter, this.currentTask);
 
         // need to wait for rendering to finish:
-        setTimeout(function() {
+        setTimeout(function () {
             self.startNextTrialContinue();
         }, 1)
     }
@@ -1736,7 +1739,7 @@ Player.prototype.startNextTrial = function(trialIndex) {
     }
 };
 
-Player.prototype.startNextTrialContinue = function() {
+Player.prototype.startNextTrialContinue = function () {
     var self = this;
 
     this.switchToNextPreloadedTrial();
@@ -1749,8 +1752,8 @@ Player.prototype.startNextTrialContinue = function() {
     // preload next trial if exists:
     if (this.trialIndex + 1 < this.randomizedTrials.length) {
         // call is async to allow first to execute time critical stuff that is user facing...
-        setTimeout(function(){
-            self.addTrialViews(self.trialIndex + 1,self.trialIter + 1, self.currentTask);
+        setTimeout(function () {
+            self.addTrialViews(self.trialIndex + 1, self.trialIter + 1, self.currentTask);
             self.startNextTrialFinished();
         }, 1);
     }
@@ -1759,7 +1762,7 @@ Player.prototype.startNextTrialContinue = function() {
     }
 };
 
-Player.prototype.startNextTrialFinished = function() {
+Player.prototype.startNextTrialFinished = function () {
     // all things that were necessary for the previous jump are now finished (including preloading of next trial if there is one)..
 
     // now unlock new calls to startNextTrial:
@@ -1775,35 +1778,35 @@ Player.prototype.startNextTrialFinished = function() {
     }
 };
 
-Player.prototype.startNextPageOrFrame = function() {
+Player.prototype.startNextPageOrFrame = function () {
     // this function is just interposed to manage synchronization.
     var subsequentElement = this.currentSequence.currSelectedElement();
 
-    if(this.experiment.exp_data.isJointExp() && subsequentElement && subsequentElement.type!="EndOfSequence"){
+    if (this.experiment.exp_data.isJointExp() && subsequentElement && subsequentElement.type != "EndOfSequence") {
 
         var subsequentPageOrFrame = this.currentTrialFrames[subsequentElement.id()];
 
         // check if next page or frame needs to be synchronized
-        if(this.currentTask && this.currentTask.syncTaskStart && this.currentTask.syncTaskStart()){
+        if (this.currentTask && this.currentTask.syncTaskStart && this.currentTask.syncTaskStart()) {
             // case: sync task start
             this.currentTask.syncTaskStart(false); // deactivate once used
             this.jointExpLobby.syncNextFrame(this.currentSequence.elements().indexOf(subsequentElement), this.trialIter);
         }
-        else if( (subsequentPageOrFrame.frameData && subsequentPageOrFrame.frameData.syncFrame()) || (subsequentPageOrFrame.frameData && subsequentPageOrFrame.frameData.syncFrame()) ){
+        else if ((subsequentPageOrFrame.frameData && subsequentPageOrFrame.frameData.syncFrame()) || (subsequentPageOrFrame.frameData && subsequentPageOrFrame.frameData.syncFrame())) {
             // case: sync next frame start (skip if task start is already synchronized)
             this.jointExpLobby.syncNextFrame(this.currentSequence.elements().indexOf(subsequentElement), this.trialIter);
-        } else{
+        } else {
             this.startNextPageOrFrameOriginal();
         }
-    } else{
+    } else {
         this.startNextPageOrFrameOriginal();
     }
 };
 
-Player.prototype.startNextPageOrFrameOriginal = function() {
+Player.prototype.startNextPageOrFrameOriginal = function () {
     var currentElement = this.currentSequence.currSelectedElement();
     var frameIdx = this.currentSequence.elements().indexOf(currentElement);
-    console.log('starting frame nr: '+frameIdx +' in trial nr: '+this.trialIter);
+    console.log('starting frame nr: ' + frameIdx + ' in trial nr: ' + this.trialIter);
     switch (currentElement.type) {
         case 'FrameData':
             this.currentFrame = this.currentTrialFrames[currentElement.id()];
@@ -1818,11 +1821,11 @@ Player.prototype.startNextPageOrFrameOriginal = function() {
             this.startNextTrial(this.trialIndex + 1);
             break;
         default:
-            console.error("type "+ currentElement.type + " is not defined.");
+            console.error("type " + currentElement.type + " is not defined.");
     }
 };
 
-Player.prototype.addTrialViews = function (trialIndex,trialIter,task) {
+Player.prototype.addTrialViews = function (trialIndex, trialIter, task) {
 
     this.nextTrialDiv = $(document.createElement('div'));
     this.nextTrialDiv.css({
@@ -1838,17 +1841,17 @@ Player.prototype.addTrialViews = function (trialIndex,trialIter,task) {
     var frameDataArr = this.nextSequence.elements();
 
     this.nextTrialFrames = {};
-    for(var frameIdx =0;frameIdx<frameDataArr.length;frameIdx++){
+    for (var frameIdx = 0; frameIdx < frameDataArr.length; frameIdx++) {
 
         var frameDiv = $(document.createElement('div'));
         frameDiv.css({
-            'display':'none',
+            'display': 'none',
             "width": "100%",
             "height": "100%"
         });
         $(this.nextTrialDiv).append(frameDiv);
 
-        var playerFrame = new PlayerFrame(frameDataArr[frameIdx],frameDiv,this);
+        var playerFrame = new PlayerFrame(frameDataArr[frameIdx], frameDiv, this);
         playerFrame.trialIter = trialIter;
         //playerFrame.frameData.selectTrialType(nextTrialSelection);
         playerFrame.init();
@@ -1876,7 +1879,7 @@ Player.prototype.getBlockId = function () {
 };
 
 
-Player.prototype.finishSessionWithError = function(err_msg) {
+Player.prototype.finishSessionWithError = function (err_msg) {
     if (this.sessionEnded) {
         // This is very important, so that the server is not DoS's in case of a player bug. Only allow sessionEnd once!
         return;
@@ -1889,7 +1892,7 @@ Player.prototype.finishSessionWithError = function(err_msg) {
         {
             err_msg: err_msg
         },
-        function(data) {
+        function (data) {
             if (data.success == false) {
                 console.error("cannot sent error to server...")
             }
@@ -1900,12 +1903,12 @@ Player.prototype.finishSessionWithError = function(err_msg) {
     $('#sectionPreload').hide();
     $('#errEndExpSection').show();
     $('#err_msg').text(err_msg);
-    $('#errEndExp').click(function(){
+    $('#errEndExp').click(function () {
         history.go(-1);
     });
 };
 
-Player.prototype.finishSession = function(showEndPage) {
+Player.prototype.finishSession = function (showEndPage) {
     var self = this;
     if (this.sessionEnded) {
         // This is very important, so that the server is not DoS's in case of a player bug. Only allow sessionEnd once!
@@ -1918,34 +1921,34 @@ Player.prototype.finishSession = function(showEndPage) {
         self.endExpSectionCustomText(showEndPage);
     }
 
-    if(this.experiment.exp_data.isJointExp()) {
+    if (this.experiment.exp_data.isJointExp()) {
         this.jointExpLobby.experimentFinished();
     }
 
-    if (this.timeControlArray.length >=1){
-        this.timeControlArray.splice(0,1);
+    if (this.timeControlArray.length >= 1) {
+        this.timeControlArray.splice(0, 1);
     }
 
 
     var total = 0;
-    for(var i = 0; i < this.timeControlArray.length; i++) {
+    for (var i = 0; i < this.timeControlArray.length; i++) {
         total += this.timeControlArray[i];
     }
-    var meanDelay = (total / this.timeControlArray.length)-Player.prototype.desiredDelayInMs;
-    var maxDelay = Math.max.apply(null,this.timeControlArray)-Player.prototype.desiredDelayInMs;
+    var meanDelay = (total / this.timeControlArray.length) - Player.prototype.desiredDelayInMs;
+    var maxDelay = Math.max.apply(null, this.timeControlArray) - Player.prototype.desiredDelayInMs;
 
     var stdDelay = 0;
-    for(var key in this.timeControlArray){
-        stdDelay += Math.pow((parseFloat(this.timeControlArray[key]-Player.prototype.desiredDelayInMs) - meanDelay),2);
+    for (var key in this.timeControlArray) {
+        stdDelay += Math.pow((parseFloat(this.timeControlArray[key] - Player.prototype.desiredDelayInMs) - meanDelay), 2);
     }
-    var stdDelay = Math.sqrt(stdDelay/this.timeControlArray.length);
+    var stdDelay = Math.sqrt(stdDelay / this.timeControlArray.length);
 
     this.experiment.exp_data.varTimeMeasureSpecMean().value().value(meanDelay);
     this.experiment.exp_data.varTimeMeasureSpecStd().value().value(stdDelay);
-  //  this.experiment.exp_data.varTimeMeasureSpecMax().value().value(maxDelay);
+    //  this.experiment.exp_data.varTimeMeasureSpecMax().value().value(maxDelay);
 
     // set crowdsourcingCode
-    if (this.isCrowdsourcingSession()){
+    if (this.isCrowdsourcingSession()) {
         this.experiment.exp_data.varCrowdsourcingCode().value().value(this.crowdsourcingCode());
     }
 
@@ -1957,12 +1960,12 @@ Player.prototype.finishSession = function(showEndPage) {
         fullscreen: this.experiment.exp_data.varFullscreenSpec().value().toJS(),
         timeDelayMean: this.experiment.exp_data.varTimeMeasureSpecMean().value().toJS(),
         crowdsourcinSubjId: this.experiment.exp_data.varCrowdsourcingSubjId().value().toJS(),
-      //  timeDelayMax: this.experiment.exp_data.varTimeMeasureSpecMax().value().toJS(),
-        crowdsourcingCode:this.experiment.exp_data.varCrowdsourcingCode().value().toJS(),
+        //  timeDelayMax: this.experiment.exp_data.varTimeMeasureSpecMax().value().toJS(),
+        crowdsourcingCode: this.experiment.exp_data.varCrowdsourcingCode().value().toJS(),
         serverResponseTimes: this.serverResponseTimes,
         timeDelayStd: this.experiment.exp_data.varTimeMeasureSpecStd().value().toJS(),
-        subjCounterGlobal:  this.experiment.exp_data.varSubjectNr().value().toJS(),
-        subjCounterPerGroup:  this.experiment.exp_data.varSubjectNrPerSubjGroup().value().toJS(),
+        subjCounterGlobal: this.experiment.exp_data.varSubjectNr().value().toJS(),
+        subjCounterPerGroup: this.experiment.exp_data.varSubjectNrPerSubjGroup().value().toJS(),
         roleId: this.experiment.exp_data.varRoleId().value().toJS(),
         displayedLanguage: this.experiment.exp_data.varDisplayedLanguage().value().toJS()
     };
@@ -1970,12 +1973,12 @@ Player.prototype.finishSession = function(showEndPage) {
     console.log("finishExpSession...");
 
     function onSentDataComplete() {
-        if (showEndPage){
+        if (showEndPage) {
             $('#experimentViewPort').hide();
             $('#endExpSection').show();
         }
 
-        $('#endExp').click(function(){
+        $('#endExp').click(function () {
             window.location = "/page/library";
         });
 
@@ -2016,10 +2019,10 @@ Player.prototype.finishSession = function(showEndPage) {
                 reminderTime: reminderTime,
                 emailReminder: emailReminder,
                 var_data: var_data,
-                selectedEmail:self.selectedEmail,
+                selectedEmail: self.selectedEmail,
                 expId: self.expId
             },
-            function(data) {
+            function (data) {
                 if (data.success == false) {
                     console.error("error during finishExpSession...")
                 }
@@ -2041,22 +2044,22 @@ Player.prototype.finishSession = function(showEndPage) {
 
 };
 
-Player.prototype.copyNextSessionLinkTarget = function() {
+Player.prototype.copyNextSessionLinkTarget = function () {
 
     this.copyTextContent($("#copyTarget")[0]);
 };
 
-Player.prototype.startFullscreen = function() {
+Player.prototype.startFullscreen = function () {
     var self = this;
 
     // for compatibility check if safari is used:
-    if (this.experiment.exp_data.varBrowserSpec().value().value() === "Safari"){
+    if (this.experiment.exp_data.varBrowserSpec().value().value() === "Safari") {
         // check if some KeyboardTrigger has alphanumeric enabled:
         var alphaNumericEnabled = false;
         var allFramesOrPages = this.getAllFramesOrPagesInSession();
-        $.each(allFramesOrPages, function(frameIdx, entity) {
+        $.each(allFramesOrPages, function (frameIdx, entity) {
             var actionsArr = [];
-            $.each(entity.events(), function(idx, event) {
+            $.each(entity.events(), function (idx, event) {
                 var trigger = event.trigger();
                 if (trigger instanceof TriggerKeyboard) {
                     if (trigger.alphaNumericEnabled()) {
@@ -2072,13 +2075,13 @@ Player.prototype.startFullscreen = function() {
     }
 
     var element = document.documentElement;
-    if(element.requestFullscreen) {
+    if (element.requestFullscreen) {
         element.requestFullscreen();
-    } else if(element.mozRequestFullScreen) {
+    } else if (element.mozRequestFullScreen) {
         element.mozRequestFullScreen();
-    } else if(element.webkitRequestFullscreen) {
+    } else if (element.webkitRequestFullscreen) {
         element.webkitRequestFullscreen();
-    } else if(element.msRequestFullscreen) {
+    } else if (element.msRequestFullscreen) {
         element.msRequestFullscreen();
     }
 
@@ -2100,8 +2103,7 @@ Player.prototype.startFullscreen = function() {
         }
     }
 
-    function exitHandler()
-    {
+    function exitHandler() {
         if (!fs_status()) {
             self.experiment.exp_data.varFullscreenSpec().value().setValue(false);
             if (self.experiment.exp_data.studySettings.pauseOnExitFullscreen()) {
@@ -2110,8 +2112,7 @@ Player.prototype.startFullscreen = function() {
         }
     }
 
-    if (document.addEventListener)
-    {
+    if (document.addEventListener) {
         document.addEventListener('webkitfullscreenchange', exitHandler, false);
         document.addEventListener('mozfullscreenchange', exitHandler, false);
         document.addEventListener('fullscreenchange', exitHandler, false);
@@ -2120,12 +2121,12 @@ Player.prototype.startFullscreen = function() {
 
 };
 
-Player.prototype.continueFullscreen = function() {
+Player.prototype.continueFullscreen = function () {
     this.startFullscreen();
     this.pausedDueToFullscreen(false);
 };
 
-Player.prototype.exitFullscreen = function() {
+Player.prototype.exitFullscreen = function () {
     if (document.fullscreenElement) {
         document.exitFullscreen();
     } else if (document.webkitExitFullscreen) {
@@ -2138,7 +2139,7 @@ Player.prototype.exitFullscreen = function() {
 };
 
 
-Player.prototype.getCurrentStartWindow = function() {
+Player.prototype.getCurrentStartWindow = function () {
     var prevSessionEndTime = new Date();
     var sessionNr = this.sessionNr;
     if (this.prevSessionData) {
@@ -2147,29 +2148,29 @@ Player.prototype.getCurrentStartWindow = function() {
         }
     }
 
-    var sessionTimeData= this.experiment.exp_data.availableGroups()[ this.groupNr-1].sessionTimeData()[sessionNr-1];
+    var sessionTimeData = this.experiment.exp_data.availableGroups()[this.groupNr - 1].sessionTimeData()[sessionNr - 1];
     var currentDate = new Date();
-    var currentStartWindow = this.determineNextSessionStartWindow(prevSessionEndTime,currentDate,sessionTimeData);
+    var currentStartWindow = this.determineNextSessionStartWindow(prevSessionEndTime, currentDate, sessionTimeData);
     return currentStartWindow;
 };
 
-Player.prototype.getNextStartWindow = function(prevSessionEndTime) {
-    var sessionNr = this.sessionNr+1;
-    var sessionTimeData= this.experiment.exp_data.availableGroups()[ this.groupNr-1].sessionTimeData()[sessionNr-1];
+Player.prototype.getNextStartWindow = function (prevSessionEndTime) {
+    var sessionNr = this.sessionNr + 1;
+    var sessionTimeData = this.experiment.exp_data.availableGroups()[this.groupNr - 1].sessionTimeData()[sessionNr - 1];
 
     if (!sessionTimeData) {
         // no more session defined:
         return false;
     }
     var currentDate = new Date();
-    var nextStartWindow = this.determineNextSessionStartWindow(prevSessionEndTime,currentDate,sessionTimeData);
+    var nextStartWindow = this.determineNextSessionStartWindow(prevSessionEndTime, currentDate, sessionTimeData);
     return nextStartWindow;
 };
 
 
 
 
-Player.prototype.determineNextSessionStartWindow = function(prevSessionEndTime,currentDate,sessionTimeData) {
+Player.prototype.determineNextSessionStartWindow = function (prevSessionEndTime, currentDate, sessionTimeData) {
 
     var startDate = new Date();
     var endDate = new Date();
@@ -2180,8 +2181,8 @@ Player.prototype.determineNextSessionStartWindow = function(prevSessionEndTime,c
         current: null
     };
 
-    if (sessionTimeData && sessionTimeData.startCondition()!="anytime"){
-        if (sessionTimeData.startCondition()=="specific"){
+    if (sessionTimeData && sessionTimeData.startCondition() != "anytime") {
+        if (sessionTimeData.startCondition() == "specific") {
 
             var timeOffsetInMS = currentDate.getTimezoneOffset() * 60000; // difference in ms
             currentDate.setTime(currentDate.getTime() + timeOffsetInMS);
@@ -2189,78 +2190,78 @@ Player.prototype.determineNextSessionStartWindow = function(prevSessionEndTime,c
             endDate.setTime(endDate.getTime() + timeOffsetInMS);
 
 
-            if (sessionTimeData.startTime() && sessionTimeData.endTime() && sessionTimeData.startDay() && sessionTimeData.endDay()){
+            if (sessionTimeData.startTime() && sessionTimeData.endTime() && sessionTimeData.startDay() && sessionTimeData.endDay()) {
 
-                var startMinute = parseInt(sessionTimeData.startTime().substring(3,5));
+                var startMinute = parseInt(sessionTimeData.startTime().substring(3, 5));
                 startDate.setMinutes(startMinute);
-                var startHour = parseInt(sessionTimeData.startTime().substring(0,2));
+                var startHour = parseInt(sessionTimeData.startTime().substring(0, 2));
                 startDate.setHours(startHour);
-                var startDay = parseInt(sessionTimeData.startDay().substring(8,10));
+                var startDay = parseInt(sessionTimeData.startDay().substring(8, 10));
                 startDate.setDate(startDay);
-                var startMonth = parseInt(sessionTimeData.startDay().substring(5,7))-1;
+                var startMonth = parseInt(sessionTimeData.startDay().substring(5, 7)) - 1;
                 startDate.setMonth(startMonth);
-                var startYear = parseInt(sessionTimeData.startDay().substring(0,4));
+                var startYear = parseInt(sessionTimeData.startDay().substring(0, 4));
                 startDate.setFullYear(startYear);
 
-                var endMinute = parseInt(sessionTimeData.endTime().substring(3,5));
+                var endMinute = parseInt(sessionTimeData.endTime().substring(3, 5));
                 endDate.setMinutes(endMinute);
-                var endHour = parseInt(sessionTimeData.endTime().substring(0,2));
+                var endHour = parseInt(sessionTimeData.endTime().substring(0, 2));
                 endDate.setHours(endHour);
-                var endDay = parseInt(sessionTimeData.endDay().substring(8,10));
+                var endDay = parseInt(sessionTimeData.endDay().substring(8, 10));
                 endDate.setDate(endDay);
-                var endMonth = parseInt(sessionTimeData.endDay().substring(5,7))-1;
+                var endMonth = parseInt(sessionTimeData.endDay().substring(5, 7)) - 1;
                 endDate.setMonth(endMonth);
-                var endYear = parseInt(sessionTimeData.endDay().substring(0,4));
+                var endYear = parseInt(sessionTimeData.endDay().substring(0, 4));
                 endDate.setFullYear(endYear);
             }
-            else{
+            else {
                 console.log("error: cannot calculate session start time because fields are not set")
             }
 
         }
-        else if (sessionTimeData.startCondition()=="periodic"){
+        else if (sessionTimeData.startCondition() == "periodic") {
 
             var timeOffsetInMS = currentDate.getTimezoneOffset() * 60000; // difference in ms
             currentDate.setTime(currentDate.getTime() + timeOffsetInMS);
             startDate.setTime(startDate.getTime() + timeOffsetInMS);
             endDate.setTime(endDate.getTime() + timeOffsetInMS);
 
-            if (sessionTimeData.startTime() && sessionTimeData.endTime() && sessionTimeData.startDay() && sessionTimeData.endDay() && sessionTimeData.startInterval()){
+            if (sessionTimeData.startTime() && sessionTimeData.endTime() && sessionTimeData.startDay() && sessionTimeData.endDay() && sessionTimeData.startInterval()) {
 
-                var startMinute = parseInt(sessionTimeData.startTime().substring(3,5));
+                var startMinute = parseInt(sessionTimeData.startTime().substring(3, 5));
                 startDate.setMinutes(startMinute);
-                var startHour = parseInt(sessionTimeData.startTime().substring(0,2));
+                var startHour = parseInt(sessionTimeData.startTime().substring(0, 2));
                 startDate.setHours(startHour);
-                var startDay = parseInt(sessionTimeData.startDay().substring(8,10));
+                var startDay = parseInt(sessionTimeData.startDay().substring(8, 10));
                 startDate.setDate(startDay);
-                var startMonth = parseInt(sessionTimeData.startDay().substring(5,7))-1;
+                var startMonth = parseInt(sessionTimeData.startDay().substring(5, 7)) - 1;
                 startDate.setMonth(startMonth);
-                var startYear = parseInt(sessionTimeData.startDay().substring(0,4));
+                var startYear = parseInt(sessionTimeData.startDay().substring(0, 4));
                 startDate.setFullYear(startYear);
 
-                var endMinute = parseInt(sessionTimeData.endTime().substring(3,5));
+                var endMinute = parseInt(sessionTimeData.endTime().substring(3, 5));
                 endDate.setMinutes(endMinute);
-                var endHour = parseInt(sessionTimeData.endTime().substring(0,2));
+                var endHour = parseInt(sessionTimeData.endTime().substring(0, 2));
                 endDate.setHours(endHour);
-                var endDay = parseInt(sessionTimeData.endDay().substring(8,10));
+                var endDay = parseInt(sessionTimeData.endDay().substring(8, 10));
                 endDate.setDate(endDay);
-                var endMonth = parseInt(sessionTimeData.endDay().substring(5,7))-1;
+                var endMonth = parseInt(sessionTimeData.endDay().substring(5, 7)) - 1;
                 endDate.setMonth(endMonth);
-                var endYear = parseInt(sessionTimeData.endDay().substring(0,4));
+                var endYear = parseInt(sessionTimeData.endDay().substring(0, 4));
                 endDate.setFullYear(endYear);
 
-                var timeDifference =  currentDate-startDate;
-                while (timeDifference >0){
+                var timeDifference = currentDate - startDate;
+                while (timeDifference > 0) {
                     // start date is in the past, need to update to find the next start period
-                    if (sessionTimeData.startInterval() == 'every day'){
-                        startDate.setDate(startDate.getDate()+1);
-                        endDate.setDate(endDate.getDate()+1);
+                    if (sessionTimeData.startInterval() == 'every day') {
+                        startDate.setDate(startDate.getDate() + 1);
+                        endDate.setDate(endDate.getDate() + 1);
                     }
-                    else if(sessionTimeData.startInterval() == 'every week'){
-                        startDate.setDate(startDate.getDate()+7);
-                        endDate.setDate(endDate.getDate()+7);
+                    else if (sessionTimeData.startInterval() == 'every week') {
+                        startDate.setDate(startDate.getDate() + 7);
+                        endDate.setDate(endDate.getDate() + 7);
                     }
-                    else if(sessionTimeData.startInterval() == 'every month'){
+                    else if (sessionTimeData.startInterval() == 'every month') {
 
                         function addMonths(date, count) {
                             // this function handles many edge cases
@@ -2277,52 +2278,52 @@ Player.prototype.determineNextSessionStartWindow = function(prevSessionEndTime,c
                         startDate = addMonths(startDate, 1);
                         endDate = addMonths(endDate, 1);
                     }
-                    timeDifference =  currentDate-startDate;
+                    timeDifference = currentDate - startDate;
                 }
 
             }
-            else{
+            else {
                 console.log("error: cannot calculate session start time because fields are not set")
             }
 
         }
 
-        else if (sessionTimeData.startCondition()=="connectSession"){
+        else if (sessionTimeData.startCondition() == "connectSession") {
 
-            if (sessionTimeData.startTime() !== null && sessionTimeData.endTime() !== null && sessionTimeData.maximalDaysAfterLast() !== null && sessionTimeData.minimalDaysAfterLast() !== null){
-                var plusMinStart = parseInt(sessionTimeData.startTime().substring(3,5));
-                startDate.setMinutes(prevSessionEndTime.getMinutes() +plusMinStart);
-                var plusHourStart = parseInt(sessionTimeData.startTime().substring(0,2));
-                startDate.setHours(startDate.getHours() +plusHourStart);
-                var plusDaysStart = parseInt( sessionTimeData.minimalDaysAfterLast());
-                startDate.setDate(startDate.getDate() +plusDaysStart);
+            if (sessionTimeData.startTime() !== null && sessionTimeData.endTime() !== null && sessionTimeData.maximalDaysAfterLast() !== null && sessionTimeData.minimalDaysAfterLast() !== null) {
+                var plusMinStart = parseInt(sessionTimeData.startTime().substring(3, 5));
+                startDate.setMinutes(prevSessionEndTime.getMinutes() + plusMinStart);
+                var plusHourStart = parseInt(sessionTimeData.startTime().substring(0, 2));
+                startDate.setHours(startDate.getHours() + plusHourStart);
+                var plusDaysStart = parseInt(sessionTimeData.minimalDaysAfterLast());
+                startDate.setDate(startDate.getDate() + plusDaysStart);
 
-                var plusMinEnd = parseInt(sessionTimeData.endTime().substring(3,5));
-                endDate.setMinutes(prevSessionEndTime.getMinutes() +plusMinEnd);
-                var plusHoursEnd = parseInt(sessionTimeData.endTime().substring(0,2));
-                endDate.setHours(endDate.getHours() +plusHoursEnd);
-                var plusDaysEnd = parseInt( sessionTimeData.maximalDaysAfterLast());
-                endDate.setDate(endDate.getDate() +plusDaysEnd);
+                var plusMinEnd = parseInt(sessionTimeData.endTime().substring(3, 5));
+                endDate.setMinutes(prevSessionEndTime.getMinutes() + plusMinEnd);
+                var plusHoursEnd = parseInt(sessionTimeData.endTime().substring(0, 2));
+                endDate.setHours(endDate.getHours() + plusHoursEnd);
+                var plusDaysEnd = parseInt(sessionTimeData.maximalDaysAfterLast());
+                endDate.setDate(endDate.getDate() + plusDaysEnd);
 
             }
-            else{
+            else {
                 console.log("error: cannot calculate session start time because fields are not set.")
             }
 
         }
 
-        else if (sessionTimeData.startCondition()=="anytime"){
+        else if (sessionTimeData.startCondition() == "anytime") {
 
         }
 
-        if (endDate-startDate>=0){
+        if (endDate - startDate >= 0) {
             nextStartWindow = {
                 start: startDate,
                 end: endDate,
                 current: currentDate
             };
         }
-        else{
+        else {
             console.log("error: allowed start time is later than end time.")
         }
 
@@ -2333,48 +2334,48 @@ Player.prototype.determineNextSessionStartWindow = function(prevSessionEndTime,c
 };
 
 
-Player.prototype.getDifferenceBetweenDates = function(dateEarlier,dateLater) {
+Player.prototype.getDifferenceBetweenDates = function (dateEarlier, dateLater) {
 
-    var diff_in_ms = dateLater-dateEarlier;
+    var diff_in_ms = dateLater - dateEarlier;
 
-    var one_day_in_ms=1000*60*60*24;
-    var one_hour_in_ms=1000*60*60;
-    var one_min_in_ms=1000*60;
+    var one_day_in_ms = 1000 * 60 * 60 * 24;
+    var one_hour_in_ms = 1000 * 60 * 60;
+    var one_min_in_ms = 1000 * 60;
 
-    if (diff_in_ms >0){
-        var nrDays = Math.floor(diff_in_ms /one_day_in_ms);
-        var remainder = diff_in_ms-(one_day_in_ms*nrDays);
-        var nrHours =  Math.floor(remainder / one_hour_in_ms);
-        var remainder2 = remainder - (one_hour_in_ms*nrHours);
-        var nrMinutes =  Math.floor(remainder2 / one_min_in_ms);
+    if (diff_in_ms > 0) {
+        var nrDays = Math.floor(diff_in_ms / one_day_in_ms);
+        var remainder = diff_in_ms - (one_day_in_ms * nrDays);
+        var nrHours = Math.floor(remainder / one_hour_in_ms);
+        var remainder2 = remainder - (one_hour_in_ms * nrHours);
+        var nrMinutes = Math.floor(remainder2 / one_min_in_ms);
 
-        var part1= ''; var part2= ''; var part3= '';
-        if (nrDays >1){
-            part1 = nrDays+' days  ';
+        var part1 = ''; var part2 = ''; var part3 = '';
+        if (nrDays > 1) {
+            part1 = nrDays + ' days  ';
         }
-        else if(nrDays ==1) {
-            part1 = nrDays+' day  ';
-        }
-
-        if (nrHours >1){
-             part2 = nrHours+' hours  ';
-        }
-        else if(nrHours ==1){
-             part2 = nrHours+' hour  ';
+        else if (nrDays == 1) {
+            part1 = nrDays + ' day  ';
         }
 
-        if (nrMinutes >1){
-             part3 = nrMinutes+' minutes';
+        if (nrHours > 1) {
+            part2 = nrHours + ' hours  ';
         }
-        else if(nrMinutes ==1){
-             part3 = nrMinutes+' minute';
+        else if (nrHours == 1) {
+            part2 = nrHours + ' hour  ';
         }
 
-        var timeText = part1 +part2 +part3;
-        return [nrDays,nrHours,nrMinutes,timeText];
+        if (nrMinutes > 1) {
+            part3 = nrMinutes + ' minutes';
+        }
+        else if (nrMinutes == 1) {
+            part3 = nrMinutes + ' minute';
+        }
+
+        var timeText = part1 + part2 + part3;
+        return [nrDays, nrHours, nrMinutes, timeText];
     }
-    else{
-        return [0,0,0,'now'];
+    else {
+        return [0, 0, 0, 'now'];
     }
 
 
@@ -2382,14 +2383,12 @@ Player.prototype.getDifferenceBetweenDates = function(dateEarlier,dateLater) {
 
 
 
-Player.prototype.init = function() {
+Player.prototype.init = function () {
     var self = this;
 
-    document.onmousedown=disableclick;
-    function disableclick(event)
-    {
-        if(event.button==2)
-        {
+    document.onmousedown = disableclick;
+    function disableclick(event) {
+        if (event.button == 2) {
             return false;
         }
     }
