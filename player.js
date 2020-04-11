@@ -274,7 +274,7 @@ var Player = function () {
     var isCrowdsourcingSession = getParameterByName("crowdsourcing");
     var csType = getParameterByName("type");
 
-    if (isCrowdsourcingSession == "true" || csType) {
+    if (isCrowdsourcingSession == "true") {
         this.crowdsourcingCode(guid());
         this.isCrowdsourcingSession(true);
         if (csType == "link") {
