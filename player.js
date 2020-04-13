@@ -271,11 +271,11 @@ var Player = function () {
     this.crowdsourcingCode = ko.observable('');
     this.isPlayerCalledWithType = ko.observable(false);
     this.crowdsourcingType = ko.observable("code");
-    this.isCrowdsourcingSession = ko.observable(getParameterByName("crowdsourcing"));
+    var isCrowdsourcingSession = ko.observable(getParameterByName("crowdsourcing"));
     var csType = getParameterByName("type");
     this.askForWorkerId = ko.observable(false);
 
-    if (csType || this.isCrowdsourcingSession() == "true") {
+    if (csType || isCrowdsourcingSession == "true") {
         this.crowdsourcingCode(guid());
         this.isPlayerCalledWithType(true);
         if (csType == "link") {
