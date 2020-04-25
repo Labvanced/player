@@ -1,17 +1,17 @@
 // � by Caspar Goeke and Holger Finger
 
 
-var PlayerFrame = function(frameData,frameDiv,player) {
+var PlayerFrame = function (frameData, frameDiv, player) {
 
     var self = this;
 
     this.frameData = frameData;//.getDeepCopy();
     this.frameData.playerFrame = this;
 
-    this.frameDiv  = frameDiv;
+    this.frameDiv = frameDiv;
     this.player = player;
     this.frameView = null;
-    this.startedTime= null;
+    this.startedTime = null;
     this.state = 'preloaded'; // or 'displaying' or 'paused' or 'finished'
     this.trialIter = null;
     this.frameTimeout = null;
@@ -27,10 +27,10 @@ var PlayerFrame = function(frameData,frameDiv,player) {
     this.isPaused = ko.observable(false);
 
     // the following is stored   to later remove the event listener:
-    this.resizeEventListener = function() {
+    this.resizeEventListener = function () {
         self.resize();
     };
-    this.selectionEventListener = function() {
+    this.selectionEventListener = function () {
         if (self.frameView.subElemSelected == false) {
             self.frameView.parent.selectElement(null);
         }
@@ -41,18 +41,18 @@ var PlayerFrame = function(frameData,frameDiv,player) {
     this.pausedElements = []; // due to experiment paused...!
 };
 
-PlayerFrame.prototype.init = function() {
-    var self = this; 
+PlayerFrame.prototype.init = function () {
+    var self = this;
 
     $(this.frameDiv).css({
         "background-color": this.frameData.bgColor()
     });
-    if (this.frameData.hideMouse()){
+    if (this.frameData.hideMouse()) {
         $(this.frameDiv).css({
             "cursor": 'none'
         });
     }
-    else{
+    else {
         $(this.frameDiv).css({
             "cursor": 'default'
         });
@@ -63,10 +63,10 @@ PlayerFrame.prototype.init = function() {
 
     this.elementRandomization();
     if (this.frameData.type == 'FrameData') {
-        this.frameView = new FrameView(centeredDiv,this,"playerView");
+        this.frameView = new FrameView(centeredDiv, this, "playerView");
     }
     else {
-        this.frameView = new PageView(centeredDiv,this,"playerView");
+        this.frameView = new PageView(centeredDiv, this, "playerView");
     }
 
     this.frameView.setDataModel(this.frameData);
@@ -92,7 +92,7 @@ PlayerFrame.prototype.init = function() {
 };
 
 
-PlayerFrame.prototype.trackMouseMove = function() {
+PlayerFrame.prototype.trackMouseMove = function () {
     var self = this;
     var mousePosX;
     var mousePosY;
@@ -113,48 +113,48 @@ PlayerFrame.prototype.trackMouseMove = function() {
                 (doc && doc.scrollLeft || body && body.scrollLeft || 0) -
                 (doc && doc.clientLeft || body && body.clientLeft || 0);
             event.pageY = event.clientY +
-                (doc && doc.scrollTop  || body && body.scrollTop  || 0) -
-                (doc && doc.clientTop  || body && body.clientTop  || 0 );
+                (doc && doc.scrollTop || body && body.scrollTop || 0) -
+                (doc && doc.clientTop || body && body.clientTop || 0);
         }
 
-        if(self.frameData instanceof FrameData) {
+        if (self.frameData instanceof FrameData) {
             var scale = self.frameView.scale();
             var offX = (window.innerWidth - self.frameData.frameWidth() * scale) / 2;
             var offY = (window.innerHeight - self.frameData.frameHeight() * scale) / 2;
             event.pageX = (event.pageX - offX) / scale;
-            event.pageY = ( event.pageY - offY) / scale;
+            event.pageY = (event.pageY - offY) / scale;
         }
 
         mousePosX = event.pageX;
-        mousePosY =  event.pageY;
+        mousePosY = event.pageY;
 
     }
     function getMousePosition() {
         self.frameMouseX = mousePosX;
-        self.frameMouseY =  mousePosY;
+        self.frameMouseY = mousePosY;
     }
 
 
-    $(window).on( "mousemove", handleMouseMove );
+    $(window).on("mousemove", handleMouseMove);
     setInterval(getMousePosition, 10); // setInterval repeats every X ms
 };
 
-PlayerFrame.prototype.getMouseX = function() {
-    return  this.frameMouseX || 0;
+PlayerFrame.prototype.getMouseX = function () {
+    return this.frameMouseX || 0;
 };
 
-PlayerFrame.prototype.getMouseY = function() {
-    return  this.frameMouseY || 0;
+PlayerFrame.prototype.getMouseY = function () {
+    return this.frameMouseY || 0;
 };
 
 
-PlayerFrame.prototype.elementRandomization = function() {
+PlayerFrame.prototype.elementRandomization = function () {
 
     var elems = this.frameData.elements();
-    for (var i = 0; i<elems.length; i++){
+    for (var i = 0; i < elems.length; i++) {
         var elem = elems[i];
-        if (elem.content() instanceof ScaleElement || elem.content() instanceof CheckBoxElement || elem.content() instanceof LikertElement || elem.content() instanceof MultipleChoiceElement){
-            if (elem.content().reshuffleElements()){
+        if (elem.content() instanceof ScaleElement || elem.content() instanceof CheckBoxElement || elem.content() instanceof LikertElement || elem.content() instanceof MultipleChoiceElement) {
+            if (elem.content().reshuffleElements()) {
                 elem.content().doReshuffle();
             }
         }
@@ -167,13 +167,13 @@ PlayerFrame.prototype.elementRandomization = function() {
 };
 
 
-PlayerFrame.prototype.dispose = function() {
+PlayerFrame.prototype.dispose = function () {
     $(window).off("mousemove");
     this.frameMouseX = null;
     this.frameMouseY = null;
-    window.removeEventListener('resize', this.resizeEventListener , false);
+    window.removeEventListener('resize', this.resizeEventListener, false);
     this.resizeEventListener = null;
-    window.removeEventListener('click', this.selectionEventListener , false);
+    window.removeEventListener('click', this.selectionEventListener, false);
     this.selectionEventListener = null;
 
     if (typeof this.frameView.dispose === "function") {
@@ -181,22 +181,22 @@ PlayerFrame.prototype.dispose = function() {
     }
 };
 
-PlayerFrame.prototype.resize = function() {
+PlayerFrame.prototype.resize = function () {
     console.log("warning player size changed!");
     this.frameView.resize(this.getViewSize());
 };
 
-PlayerFrame.prototype.getFrameTime = function() {
-    return Date.now()-this.startedTime;
+PlayerFrame.prototype.getFrameTime = function () {
+    return Date.now() - this.startedTime;
 };
 
-PlayerFrame.prototype.selectElement = function(selectedElement) {
+PlayerFrame.prototype.selectElement = function (selectedElement) {
     this.frameView.setSelectedElement(selectedElement);
 };
 
 
-PlayerFrame.prototype.triggerEyetracking = function(data) {
-    if (typeof this.frameData.frameWidth == "function"){
+PlayerFrame.prototype.triggerEyetracking = function (data) {
+    if (typeof this.frameData.frameWidth == "function") {
         var scale = this.frameView.scale();
         var offX = (window.innerWidth - this.frameData.frameWidth() * scale) / 2;
         var offY = (window.innerHeight - this.frameData.frameHeight() * scale) / 2;
@@ -207,7 +207,7 @@ PlayerFrame.prototype.triggerEyetracking = function(data) {
         var coordX = data.x;
         var coordY = data.y;
     }
-    jQuery.each(this.onEyetrackingCoords, function(idx, eyetrackingCb) {
+    jQuery.each(this.onEyetrackingCoords, function (idx, eyetrackingCb) {
         eyetrackingCb(coordX, coordY);
     });
     player.experiment.exp_data.varGazeX().value().value(coordX);
@@ -215,7 +215,7 @@ PlayerFrame.prototype.triggerEyetracking = function(data) {
 };
 
 
-PlayerFrame.prototype.startFrame = function() {
+PlayerFrame.prototype.startFrame = function () {
     var self = this;
 
     if (this.state == 'preloaded' || this.state == 'finished') {
@@ -226,20 +226,20 @@ PlayerFrame.prototype.startFrame = function() {
 
         // setup callbacks:
         var events = this.frameData.events();
-        for (var i = 0; i < events.length; i++){
-            var event =  events[i];
+        for (var i = 0; i < events.length; i++) {
+            var event = events[i];
             event.setupOnPlayerFrame(this);
         }
 
-        if (this.frameData.nrOfTrackMousemove()>0){
+        if (this.frameData.nrOfTrackMousemove() > 0) {
             this.trackMouseMove();
         }
 
-        for (var i = 0; i<this.onFrameStartCallbacks.length;i++) {
+        for (var i = 0; i < this.onFrameStartCallbacks.length; i++) {
             this.onFrameStartCallbacks[i]();
         }
 
-        if(this.state == 'displaying') { // in case e. g. onFrameStart-event has caused to be on another frame already.
+        if (this.state == 'displaying') { // in case e. g. onFrameStart-event has caused to be on another frame already.
             this.frameDiv.css('display', 'block');
         }
 
@@ -255,7 +255,7 @@ PlayerFrame.prototype.startFrame = function() {
                         var trialNr = self.player.trialIter;
                         var blockNr = self.player.currentBlockIdx;
 
-                        Webcam.upload(data_uri, '/uploadWebcam?emotionVarId='+emotionVarId+'&trialNr='+trialNr+'&blockNr='+blockNr, function (code, text) {
+                        Webcam.upload(data_uri, '/uploadWebcam?emotionVarId=' + emotionVarId + '&trialNr=' + trialNr + '&blockNr=' + blockNr, function (code, text) {
                             console.log("Upload complete!");
 
                             if (self.frameData.emotionFeedbackEnabled()) {
@@ -324,20 +324,20 @@ PlayerFrame.prototype.startFrame = function() {
 };
 
 
-PlayerFrame.prototype.finishFrame = function() {
-    console.log('switch frame state from displaying to finished in trialIter '+this.trialIter);
+PlayerFrame.prototype.finishFrame = function () {
+    console.log('switch frame state from displaying to finished in trialIter ' + this.trialIter);
     this.state = 'finished';
 
     // clear setTimeouts
     clearTimeout(this.frameTimeout);
 
-    for (var i = 0; i<this.onFrameEndCallbacks.length;i++) {
+    for (var i = 0; i < this.onFrameEndCallbacks.length; i++) {
         this.onFrameEndCallbacks[i]();
     }
 
     // destroy event listeners of triggers
     var events = this.frameData.events();
-    for (var i = 0; i < events.length; i++){
+    for (var i = 0; i < events.length; i++) {
         events[i].destroyOnPlayerFrame(this);
     }
 
@@ -349,18 +349,18 @@ PlayerFrame.prototype.finishFrame = function() {
     // empty div and make new frame
 
     this.frameDiv.css('display', 'none');
-   // this.frameDiv.remove();
+    // this.frameDiv.remove();
 };
 
-PlayerFrame.prototype.pauseFrame = function() {
+PlayerFrame.prototype.pauseFrame = function () {
     // FIRST call the pause events:
-    for (var i = 0; i<this.onGlobalEventCallbacks.length;i++) {
+    for (var i = 0; i < this.onGlobalEventCallbacks.length; i++) {
         this.onGlobalEventCallbacks[i]("expPaused");
     }
 
     // now pause all videos and audio elements:
     var pausedElements = [];
-    $.each(this.elements, function(idx, elem) {
+    $.each(this.elements, function (idx, elem) {
         var content = elem.content();
         if (content instanceof VideoElement || content instanceof AudioElement) {
             if (content.currentlyPlaying()) {
@@ -375,21 +375,21 @@ PlayerFrame.prototype.pauseFrame = function() {
     // now pause experiment
     this.isPaused(true);
     var events = this.frameData.events();
-    for (var i = 0; i < events.length; i++){
+    for (var i = 0; i < events.length; i++) {
         events[i].startPause(this);
     }
 };
 
-PlayerFrame.prototype.continueFrame = function() {
+PlayerFrame.prototype.continueFrame = function () {
     // First continue experiment:
     this.isPaused(false);
     var events = this.frameData.events();
-    for (var i = 0; i < events.length; i++){
+    for (var i = 0; i < events.length; i++) {
         events[i].stopPause(this);
     }
 
     // now continue all videos and audio elements:
-    $.each(this.pausedElements, function(idx, elem) {
+    $.each(this.pausedElements, function (idx, elem) {
         if (elem instanceof VideoElement || elem instanceof AudioElement) {
             console.log("continue playing video or audio.");
             elem.currentlyPlaying(true);
@@ -398,12 +398,12 @@ PlayerFrame.prototype.continueFrame = function() {
     this.pausedElements = [];
 
     // now call continue events:
-    for (var i = 0; i<this.onGlobalEventCallbacks.length;i++) {
+    for (var i = 0; i < this.onGlobalEventCallbacks.length; i++) {
         this.onGlobalEventCallbacks[i]("expContinued");
     }
 };
 
-PlayerFrame.prototype.endFrame = function() {
+PlayerFrame.prototype.endFrame = function () {
     if (this.state == 'displaying') {
         this.finishFrame();
         // set next frame
@@ -412,7 +412,7 @@ PlayerFrame.prototype.endFrame = function() {
     }
 };
 
-PlayerFrame.prototype.endFrameAndGoBack = function() {
+PlayerFrame.prototype.endFrameAndGoBack = function () {
     if (this.state == 'displaying') {
         this.finishFrame();
         // set next frame
@@ -421,7 +421,7 @@ PlayerFrame.prototype.endFrameAndGoBack = function() {
     }
 };
 
-PlayerFrame.prototype.goToCustomFrame = function(customFrame) {
+PlayerFrame.prototype.goToCustomFrame = function (customFrame) {
     if (this.state == 'displaying') {
         this.finishFrame();
         this.player.currentSequence.selectCustomElement(customFrame);
@@ -431,18 +431,18 @@ PlayerFrame.prototype.goToCustomFrame = function(customFrame) {
 
 
 
-PlayerFrame.prototype.getViewSize = function() {
+PlayerFrame.prototype.getViewSize = function () {
     var width = window.innerWidth;
     var height = window.innerHeight;
-    return [width,height];
+    return [width, height];
 };
 
 
-PlayerFrame.prototype.setTimeOut = function() {
+PlayerFrame.prototype.setTimeOut = function () {
 
     var self = this;
-    if (this.frameData.offsetEnabled()){
-        this.frameTimeout = setTimeout(function() {
+    if (this.frameData.offsetEnabled()) {
+        this.frameTimeout = setTimeout(function () {
             self.endFrame();
         }, this.frameData.offset());
     }

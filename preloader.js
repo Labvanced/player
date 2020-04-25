@@ -1,5 +1,5 @@
 
-var PlayerPreloader = function(player) {
+var PlayerPreloader = function (player) {
     var self = this;
 
     this.player = player;
@@ -8,13 +8,13 @@ var PlayerPreloader = function(player) {
     this.progress = ko.observable(0);
     this.contentList = [];
 
-    this.queue.on("complete",function onComplete(event) {
+    this.queue.on("complete", function onComplete(event) {
         self.player.preloaderCompleted(true);
     });
 
     this.queue.on("error", function onError(event) {
         console.log('Preloader Error', event);
-        if (self.player.experiment.exp_data.studySettings.actionOnResourceError()== "abort experiment"){
+        if (self.player.experiment.exp_data.studySettings.actionOnResourceError() == "abort experiment") {
             self.player.finishSessionWithError("Dear participant, we are very sorry but your computer and/or internet connection are not compatible with the experiment's technical requirements. We apologize for any inconvenience. (ERROR 957)");
             //self.player.finishSessionWithError("ERROR: A resource could not be loaded! Please try to load the experiment again. If this error repeats please contact the creator of the experiment.")
         }
@@ -46,7 +46,7 @@ var PlayerPreloader = function(player) {
 
 };
 
-PlayerPreloader.prototype.addToCache = function(type, objectUrl) {
+PlayerPreloader.prototype.addToCache = function (type, objectUrl) {
     if (type == createjs.Types.IMAGE) {
         var elemToPreventCacheEviction = new Image;
         elemToPreventCacheEviction.src = objectUrl;
@@ -64,11 +64,11 @@ PlayerPreloader.prototype.addToCache = function(type, objectUrl) {
     }
 };
 
-PlayerPreloader.prototype.cancel = function() {
+PlayerPreloader.prototype.cancel = function () {
     this.queue.cancel();
 };
 
-PlayerPreloader.prototype.nwjsLoadNext = function(idx) {
+PlayerPreloader.prototype.nwjsLoadNext = function (idx) {
     var self = this;
 
     // determine file type:
@@ -78,10 +78,10 @@ PlayerPreloader.prototype.nwjsLoadNext = function(idx) {
     }
     var type = createjs.RequestUtils.getTypeByExtension(ext);
 
-    var file = new File(this.contentList[idx].src, 'randomDivName'+idx);
+    var file = new File(this.contentList[idx].src, 'randomDivName' + idx);
     var fileReader = new FileReader();
     fileReader.readAsArrayBuffer(file);
-    fileReader.onload = function(e) {
+    fileReader.onload = function (e) {
         //console.log('load complete '+idx);
         var arr = new Uint8Array(fileReader.result);
         var objectBlob = new Blob([arr]);
@@ -99,7 +99,7 @@ PlayerPreloader.prototype.nwjsLoadNext = function(idx) {
         }
     };
 
-    fileReader.onerror = function(e) {
+    fileReader.onerror = function (e) {
         console.error(e);
     };
 
@@ -110,7 +110,7 @@ PlayerPreloader.prototype.nwjsLoadNext = function(idx) {
     fileReader.readAsArrayBuffer($scope.recordedInput);*/
 };
 
-PlayerPreloader.prototype.start = function(contentList) {
+PlayerPreloader.prototype.start = function (contentList) {
     this.contentList = contentList;
 
     /*if (is_nwjs()) {

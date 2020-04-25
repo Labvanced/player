@@ -1,5 +1,5 @@
 
-var PlayerFileUploader = function(player) {
+var PlayerFileUploader = function (player) {
     var self = this;
 
     this.player = player;
@@ -17,13 +17,14 @@ var PlayerFileUploader = function(player) {
  * @param {directory} parentFolderId - the directory where the file is located
  * @param {fileString} file - the file string
  */
-PlayerFileUploader.prototype.addToAjaxUploadQueue = function(file, newFileName, globalVarFile, callbackWhenFinished) {
+PlayerFileUploader.prototype.addToAjaxUploadQueue = function (file, newFileName, globalVarFile, callbackWhenFinished) {
 
     if (file.size > 5000000) { // only allow files smaller than 5 MB
+        console.log("file too large. cannot upload");
         return;
     }
 
-    if (this.ajaxUploadInProgress){
+    if (this.ajaxUploadInProgress) {
         this.uploadNumFiles(this.uploadNumFiles() + 1);
         console.log("ajax upload in progress");
     }
@@ -45,7 +46,7 @@ PlayerFileUploader.prototype.addToAjaxUploadQueue = function(file, newFileName, 
 /**
  * does the file upload
  */
-PlayerFileUploader.prototype.checkAjaxUploadQueue = function() {
+PlayerFileUploader.prototype.checkAjaxUploadQueue = function () {
     var self = this;
 
     if (!this.ajaxUploadInProgress) {
@@ -79,9 +80,9 @@ PlayerFileUploader.prototype.checkAjaxUploadQueue = function() {
                     // save next file to disk:
                     var newFileName = this.ajaxUploadQueue[0].newFileName;
                     var reader = new FileReader();
-                    reader.onload = function(e) {
+                    reader.onload = function (e) {
                         var arrayBuffer = reader.result;
-                        writeFileNwjs(arrayBuffer, newFileName, function(file_guid) {
+                        writeFileNwjs(arrayBuffer, newFileName, function (file_guid) {
                             onUploadComplete(file_guid, newFileName);
                         })
                     };
