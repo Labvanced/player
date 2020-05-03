@@ -15,7 +15,11 @@ var PlayerPreloader = function (player) {
     this.queue.on("error", function onError(event) {
         console.log('Preloader Error', event);
         if (self.player.experiment.exp_data.studySettings.actionOnResourceError() == "abort experiment") {
-            self.player.finishSessionWithError("Dear participant, we are very sorry but your computer and/or internet connection are not compatible with the experiment's technical requirements. We apologize for any inconvenience. (ERROR 957)");
+            var filename = "";
+            if (event.data && event.data.src) {
+                filename = event.data.src.split('/').reverse()[0];
+            }
+            self.player.finishSessionWithError("Dear participant, we are very sorry but your computer and/or internet connection are not compatible with the experiment's technical requirements. We apologize for any inconvenience. Error while loading file " + filename + " (ERROR 957)");
             //self.player.finishSessionWithError("ERROR: A resource could not be loaded! Please try to load the experiment again. If this error repeats please contact the creator of the experiment.")
         }
     });
