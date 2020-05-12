@@ -13,6 +13,7 @@ var PlayerFrame = function (frameData, frameDiv, player) {
     this.frameView = null;
     this.startedTime = null;
     this.state = 'preloaded'; // or 'displaying' or 'paused' or 'finished'
+    this.stateObs = ko.observable(this.state);
     this.trialIter = null;
     this.frameTimeout = null;
     this.elements = this.frameData.elements();
@@ -71,7 +72,7 @@ PlayerFrame.prototype.init = function () {
 
     this.frameView.setDataModel(this.frameData);
     this.frameView.init(this.getViewSize());
-    this.state = 'preloaded';
+    this.setState('preloaded');
 
     if (this.frameData.type == 'FrameData') {
         var offX = (window.innerWidth - this.frameData.frameWidth() * this.frameView.scale()) / 2;
@@ -91,6 +92,11 @@ PlayerFrame.prototype.init = function () {
     }
 };
 
+
+PlayerFrame.prototype.setState = function (newState) {
+    this.state = newState;
+    this.stateObs(newState);
+}
 
 PlayerFrame.prototype.trackMouseMove = function () {
     var self = this;
@@ -220,7 +226,7 @@ PlayerFrame.prototype.startFrame = function () {
 
     if (this.state == 'preloaded' || this.state == 'finished') {
 
-        this.state = 'displaying';
+        this.setState('displaying');
         this.setTimeOut();
         this.startedTime = Date.now();
 
@@ -326,7 +332,7 @@ PlayerFrame.prototype.startFrame = function () {
 
 PlayerFrame.prototype.finishFrame = function () {
     console.log('switch frame state from displaying to finished in trialIter ' + this.trialIter);
-    this.state = 'finished';
+    this.setState('finished');
 
     // clear setTimeouts
     clearTimeout(this.frameTimeout);
