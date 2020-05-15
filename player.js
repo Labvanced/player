@@ -259,6 +259,7 @@ var Player = function () {
     var self = this;
 
     this.externalWebsocket = null;
+    this.deviceIsMobile = null;
 
     function getParameterByName(name) {
         name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
@@ -693,6 +694,7 @@ Player.prototype.detectBrowserAndSystemSpecs = function () {
 
     // mobile version
     var mobile = /Mobile|mini|Fennec|Android|iP(ad|od|hone)/.test(nVer);
+    this.deviceIsMobile = mobile;
 
     // cookie
     var cookieEnabled = (navigator.cookieEnabled) ? true : false;

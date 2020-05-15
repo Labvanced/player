@@ -102,10 +102,14 @@ PlayerFrame.prototype.trackMouseMove = function () {
     var self = this;
     var mousePosX;
     var mousePosY;
-    function handleMouseMove(event) {
+    function handleMouseMove(event, type) {
         var dot, eventDoc, doc, body, pageX, pageY;
-
         event = event || window.event; // IE-ism
+
+        // for mobile use 'originalEvent.touches[0]' object
+        if (type === 'mobile') {
+            event = event.originalEvent.touches[0];
+        }
 
         // If pageX/Y aren't available and clientX/Y are,
         // calculate pageX/Y - logic taken from jQuery.
@@ -140,8 +144,13 @@ PlayerFrame.prototype.trackMouseMove = function () {
         self.frameMouseY = mousePosY;
     }
 
+    if (this.player.deviceIsMobile) {
+        $(window).on("touchmove", function (event) { handleMouseMove(event, 'mobile') });
+    } else {
+        $(window).on("mousemove", function (event) { handleMouseMove(event, 'desktop') });
+    }
 
-    $(window).on("mousemove", handleMouseMove);
+
     setInterval(getMousePosition, 10); // setInterval repeats every X ms
 };
 
