@@ -102,12 +102,12 @@ PlayerFrame.prototype.trackMouseMove = function () {
     var self = this;
     var mousePosX;
     var mousePosY;
-    function handleMouseMove(event, type) {
+    function handleMouseMove(event) {
         var dot, eventDoc, doc, body, pageX, pageY;
         event = event || window.event; // IE-ism
 
         // for mobile use 'originalEvent.touches[0]' object
-        if (type === 'mobile') {
+        if (event.originalEvent.touches) {
             event = event.originalEvent.touches[0];
         }
 
@@ -144,12 +144,7 @@ PlayerFrame.prototype.trackMouseMove = function () {
         self.frameMouseY = mousePosY;
     }
 
-    if (this.player.deviceIsMobile) {
-        $(window).on("touchmove", function (event) { handleMouseMove(event, 'mobile') });
-    } else {
-        $(window).on("mousemove", function (event) { handleMouseMove(event, 'desktop') });
-    }
-
+    $(window).on("mousemove touchmove", handleMouseMove);
 
     setInterval(getMousePosition, 10); // setInterval repeats every X ms
 };
@@ -183,7 +178,7 @@ PlayerFrame.prototype.elementRandomization = function () {
 
 
 PlayerFrame.prototype.dispose = function () {
-    $(window).off("mousemove");
+    $(window).off("mousemove touchmove");
     this.frameMouseX = null;
     this.frameMouseY = null;
     window.removeEventListener('resize', this.resizeEventListener, false);
@@ -359,7 +354,7 @@ PlayerFrame.prototype.finishFrame = function () {
     // remove document event handlers
     $(document).off("keyup");
     $(document).off("keydown");
-    $(window).off("mousemove");
+    $(window).off("mousemove touchmove");
 
     // empty div and make new frame
 
