@@ -2149,7 +2149,31 @@ Player.prototype.getCurrentStartWindow = function () {
     console.log(this.prevSessionData);
     if (this.prevSessionData) {
         if (this.prevSessionData.length > 0) {
-            prevSessionEndTime = new Date(this.prevSessionData[this.prevSessionData.length - 1].end_time);
+            //for testing
+            this.prevSessionData.unshift({
+                start_time: null,
+                end_time: null,
+            });
+            var ind = 0;
+            var endTime = null;
+            var newEndTime = null;
+            this.prevSessionData.forEach(function (entry, index) {
+                if (entry.end_time) {
+                    if (endTime) {
+                        newEndTime = new Date(entry.end_time);
+                        if (newEndTime > endTime) {
+                            endTime = newEndTime;
+                            ind = index;
+                        }
+                    } else {
+                        endTime = new Date(entry.end_time);
+                        ind = index;
+                    }
+
+                }
+            });
+
+            prevSessionEndTime = new Date(this.prevSessionData[ind].end_time);
         }
     }
 
