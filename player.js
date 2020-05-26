@@ -2295,6 +2295,8 @@ Player.prototype.determineNextSessionStartWindow = function (prevSessionEndTime,
         else if (sessionTimeData.startCondition() == "connectSession") {
 
             if (sessionTimeData.startTime() !== null && sessionTimeData.endTime() !== null && sessionTimeData.maximalDaysAfterLast() !== null && sessionTimeData.minimalDaysAfterLast() !== null) {
+                startDate = new Date(prevSessionEndTime);
+                endDate = new Date(prevSessionEndTime);
                 var plusMinStart = parseInt(sessionTimeData.startTime().substring(3, 5));
                 startDate.setMinutes(prevSessionEndTime.getMinutes() + plusMinStart);
                 var plusHourStart = parseInt(sessionTimeData.startTime().substring(0, 2));
