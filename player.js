@@ -2146,6 +2146,7 @@ Player.prototype.exitFullscreen = function () {
 Player.prototype.getCurrentStartWindow = function () {
     var prevSessionEndTime = new Date();
     var sessionNr = this.sessionNr;
+    console.log(this.prevSessionData)
     if (this.prevSessionData) {
         if (this.prevSessionData.length > 0) {
             prevSessionEndTime = new Date(this.prevSessionData[0].end_time);
