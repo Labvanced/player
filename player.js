@@ -2149,11 +2149,6 @@ Player.prototype.getCurrentStartWindow = function () {
     console.log(this.prevSessionData);
     if (this.prevSessionData) {
         if (this.prevSessionData.length > 0) {
-            //for testing
-            this.prevSessionData.unshift({
-                start_time: null,
-                end_time: null,
-            });
             var ind = 0;
             var endTime = null;
             var newEndTime = null;
@@ -2373,7 +2368,7 @@ Player.prototype.getDifferenceBetweenDates = function (dateEarlier, dateLater) {
     var one_hour_in_ms = 1000 * 60 * 60;
     var one_min_in_ms = 1000 * 60;
 
-    if (diff_in_ms > 0) {
+    if (diff_in_ms >= 60000) {
         var nrDays = Math.floor(diff_in_ms / one_day_in_ms);
         var remainder = diff_in_ms - (one_day_in_ms * nrDays);
         var nrHours = Math.floor(remainder / one_hour_in_ms);
@@ -2401,10 +2396,12 @@ Player.prototype.getDifferenceBetweenDates = function (dateEarlier, dateLater) {
         else if (nrMinutes == 1) {
             part3 = nrMinutes + ' minute';
         }
-
         var timeText = part1 + part2 + part3;
         return [nrDays, nrHours, nrMinutes, timeText];
+    } else if (diff_in_ms > 0) {
+        return [nrDays, nrHours, nrMinutes, "less than 1 minute"];
     }
+
     else {
         return [0, 0, 0, 'now'];
     }
