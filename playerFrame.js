@@ -200,6 +200,10 @@ PlayerFrame.prototype.getFrameTime = function () {
     return Date.now() - this.startedTime;
 };
 
+PlayerFrame.prototype.getFrameName = function () {
+    return this.frameView.frameData.name();
+};
+
 PlayerFrame.prototype.selectElement = function (selectedElement) {
     this.frameView.setSelectedElement(selectedElement);
 };
