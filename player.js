@@ -419,7 +419,9 @@ var Player = function () {
     this.recordTrialQueueIsUploading = false;
 
     this.microphone_stream = null;
+    this.video_stream = null;
     this.audioContext = null;
+    this.mediaRecorder = null;
 
     this.pausedDueToFullscreen = ko.observable(false);
     this.pausedDueToNoConnectionToJointExpServer = ko.observable(false);
@@ -1085,6 +1087,62 @@ Player.prototype.startExperiment = function () {
         }
         else {
             self.finishSessionWithError("Error accessing your microphone. Please check your PC and browser settings and restart the experiment. Supported browsers are Chrome, Firefox and Microsoft Edge.");
+        }
+    }
+
+    if (self.experiment.exp_data.studySettings.isVideoRecEnabled()) {
+        // Request permissions to record audio
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+                .then(function (stream) {
+                    var recordedChunks = [];
+                    self.video_stream = stream;
+                    var options = { mimeType: "video/webm; codecs=vp9" };
+                    self.mediaRecorder = new MediaRecorder(self.video_stream, options);
+                    setTimeout(function () {
+                        self.startExperimentContinue();
+                    }, 1);
+
+                    self.mediaRecorder.ondataavailable = handleDataAvailable;
+                    self.mediaRecorder.start();
+
+                    function handleDataAvailable(event) {
+                        console.log("data-available");
+                        if (event.data.size > 0) {
+                            recordedChunks.push(event.data);
+                            download();
+                        } else {
+                            // ...
+                        }
+                    }
+
+                    function download() {
+                        var blob = new Blob(recordedChunks, {
+                            type: "video/webm"
+                        });
+                        var url = URL.createObjectURL(blob);
+                        var a = document.createElement("a");
+                        document.body.appendChild(a);
+                        a.style = "display: none";
+                        a.href = url;
+                        a.download = "test.webm";
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                    };
+
+                    setTimeout(event => {
+                        console.log("stopping");
+                        self.mediaRecorder.stop();
+                    }, 60000);
+
+                })
+                .catch(function (err) {
+                    console.log("cannot get mic access: error: " + err);
+                    self.finishSessionWithError("Error accessing your webcam. Please check your PC and browser settings and restart the experiment. Supported browsers are Chrome, Firefox and Microsoft Edge.");
+                });
+        }
+        else {
+            self.finishSessionWithError("Error accessing your webcam. Please check your PC and browser settings and restart the experiment. Supported browsers are Chrome, Firefox and Microsoft Edge.");
         }
     }
     else {
