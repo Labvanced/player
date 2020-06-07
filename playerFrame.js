@@ -25,6 +25,7 @@ var PlayerFrame = function (frameData, frameDiv, player) {
     this.websocketTriggerCallbacks = {};
     this.frameMouseX = null;
     this.frameMouseY = null;
+    this.frameMouseXY = ko.observable(null);
     this.isPaused = ko.observable(false);
 
     // the following is stored   to later remove the event listener:
@@ -100,8 +101,7 @@ PlayerFrame.prototype.setState = function (newState) {
 
 PlayerFrame.prototype.trackMouseMove = function () {
     var self = this;
-    var mousePosX;
-    var mousePosY;
+
     function handleMouseMove(event) {
         var dot, eventDoc, doc, body, pageX, pageY;
         event = event || window.event; // IE-ism
@@ -135,28 +135,32 @@ PlayerFrame.prototype.trackMouseMove = function () {
             event.pageY = (event.pageY - offY) / scale;
         }
 
-        mousePosX = event.pageX;
-        mousePosY = event.pageY;
+        self.frameMouseX = event.pageX;
+        self.frameMouseY = event.pageY;
+        self.frameMouseXY([event.pageX, event.pageY]);
 
-    }
-    function getMousePosition() {
-        self.frameMouseX = mousePosX;
-        self.frameMouseY = mousePosY;
     }
 
     $(window).on("mousemove touchmove", handleMouseMove);
-
-    setInterval(getMousePosition, 10); // setInterval repeats every X ms
 };
 
 PlayerFrame.prototype.getMouseX = function () {
-    return this.frameMouseX || 0;
+    return this.frameMouseX || Number.NaN;
 };
 
 PlayerFrame.prototype.getMouseY = function () {
-    return this.frameMouseY || 0;
+    return this.frameMouseY || Number.NaN;
 };
 
+PlayerFrame.prototype.getMouseXY_Array = function () {
+    var frameMouseXY = this.frameMouseXY();
+    if (frameMouseXY) {
+        return frameMouseXY;
+    }
+    else {
+        return [Number.NaN, Number.NaN];
+    }
+};
 
 PlayerFrame.prototype.elementRandomization = function () {
 
