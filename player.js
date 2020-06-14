@@ -421,7 +421,7 @@ var Player = function () {
     this.microphone_stream = null;
     this.video_stream = null;
     this.audioContext = null;
-    this.mediaRecorder = null;
+
 
     this.pausedDueToFullscreen = ko.observable(false);
     this.pausedDueToNoConnectionToJointExpServer = ko.observable(false);
@@ -1095,46 +1095,10 @@ Player.prototype.startExperiment = function () {
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             navigator.mediaDevices.getUserMedia({ audio: true, video: true })
                 .then(function (stream) {
-                    var recordedChunks = [];
                     self.video_stream = stream;
-                    var options = { mimeType: "video/webm; codecs=vp9" };
-                    self.mediaRecorder = new MediaRecorder(self.video_stream, options);
                     setTimeout(function () {
                         self.startExperimentContinue();
                     }, 1);
-
-                    self.mediaRecorder.ondataavailable = handleDataAvailable;
-                    self.mediaRecorder.start();
-
-                    function handleDataAvailable(event) {
-                        console.log("data-available");
-                        if (event.data.size > 0) {
-                            recordedChunks.push(event.data);
-                            download();
-                        } else {
-                            // ...
-                        }
-                    }
-
-                    function download() {
-                        var blob = new Blob(recordedChunks, {
-                            type: "video/webm"
-                        });
-                        var url = URL.createObjectURL(blob);
-                        var a = document.createElement("a");
-                        document.body.appendChild(a);
-                        a.style = "display: none";
-                        a.href = url;
-                        a.download = "test.webm";
-                        a.click();
-                        window.URL.revokeObjectURL(url);
-                    };
-
-                    setTimeout(event => {
-                        console.log("stopping");
-                        self.mediaRecorder.stop();
-                    }, 60000);
-
                 })
                 .catch(function (err) {
                     console.log("cannot get mic access: error: " + err);
