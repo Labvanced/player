@@ -1079,9 +1079,11 @@ Player.prototype.startExperiment = function () {
                 .then(function (stream) {
                     self.microphone_stream = stream;
                     self.audioContext = new AudioContext();
-                    setTimeout(function () {
-                        self.startExperimentContinue();
-                    }, 1);
+                    if (!hasVideo || self.video_stream) {
+                        setTimeout(function () {
+                            self.startExperimentContinue();
+                        }, 1);
+                    }
                 })
                 .catch(function (err) {
                     console.log("cannot get mic access: error: " + err);
@@ -1099,7 +1101,7 @@ Player.prototype.startExperiment = function () {
             navigator.mediaDevices.getUserMedia({ audio: true, video: true })
                 .then(function (stream) {
                     self.video_stream = stream;
-                    if (!hasAudio) {
+                    if (!hasAudio || self.microphone_stream) {
                         setTimeout(function () {
                             self.startExperimentContinue();
                         }, 1);
