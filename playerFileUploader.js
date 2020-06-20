@@ -19,7 +19,7 @@ var PlayerFileUploader = function (player) {
  */
 PlayerFileUploader.prototype.addToAjaxUploadQueue = function (file, newFileName, globalVarFile, callbackWhenFinished) {
 
-    if (file.size > 5000000) { // only allow files smaller than 5 MB
+    if (file.size > 1024 * 1024 * 100) { // only allow files smaller than 100 MB
         console.log("file too large. cannot upload");
         return;
     }
