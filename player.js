@@ -181,6 +181,19 @@ if (is_nwjs()) {
             }
         }
 
+        if (route == "/addMetaInfo") {
+            // add var data to session:
+            var rec_session_changes = {
+                var_data: p.var_data
+            };
+            db.rec_sessions.update(rec_session_id, rec_session_changes);
+            if (callback) {
+                callback({
+                    success: true
+                });
+            }
+        }
+
         if (route == "/finishExpSession") {
             // add end time to session:
             var rec_session_changes = {
