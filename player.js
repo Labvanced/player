@@ -2100,7 +2100,9 @@ Player.prototype.startFullscreen = function () {
     var self = this;
 
     // for compatibility check if safari is used:
-    if (this.experiment.exp_data.varBrowserSpec().value().value() === "Safari") {
+    if (this.experiment.exp_data.varBrowserSpec().value().value() === "Safari" &&
+        parseFloat(this.experiment.exp_data.varBrowserVersionSpec().value().value()) < 10.1) {
+
         // check if some KeyboardTrigger has alphanumeric enabled:
         var alphaNumericEnabled = false;
         var allFramesOrPages = this.getAllFramesOrPagesInSession();
@@ -2120,6 +2122,7 @@ Player.prototype.startFullscreen = function () {
             return;
         }
     }
+
 
     var element = document.documentElement;
     if (element.requestFullscreen) {
