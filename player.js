@@ -438,7 +438,7 @@ var Player = function () {
 
     this.pressedShortcut = ko.observable(false);
 
-    this.webcamLoaded = false;
+    this.eyetracking = null;
     this.variablesToReset = [];
     this.PixelDensityPerMM = null; // in pixel per mm
     this.distanceTScreenInCM = ko.observable(40);  // default is 40 cm distance
@@ -501,11 +501,6 @@ var Player = function () {
             $("#pauseScreen").hide();
         }
         self.wasPaused = isPausedNew;
-    });
-
-    Webcam.on("error", function (err_msg) {
-        console.log("webcam error: " + err_msg);
-        self.finishSessionWithError(err_msg);
     });
 
     //console.log("requesting experiment with id "+this.expId+" from server with askSubjData="+this.askSubjData+ " subject_code="+this.subject_code);
@@ -1438,6 +1433,27 @@ Player.prototype.jumpToSpecificBlock = function (blockToJumpId) {
     }
 };
 
+Player.prototype.setupEyetrackingV2 = function () {
+    var self = this;
+    console.log("setupEyetrackingV2...")
+    this.eyetracking = new Eyetracking.Eyetracking();
+    this.eyetracking.state.headPoseImgPaths = "/assets/img";
+    $("#eyetracking-v2").show();
+    this.eyetracking.init().then(function () {
+        return self.eyetracking.start();
+    }).then(function () {
+        self.calibrateEyetrackingV2();
+    });
+}
+
+Player.prototype.calibrateEyetrackingV2 = function () {
+    var self = this;
+    console.log("calibrateEyetrackingV2...")
+    this.eyetracking.calibrate().then(function (calibResult) {
+        console.log("calibResult: ", calibResult);
+        self.startRunningTask();
+    });
+}
 
 Player.prototype.startRunningTask = function () {
     var self = this;
@@ -1447,17 +1463,28 @@ Player.prototype.startRunningTask = function () {
         this.trialIter = "init";
         console.log("start initialization of trials: Randomization and Preloading");
 
-        if (this.currentTask.webcamEnabled() && !this.webcamLoaded) {
-            Webcam.attach("#my_camera");
-            Webcam.on("load", function () {
-                Webcam.off("load");
-                console.log("webcam loaded");
-                self.webcamLoaded = true;
-                setTimeout(function () {
-                    self.jumpToNextTask();
-                }, 1000);
-            });
-            return;
+        // check if we need to initialize eyetracking V2:
+        if (this.currentTask.useEyetrackingV2) {
+            if (!this.eyetracking) {
+                // this is the first task that is using eyetracking, so need to load the module and initialize it:
+                if (window.hasOwnProperty('Eyetracking')) {
+                    self.setupEyetrackingV2();
+                }
+                else {
+                    // first dynamically load eyetracking.js:
+                    var script = document.createElement('script');
+                    script.onload = function () {
+                        self.setupEyetrackingV2();
+                    };
+                    script.src = "assets/js/eyetracking.js";
+                    document.head.appendChild(script);
+                }
+                return;
+            }
+            else if (!this.eyetracking.wasCalibrated()) {
+                this.calibrateEyetrackingV2();
+                return;
+            }
         }
 
         // create array with variables that need to be reset after each trial: (the actual reset is done further below)
@@ -1855,12 +1882,6 @@ Player.prototype.startNextTrial = function (trialIndex) {
         console.log("task finished");
         this.trialIter = "init"; // reset to init so that another trial loop in another block will start from the beginning
         this.trialIndex = null;
-
-        if (this.webcamLoaded) {
-            console.log("removing webcam");
-            Webcam.reset();
-            this.webcamLoaded = false;
-        }
 
         // reset variables that would track concurrent calls to startNextTrial (should anyway already have this state):
         this.trialJumpInProgress = false;
