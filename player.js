@@ -1349,6 +1349,11 @@ Player.prototype.setupEyetrackingV2 = function () {
     this.eyetracking = new Eyetracking.Eyetracking();
     this.eyetracking.state.headPoseImgPaths = "/assets/img";
     $("#eyetracking-v2").show();
+    this.eyetracking.setPredictionCallback(function (data) {
+        if (self.currentFrame) {
+            self.currentFrame.triggerEyetracking(data);
+        }
+    });
     this.eyetracking.init().then(function () {
         return self.eyetracking.start();
     }).then(function () {
@@ -1395,7 +1400,14 @@ Player.prototype.startRunningTask = function () {
                 this.calibrateEyetrackingV2();
                 return;
             }
+            this.eyetracking.startPrediction();
         }
+        else {
+            if (this.eyetracking) {
+                this.eyetracking.stopPrediction();
+            }
+        }
+        $("#eyetracking-v2").hide();
 
         // create array with variables that need to be reset after each trial: (the actual reset is done further below)
         var allFrameDataInTrial = [];
