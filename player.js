@@ -67,6 +67,7 @@ if (is_nwjs()) {
         });
     };
 
+
     // replace server routes with alternatives for offline version:
     playerAjaxPost = function (route, p, callback, timeout) {
 
@@ -266,6 +267,33 @@ else {
     };
 
 }
+
+var playerAjaxPostExternal = function (route, p, callback, timeout) {
+    if (timeout === undefined) {
+        timeout = 5 * 60 * 1000; // 5 minutes is default timeout
+    }
+
+    var ip = player.experiment.publishing_data.connectToIPExternalDataStorage();
+    var port = player.experiment.publishing_data.connectToPortExternalDataStorage();
+    $.ajax({
+        type: "POST",
+        url: "http://" + ip + ":" + port + "/labvanced" + route,
+        data: p,
+        timeout: timeout,
+        error: function (jqXHR, textStatus, errorThrown) {
+            callback({
+                success: false,
+                errorThrown: errorThrown,
+                msg: textStatus
+            });
+            console.error("error in ajax post...", errorThrown);
+        },
+        success: function (data, textStatus, jqXHR) {
+            callback(data);
+        }
+    });
+};
+
 
 var Player = function () {
 
@@ -1611,39 +1639,92 @@ Player.prototype.processRecordTrialQueue = function () {
             console.log("starting next trial upload...");
             this.recordTrialQueueIsUploading = true;
             var nextRecordedData = self.recordTrialQueue[0];
-            playerAjaxPost(
-                '/recordTrial',
-                nextRecordedData,
-                function (data) {
-                    if (data.success == false) {
-                        if (data.errorThrown == "Payload Too Large") {
-                            // remove first element from queue:
-                            self.recordTrialQueue.shift();
-                            self.finishSessionWithError("Recordings in this trial are exceeding the maximum allowed size.");
-                            self.processRecordTrialQueue();
-                        }
-                        else {
-                            self.retryCounter += 1;
-                            var retryInMs = self.retryCounter * 300;
-                            console.log("error uploading trial data... retry in " + retryInMs + " ms...");
-                            setTimeout(function () {
-                                self.recordTrialQueueIsUploading = false;
-                                self.processRecordTrialQueue();
-                            }, retryInMs);
+
+            if (this.experiment.publishing_data.sendRecordedDataToExternalServer()) {
+                uc.socket.emit('getLicenseOfExperiment', { exp_id: exp_id }, function (data) {
+                    if (data.success) {
+                        // check if license is lab
+                        if (data) {
+                            playerAjaxPostExternal(
+                                '/recordTrial',
+                                nextRecordedData,
+                                function (data) {
+                                    if (data.success == false) {
+                                        if (data.errorThrown == "Payload Too Large") {
+                                            // remove first element from queue:
+                                            self.recordTrialQueue.shift();
+                                            self.finishSessionWithError("Recordings in this trial are exceeding the maximum allowed size.");
+                                            self.processRecordTrialQueue();
+                                        }
+                                        else {
+                                            self.retryCounter += 1;
+                                            var retryInMs = self.retryCounter * 300;
+                                            console.log("error uploading trial data... retry in " + retryInMs + " ms...");
+                                            setTimeout(function () {
+                                                self.recordTrialQueueIsUploading = false;
+                                                self.processRecordTrialQueue();
+                                            }, retryInMs);
+                                        }
+                                    }
+                                    else {
+                                        // remove first element from queue:
+                                        self.recordTrialQueue.shift();
+                                        self.retryCounter = 0;
+                                        self.recordTrialQueueIsUploading = false;
+
+                                        // check if there is something in the queue to process:
+                                        self.processRecordTrialQueue();
+                                    }
+                                },
+                                60 * 1000
+                            );
+                        } else {
+                            console.error("external data storage is only supported for lab license holders");
                         }
                     }
                     else {
-                        // remove first element from queue:
-                        self.recordTrialQueue.shift();
-                        self.retryCounter = 0;
-                        self.recordTrialQueueIsUploading = false;
-
-                        // check if there is something in the queue to process:
-                        self.processRecordTrialQueue();
+                        console.error("failed to load license data");
                     }
-                },
-                60 * 1000
-            );
+                });
+
+            }
+            if (!this.experiment.publishing_data.disableLabvancedDataRecording() === true) {
+                playerAjaxPost(
+                    '/recordTrial',
+                    nextRecordedData,
+                    function (data) {
+                        if (data.success == false) {
+                            if (data.errorThrown == "Payload Too Large") {
+                                // remove first element from queue:
+                                self.recordTrialQueue.shift();
+                                self.finishSessionWithError("Recordings in this trial are exceeding the maximum allowed size.");
+                                self.processRecordTrialQueue();
+                            }
+                            else {
+                                self.retryCounter += 1;
+                                var retryInMs = self.retryCounter * 300;
+                                console.log("error uploading trial data... retry in " + retryInMs + " ms...");
+                                setTimeout(function () {
+                                    self.recordTrialQueueIsUploading = false;
+                                    self.processRecordTrialQueue();
+                                }, retryInMs);
+                            }
+                        }
+                        else {
+                            // remove first element from queue:
+                            self.recordTrialQueue.shift();
+                            self.retryCounter = 0;
+                            self.recordTrialQueueIsUploading = false;
+
+                            // check if there is something in the queue to process:
+                            self.processRecordTrialQueue();
+                        }
+                    },
+                    60 * 1000
+                );
+            }
+
+
         }
     }
 };
