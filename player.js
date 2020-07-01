@@ -281,15 +281,21 @@ var playerAjaxPostExternal = function (route, p, callback, timeout) {
         data: p,
         timeout: timeout,
         error: function (jqXHR, textStatus, errorThrown) {
-            callback({
-                success: false,
-                errorThrown: errorThrown,
-                msg: textStatus
-            });
+            if (callback) {
+                callback({
+                    success: false,
+                    errorThrown: errorThrown,
+                    msg: textStatus
+                });
+            }
+
             console.error("error in ajax post...", errorThrown);
         },
         success: function (data, textStatus, jqXHR) {
-            callback(data);
+            if (callback) {
+                callback(data);
+            }
+
         }
     });
 };
@@ -463,6 +469,8 @@ var Player = function () {
     this.video_stream = null;
     this.audioContext = null;
 
+    this.exp_license = null;
+
 
     this.pausedDueToFullscreen = ko.observable(false);
     this.pausedDueToNoConnectionToJointExpServer = ko.observable(false);
@@ -579,6 +587,10 @@ Player.prototype.startExpPlayerResult = function (data) {
         if (self.isPlayerCalledWithType() && self.crowdsourcingType() == "csv") {
             self.crowdsourcingCode(data.crowdsourcingCodeCsv);
         }
+    }
+
+    if (data.exp_license) {
+        self.exp_license = data.exp_license;
     }
     if (data.groupNr) {
         self.groupNrAssignedByServer = data.groupNr;
@@ -1221,6 +1233,46 @@ Player.prototype.startExperimentContinue = function () {
             }
         }
         if (!self.isTestrun) {
+
+            if (this.experiment.publishing_data.sendRecordedDataToExternalServer()) {
+                if (this.exp_license === 'lab') {
+                    playerAjaxPostExternal(
+                        '/setPlayerSessionStartedTime',
+                        {
+                            start_time: this.sessionStartTime,
+                            expSessionNr: this.expSessionNr
+                        },
+                        null
+                    );
+
+                    var var_data = {
+                        browserSpec: self.experiment.exp_data.varBrowserSpec().value().toJS(),
+                        versionSpec: self.experiment.exp_data.varBrowserVersionSpec().value().toJS(),
+                        systemSpec: self.experiment.exp_data.varSystemSpec().value().toJS(),
+                        agentSpec: self.experiment.exp_data.varAgentSpec().value().toJS(),
+                        crowdsourcinSubjId: self.experiment.exp_data.varCrowdsourcingSubjId().value().toJS(),
+                        crowdsourcingCode: self.experiment.exp_data.varCrowdsourcingCode().value().toJS(),
+                        subjCounterGlobal: self.experiment.exp_data.varSubjectNr().value().toJS(),
+                        subjCounterPerGroup: self.experiment.exp_data.varSubjectNrPerSubjGroup().value().toJS(),
+                        roleId: self.experiment.exp_data.varRoleId().value().toJS(),
+                        displayedLanguage: self.experiment.exp_data.varDisplayedLanguage().value().toJS()
+                    };
+                    playerAjaxPostExternal(
+                        '/addMetaInfo',
+                        {
+                            expSessionNr: self.expSessionNr,
+                            var_data: var_data,
+                            expId: self.expId
+                        },
+                        null
+
+                    );
+
+                } else {
+                    console.error("external data storage is only supported for lab license holders");
+                }
+            }
+
             playerAjaxPost(
                 '/setPlayerSessionStartedTime',
                 {
@@ -1583,21 +1635,43 @@ Player.prototype.startRecordingsOfNewTask = function (cb) {
             start_time: pgFormatDate(new Date())
         };
 
-        playerAjaxPost(
-            '/recordStartTask',
-            recordData,
-            function (result) {
-                if (result.success) {
-                    self.recTaskId = result.recTaskId;
-                    cb();
-                }
-                else {
-                    self.finishSessionWithError("recording of new task failed with error: " + result.msg);
-                    throw new Error("recording of new task failed failed with error: " + result.msg);
-                }
-            },
-            5 * 60 * 1000 // 5 minutes timeout
-        );
+
+        var callback = function (result) {
+            if (result.success) {
+                self.recTaskId = result.recTaskId || self.currentTask.id();
+                cb();
+            }
+            else {
+                self.finishSessionWithError("recording of new task failed with error: " + result.msg);
+                throw new Error("recording of new task failed failed with error: " + result.msg);
+            }
+        };
+
+
+        if (this.experiment.publishing_data.sendRecordedDataToExternalServer()) {
+            if (this.exp_license === 'lab') {
+                playerAjaxPostExternal(
+                    '/recordStartTask',
+                    recordData,
+                    callback,
+                    5 * 60 * 1000 // 5 minutes timeout
+                );
+            } else {
+                console.error("external data storage is only supported for lab license holders");
+            }
+        }
+
+        else {
+            playerAjaxPost(
+                '/recordStartTask',
+                recordData,
+                callback,
+                5 * 60 * 1000 // 5 minutes timeout
+
+
+            );
+        }
+
     }
     else {
         cb();
@@ -1647,95 +1721,62 @@ Player.prototype.processRecordTrialQueue = function () {
             console.log("starting next trial upload...");
             this.recordTrialQueueIsUploading = true;
             var nextRecordedData = self.recordTrialQueue[0];
-
-            if (this.experiment.publishing_data.sendRecordedDataToExternalServer()) {
-                uc.socket.emit('getLicenseOfExperiment', { exp_id: exp_id }, function (data) {
-                    if (data.success) {
-                        // check if license is lab
-                        if (data) {
-                            playerAjaxPostExternal(
-                                '/recordTrial',
-                                nextRecordedData,
-                                function (data) {
-                                    if (data.success == false) {
-                                        if (data.errorThrown == "Payload Too Large") {
-                                            // remove first element from queue:
-                                            self.recordTrialQueue.shift();
-                                            self.finishSessionWithError("Recordings in this trial are exceeding the maximum allowed size.");
-                                            self.processRecordTrialQueue();
-                                        }
-                                        else {
-                                            self.retryCounter += 1;
-                                            var retryInMs = self.retryCounter * 300;
-                                            console.log("error uploading trial data... retry in " + retryInMs + " ms...");
-                                            setTimeout(function () {
-                                                self.recordTrialQueueIsUploading = false;
-                                                self.processRecordTrialQueue();
-                                            }, retryInMs);
-                                        }
-                                    }
-                                    else {
-                                        // remove first element from queue:
-                                        self.recordTrialQueue.shift();
-                                        self.retryCounter = 0;
-                                        self.recordTrialQueueIsUploading = false;
-
-                                        // check if there is something in the queue to process:
-                                        self.processRecordTrialQueue();
-                                    }
-                                },
-                                60 * 1000
-                            );
-                        } else {
-                            console.error("external data storage is only supported for lab license holders");
-                        }
+            var callback = function (data) {
+                if (data.success == false) {
+                    if (data.errorThrown == "Payload Too Large") {
+                        // remove first element from queue:
+                        self.recordTrialQueue.shift();
+                        self.finishSessionWithError("Recordings in this trial are exceeding the maximum allowed size.");
+                        self.processRecordTrialQueue();
                     }
                     else {
-                        console.error("failed to load license data");
+                        self.retryCounter += 1;
+                        var retryInMs = self.retryCounter * 300;
+                        console.log("error uploading trial data... retry in " + retryInMs + " ms...");
+                        setTimeout(function () {
+                            self.recordTrialQueueIsUploading = false;
+                            self.processRecordTrialQueue();
+                        }, retryInMs);
                     }
-                });
+                }
+                else {
+                    // remove first element from queue:
+                    self.recordTrialQueue.shift();
+                    self.retryCounter = 0;
+                    self.recordTrialQueueIsUploading = false;
 
+                    // check if there is something in the queue to process:
+                    self.processRecordTrialQueue();
+                }
+            };
+
+            if (this.experiment.publishing_data.sendRecordedDataToExternalServer()) {
+                if (this.exp_license === 'lab') {
+                    playerAjaxPostExternal(
+                        '/recordTrial',
+                        nextRecordedData,
+                        callback,
+                        60 * 1000
+                    );
+                } else {
+                    console.error("external data storage is only supported for lab license holders");
+                }
             }
-            if (!this.experiment.publishing_data.disableLabvancedDataRecording() === true) {
+
+            else {
                 playerAjaxPost(
                     '/recordTrial',
                     nextRecordedData,
-                    function (data) {
-                        if (data.success == false) {
-                            if (data.errorThrown == "Payload Too Large") {
-                                // remove first element from queue:
-                                self.recordTrialQueue.shift();
-                                self.finishSessionWithError("Recordings in this trial are exceeding the maximum allowed size.");
-                                self.processRecordTrialQueue();
-                            }
-                            else {
-                                self.retryCounter += 1;
-                                var retryInMs = self.retryCounter * 300;
-                                console.log("error uploading trial data... retry in " + retryInMs + " ms...");
-                                setTimeout(function () {
-                                    self.recordTrialQueueIsUploading = false;
-                                    self.processRecordTrialQueue();
-                                }, retryInMs);
-                            }
-                        }
-                        else {
-                            // remove first element from queue:
-                            self.recordTrialQueue.shift();
-                            self.retryCounter = 0;
-                            self.recordTrialQueueIsUploading = false;
-
-                            // check if there is something in the queue to process:
-                            self.processRecordTrialQueue();
-                        }
-                    },
+                    callback,
                     60 * 1000
                 );
             }
 
-
         }
+
     }
 };
+
 
 Player.prototype.cleanUpCurrentTask = function () {
     this.cleanUpCurrentTrial();
@@ -2145,19 +2186,35 @@ Player.prototype.finishSession = function (showEndPage) {
         }
 
         var self = this;
+
+        var data_send = {
+            expSessionNr: self.expSessionNr,
+            end_time: pgFormatDate(end_time),
+            nextStartTime: nextStartTime,
+            nextEndTime: nextEndTime,
+            reminderTime: reminderTime,
+            emailReminder: emailReminder,
+            var_data: var_data,
+            selectedEmail: self.selectedEmail,
+            expId: self.expId
+        };
+
+        if (this.experiment.publishing_data.sendRecordedDataToExternalServer()) {
+            if (this.exp_license === 'lab') {
+                playerAjaxPostExternal(
+                    '/finishExpSession',
+                    data_send,
+                    null,
+                    5 * 60 * 1000
+                );
+            } else {
+                console.error("external data storage is only supported for lab license holders");
+            }
+        }
+
         playerAjaxPost(
             '/finishExpSession',
-            {
-                expSessionNr: self.expSessionNr,
-                end_time: pgFormatDate(end_time),
-                nextStartTime: nextStartTime,
-                nextEndTime: nextEndTime,
-                reminderTime: reminderTime,
-                emailReminder: emailReminder,
-                var_data: var_data,
-                selectedEmail: self.selectedEmail,
-                expId: self.expId
-            },
+            data_send,
             function (data) {
                 if (data.success == false) {
                     console.error("error during finishExpSession...")
