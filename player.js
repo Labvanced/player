@@ -588,6 +588,11 @@ Player.prototype.startExpPlayerResult = function (data) {
                     self.jumpToNextTask();
                 }
             }
+            if (evtobj.keyCode == 88 && evtobj.ctrlKey && !evtobj.altKey) {
+                self.pressedShortcut(true);
+                console.log("IM PRESSING X")
+            }
+
         }
         document.onkeydown = KeyPress;
     }
