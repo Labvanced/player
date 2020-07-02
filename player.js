@@ -1628,24 +1628,12 @@ Player.prototype.startRecordingsOfNewTask = function (cb) {
         };
 
 
-        var callback = function (result) {
-            if (result.success) {
-                self.recTaskId = result.recTaskId || self.currentTask.id();
-                cb();
-            }
-            else {
-                self.finishSessionWithError("recording of new task failed with error: " + result.msg);
-                throw new Error("recording of new task failed failed with error: " + result.msg);
-            }
-        };
-
-
         if (this.experiment.publishing_data.sendRecordedDataToExternalServer()) {
             if (this.exp_license === 'lab') {
                 playerAjaxPostExternal(
                     '/recordStartTask',
                     recordData,
-                    callback,
+                    null,
                     5 * 60 * 1000 // 5 minutes timeout
                 );
             } else {
@@ -1653,16 +1641,24 @@ Player.prototype.startRecordingsOfNewTask = function (cb) {
             }
         }
 
-        else {
-            playerAjaxPost(
-                '/recordStartTask',
-                recordData,
-                callback,
-                5 * 60 * 1000 // 5 minutes timeout
+        playerAjaxPost(
+            '/recordStartTask',
+            recordData,
+            function (result) {
+                if (result.success) {
+                    self.recTaskId = result.recTaskId || self.currentTask.id();
+                    cb();
+                }
+                else {
+                    self.finishSessionWithError("recording of new task failed with error: " + result.msg);
+                    throw new Error("recording of new task failed failed with error: " + result.msg);
+                }
+            },
+            5 * 60 * 1000 // 5 minutes timeout
 
 
-            );
-        }
+        );
+
 
     }
     else {
