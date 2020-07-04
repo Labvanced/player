@@ -1490,7 +1490,6 @@ Player.prototype.startRunningTask = function () {
                 this.calibrateEyetrackingV2();
                 return;
             }
-            this.eyetracking.startPrediction();
         }
         else {
             if (this.eyetracking) {
@@ -1939,15 +1938,30 @@ Player.prototype.startNextTrial = function (trialIndex) {
 
         // need to wait for rendering to finish:
         setTimeout(function () {
-            self.startNextTrialContinue();
+            self.startNextTrialContinue1();
         }, 1)
     }
     else {
-        this.startNextTrialContinue();
+        this.startNextTrialContinue1();
     }
 };
 
-Player.prototype.startNextTrialContinue = function () {
+Player.prototype.startNextTrialContinue1 = function () {
+    var self = this;
+    if (this.currentTask.useEyetrackingV2) {
+        this.eyetracking.stopPrediction();
+        this.eyetracking.recalibrate(this.currentTask.eyetrackingV2numRecalibPoints).then(
+            function (result) {
+                self.eyetracking.startPrediction();
+                self.startNextTrialContinue2();
+            });
+    }
+    else {
+        self.startNextTrialContinue2();
+    }
+}
+
+Player.prototype.startNextTrialContinue2 = function () {
     var self = this;
 
     this.switchToNextPreloadedTrial();
