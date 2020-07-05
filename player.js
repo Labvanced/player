@@ -1950,9 +1950,12 @@ Player.prototype.startNextTrialContinue1 = function () {
     var self = this;
     if (this.currentTask.useEyetrackingV2) {
         this.eyetracking.stopPrediction();
-        this.eyetracking.recalibrate(this.currentTask.eyetrackingV2numRecalibPoints).then(
+        $("#eyetracking-v2").show();
+        this.eyetracking.recalibrate(this.currentTask.eyetrackingV2numRecalibPoints()).then(
             function (result) {
+                console.log("eyetracking retest result: ", result);
                 self.eyetracking.startPrediction();
+                $("#eyetracking-v2").hide();
                 self.startNextTrialContinue2();
             });
     }
