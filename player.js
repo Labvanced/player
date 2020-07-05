@@ -1456,6 +1456,11 @@ Player.prototype.calibrateEyetrackingV2 = function () {
     console.log("calibrateEyetrackingV2...")
     this.eyetracking.calibrate().then(function (calibResult) {
         console.log("calibResult: ", calibResult);
+        if (calibResult.bestValidLoss > 0.03) {
+            $("#eyetracking-v2").hide();
+            self.finishSessionWithError("Your webcam or lightning conditions are not sufficient for eyetracking.");
+            return;
+        }
         self.startRunningTask();
     });
 }
@@ -1490,6 +1495,7 @@ Player.prototype.startRunningTask = function () {
                 this.calibrateEyetrackingV2();
                 return;
             }
+            this.eyetracking.startPrediction();
         }
         else {
             if (this.eyetracking) {
