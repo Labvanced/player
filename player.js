@@ -487,14 +487,17 @@ var Player = function () {
         }
         else {
             self.startExpPlayer(parameters);
+            console.log('START PLAYER PARAM')
         }
     });
 
 };
 
 Player.prototype.startExpPlayer = function (parameters) {
+    console.log("Start experiment Player")
     var self = this;
     playerAjaxPost('/startExpPlayer', parameters, function (data) {
+
 
         $("#loadingExpData").hide();
 
@@ -513,7 +516,7 @@ Player.prototype.startExpPlayer = function (parameters) {
 };
 
 Player.prototype.startExpPlayerResult = function (data) {
-
+    console.log("start experiment results")
     var self = this;
 
     if (data.hasOwnProperty('success') && data.success == false) {
@@ -582,21 +585,32 @@ Player.prototype.startExpPlayerResult = function (data) {
             var evtobj = window.event ? event : e;
             if (evtobj.keyCode == 81 && evtobj.ctrlKey && !evtobj.altKey) {
                 self.pressedShortcut(true);
+                console.log("IMPRESSING Q")
                 if (self.currentFrame) {
                     self.currentFrame.finishFrame();
                     self.recordData();
                     self.jumpToNextTask();
                 }
             }
+        }
+        document.onkeyup = KeyPress;
+    }
+    // fast forward between trails by ctrl+x
+    if (self.experiment.exp_data.studySettings.allowNextTrail()) {
+        function KeyPress(e) {
+            var evtobj = window.event ? event : e;
             if (evtobj.keyCode == 88 && evtobj.ctrlKey && !evtobj.altKey) {
                 self.pressedShortcut(true);
                 console.log("IM PRESSING X")
+                if (self.currentFrame) {
+                    self.currentFrame.finishFrame();
+                    self.recordData();
+                    self.startNextTrial(); // This function should increas the number of trails
+                }
             }
-
         }
         document.onkeydown = KeyPress;
     }
-
 
     ko.applyBindings(self, $("#pauseScreen")[0]);
     ko.applyBindings(self, $("#calibrateScreen")[0]);
