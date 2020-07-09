@@ -580,7 +580,7 @@ Player.prototype.startExpPlayerResult = function (data) {
     console.log('expSessionNr: ' + self.expSessionNr);
 
     // function for jumping from one task
-    const jumpTask = () => {
+    function jumpTask() {
         if (self.currentFrame) {
             self.currentFrame.finishFrame();
             self.recordData();
@@ -588,7 +588,7 @@ Player.prototype.startExpPlayerResult = function (data) {
         }
     }
     // function for jumping to another trail
-    const nextTrail = () => {
+    function nextTrail() {
         if (self.currentFrame) {
             self.currentFrame.finishFrame();
             self.recordData();
