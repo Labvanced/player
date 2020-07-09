@@ -579,38 +579,40 @@ Player.prototype.startExpPlayerResult = function (data) {
     self.expSessionNr = data.expSessionNr;
     console.log('expSessionNr: ' + self.expSessionNr);
 
+    // function for jumping from one task
+    const jumpTask = () => {
+        if (self.currentFrame) {
+            self.currentFrame.finishFrame();
+            self.recordData();
+            self.jumpToNextTask();
+        }
+    }
+    // function for jumping to another trail
+    const nextTrail = () => {
+        if (self.currentFrame) {
+            self.currentFrame.finishFrame();
+            self.recordData();
+            self.startNextTrial(self.trialIndex + 1)
+        }
+    }
     // fast forward by strg+q
     if (self.experiment.exp_data.studySettings.allowSTRGQ()) {
         function KeyPress(e) {
             var evtobj = window.event ? event : e;
             if (evtobj.keyCode == 81 && evtobj.ctrlKey && !evtobj.altKey) {
                 self.pressedShortcut(true);
-                console.log("IMPRESSING Q")
-                if (self.currentFrame) {
-                    self.currentFrame.finishFrame();
-                    self.recordData();
-                    self.jumpToNextTask();
-                }
+                jumpTask();
             }
-        }
-        document.onkeyup = KeyPress;
-    }
-    // fast forward between trails by ctrl+x
-    if (self.experiment.exp_data.studySettings.allowNextTrail()) {
-        function KeyPress(e) {
-            var evtobj = window.event ? event : e;
             if (evtobj.keyCode == 88 && evtobj.ctrlKey && !evtobj.altKey) {
                 self.pressedShortcut(true);
-                console.log("IM PRESSING X")
-                if (self.currentFrame) {
-                    self.currentFrame.finishFrame();
-                    self.recordData();
-                    self.startNextTrial(); // This function should increas the number of trails
-                }
+                nextTrail();
             }
+
         }
         document.onkeydown = KeyPress;
     }
+    self.startNextTrial(self.trialIndex + 1)
+
 
     ko.applyBindings(self, $("#pauseScreen")[0]);
     ko.applyBindings(self, $("#calibrateScreen")[0]);
