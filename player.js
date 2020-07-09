@@ -1687,7 +1687,12 @@ Player.prototype.recordData = function () {
 
         // new, dynamic verison
         for (var i = 0; i < this.variablesToRecord.length; i++) {
-            recData.addRecording(this.variablesToRecord[i]);
+            if (self.experiment.publishing_data.sendRecordedDataToExternalServer() && this.exp_license === 'lab') {
+                recData.addRecordingByName(this.variablesToRecord[i]);
+            }
+            else {
+                recData.addRecording(this.variablesToRecord[i]);
+            }
         }
 
         // server command
@@ -1746,17 +1751,14 @@ Player.prototype.processRecordTrialQueue = function () {
                 }
             };
 
-            if (this.experiment.publishing_data.sendRecordedDataToExternalServer()) {
-                if (this.exp_license === 'lab') {
-                    playerAjaxPostExternal(
-                        '/recordTrial',
-                        nextRecordedData,
-                        callback,
-                        60 * 1000
-                    );
-                } else {
-                    console.error("external data storage is only supported for lab license holders");
-                }
+            if (this.experiment.publishing_data.sendRecordedDataToExternalServer() && this.exp_license === 'lab') {
+                playerAjaxPostExternal(
+                    '/recordTrial',
+                    nextRecordedData,
+                    callback,
+                    60 * 1000
+                );
+
             }
 
             else {
