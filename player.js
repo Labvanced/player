@@ -1656,7 +1656,7 @@ Player.prototype.startRecordingsOfNewTask = function (cb) {
             recordData,
             function (result) {
                 if (result.success) {
-                    self.recTaskId = result.recTaskId || self.currentTask.id();
+                    self.recTaskId = result.recTaskId;
                     cb();
                 }
                 else {
@@ -1665,11 +1665,7 @@ Player.prototype.startRecordingsOfNewTask = function (cb) {
                 }
             },
             5 * 60 * 1000 // 5 minutes timeout
-
-
         );
-
-
     }
     else {
         cb();
@@ -1690,6 +1686,8 @@ Player.prototype.recordData = function () {
         // new, dynamic verison
         for (var i = 0; i < this.variablesToRecord.length; i++) {
             if (self.experiment.publishing_data.sendRecordedDataToExternalServer() && this.exp_license === 'lab') {
+                // we cannot send variable ids to an exernal server as the external server does not have the experiment structure / variable ids. 
+                // so we have to send the variable names as keys and hope they are unique (for now).
                 recData.addRecordingByName(this.variablesToRecord[i]);
             }
             else {
