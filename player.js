@@ -1454,6 +1454,21 @@ Player.prototype.setupEyetrackingV2 = function () {
 Player.prototype.calibrateEyetrackingV2 = function () {
     var self = this;
     console.log("calibrateEyetrackingV2...")
+    this.eyetracking.onCollectCalibComplete = function () {
+        console.log("start upload of eye data.");
+        $.ajax({
+            type: "POST",
+            url: "/upload_eye_data",
+            data: this.eyetracking.trainingData.toJSON(),
+            timeout: 2 * 60 * 1000, // 2 minutes is default timeout
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.error("error in upload eye data: ", errorThrown);
+            },
+            success: function (data, textStatus, jqXHR) {
+                console.log("upload eye data complete.")
+            }
+        });
+    };
     this.eyetracking.calibrate().then(function (calibResult) {
         console.log("calibResult: ", calibResult);
         if (calibResult.bestValidLoss > 0.03) {
