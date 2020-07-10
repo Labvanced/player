@@ -275,9 +275,11 @@ var playerAjaxPostExternal = function (route, p, callback, timeout) {
 
     var ip = player.experiment.publishing_data.connectToIPExternalDataStorage();
     var port = player.experiment.publishing_data.connectToPortExternalDataStorage();
+    var namespace = player.experiment.publishing_data.connectToNameSpaceExternalDataStorage();
+
     $.ajax({
         type: "POST",
-        url: "http://" + ip + ":" + port + "/labvanced" + route,
+        url: ip + ":" + port + namespace + route,
         data: p,
         timeout: timeout,
         error: function (jqXHR, textStatus, errorThrown) {
