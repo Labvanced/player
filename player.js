@@ -2154,7 +2154,7 @@ Player.prototype.startFullscreen = function () {
     }
 
     function exitHandler() {
-        if (!fs_status()) {
+        if (!fs_status() && !self.sessionEnded) {
             self.experiment.exp_data.varFullscreenSpec().value().setValue(false);
             if (self.experiment.exp_data.studySettings.pauseOnExitFullscreen()) {
                 self.pausedDueToFullscreen(true);
