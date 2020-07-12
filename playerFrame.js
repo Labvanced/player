@@ -119,10 +119,10 @@ PlayerFrame.prototype.trackMouseMove = function () {
             doc = eventDoc.documentElement;
             body = eventDoc.body;
 
-            event.pageX = event.clientX +
+            pageX = event.clientX +
                 (doc && doc.scrollLeft || body && body.scrollLeft || 0) -
                 (doc && doc.clientLeft || body && body.clientLeft || 0);
-            event.pageY = event.clientY +
+            pageY = event.clientY +
                 (doc && doc.scrollTop || body && body.scrollTop || 0) -
                 (doc && doc.clientTop || body && body.clientTop || 0);
         }
@@ -131,13 +131,13 @@ PlayerFrame.prototype.trackMouseMove = function () {
             var scale = self.frameView.scale();
             var offX = (window.innerWidth - self.frameData.frameWidth() * scale) / 2;
             var offY = (window.innerHeight - self.frameData.frameHeight() * scale) / 2;
-            event.pageX = (event.pageX - offX) / scale;
-            event.pageY = (event.pageY - offY) / scale;
+            pageX = (event.pageX - offX) / scale;
+            pageY = (event.pageY - offY) / scale;
         }
 
-        self.frameMouseX = event.pageX;
-        self.frameMouseY = event.pageY;
-        self.frameMouseXY([event.pageX, event.pageY]);
+        self.frameMouseX = pageX;
+        self.frameMouseY = pageY;
+        self.frameMouseXY([pageX, pageY]);
 
     }
 
