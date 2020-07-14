@@ -579,39 +579,29 @@ Player.prototype.startExpPlayerResult = function (data) {
     self.expSessionNr = data.expSessionNr;
     console.log('expSessionNr: ' + self.expSessionNr);
 
-    // function for jumping from one task
-    function jumpTask() {
-        if (self.currentFrame) {
-            self.currentFrame.finishFrame();
-            self.recordData();
-            self.jumpToNextTask();
-        }
-    }
-    // function for jumping to another trail
-    function nextTrail() {
-        if (self.currentFrame) {
-            self.currentFrame.finishFrame();
-            self.recordData();
-            self.startNextTrial(self.trialIndex + 1)
-        }
-    }
     // fast forward by strg+q
     if (self.experiment.exp_data.studySettings.allowSTRGQ()) {
         function KeyPress(e) {
             var evtobj = window.event ? event : e;
             if (evtobj.keyCode == 81 && evtobj.ctrlKey && !evtobj.altKey) {
                 self.pressedShortcut(true);
-                jumpTask();
+                if (self.currentFrame) {
+                    self.currentFrame.finishFrame();
+                    self.recordData();
+                    self.jumpToNextTask();
+                }
             }
             if (evtobj.keyCode == 88 && evtobj.ctrlKey && !evtobj.altKey) {
                 self.pressedShortcut(true);
-                nextTrail();
+                if (self.currentFrame) {
+                    self.currentFrame.finishFrame();
+                    self.recordData();
+                    self.startNextTrial(self.trialIndex + 1)
+                }
             }
-
         }
         document.onkeydown = KeyPress;
     }
-    self.startNextTrial(self.trialIndex + 1)
 
 
     ko.applyBindings(self, $("#pauseScreen")[0]);
