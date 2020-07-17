@@ -588,6 +588,14 @@ Player.prototype.startExpPlayerResult = function (data) {
                     self.jumpToNextTask();
                 }
             }
+            if (evtobj.keyCode == 88 && evtobj.ctrlKey && !evtobj.altKey) {
+                self.pressedShortcut(true);
+                if (self.currentFrame) {
+                    self.currentFrame.finishFrame();
+                    self.recordData();
+                    self.startNextTrial(self.trialIndex + 1)
+                }
+            }
         }
         document.onkeydown = KeyPress;
     }
