@@ -1386,6 +1386,7 @@ Player.prototype.setupEyetrackingV2 = function () {
     var self = this;
     console.log("setupEyetrackingV2...")
     this.eyetracking = new Eyetracking.Eyetracking();
+    this.eyetracking.state.webcamStream = this.video_stream;
     this.eyetracking.state.expSessionNr = this.expSessionNr;
     this.eyetracking.state.headPoseImgPaths = "/assets/img";
     $("#eyetracking-v2").show();
