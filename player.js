@@ -251,9 +251,10 @@ else {
                 callback({
                     success: false,
                     errorThrown: errorThrown,
-                    msg: textStatus
+                    msg: textStatus,
+                    status: jqXHR.status
                 });
-                console.error("error in ajax post...", errorThrown);
+                console.error("error in ajax post...", status, errorThrown);
             },
             success: function (data, textStatus, jqXHR) {
                 if (player.recordServerResponseTimes) {
@@ -287,11 +288,12 @@ var playerAjaxPostExternal = function (route, p, callback, timeout) {
                 callback({
                     success: false,
                     errorThrown: errorThrown,
-                    msg: textStatus
+                    msg: textStatus,
+                    status: jqXHR.status
                 });
             }
 
-            console.error("error in ajax post...", errorThrown);
+            console.error("error in ajax post...", status, errorThrown);
         },
         success: function (data, textStatus, jqXHR) {
             if (callback) {
@@ -1422,7 +1424,7 @@ Player.prototype.startRunningTask = function () {
         console.log("start initialization of trials: Randomization and Preloading");
 
         // check if we need to initialize eyetracking V2:
-        if (this.currentTask.useEyetrackingV2) {
+        if (this.currentTask.useEyetrackingV2()) {
             if (!this.eyetracking) {
                 // this is the first task that is using eyetracking, so need to load the module and initialize it:
                 if (window.hasOwnProperty('Eyetracking')) {
@@ -1716,7 +1718,7 @@ Player.prototype.processRecordTrialQueue = function () {
             var nextRecordedData = self.recordTrialQueue[0];
             var callback = function (data) {
                 if (data.success == false) {
-                    if (data.errorThrown == "Payload Too Large") {
+                    if (data.errorThrown == "Payload Too Large" || data.status == 413) {
                         // remove first element from queue:
                         self.recordTrialQueue.shift();
                         self.finishSessionWithError("Recordings in this trial are exceeding the maximum allowed size.");
@@ -1902,7 +1904,7 @@ Player.prototype.startNextTrial = function (trialIndex) {
 
 Player.prototype.startNextTrialContinue1 = function () {
     var self = this;
-    if (this.currentTask.useEyetrackingV2) {
+    if (this.currentTask.useEyetrackingV2()) {
         this.eyetracking.stopPrediction();
         $("#eyetracking-v2").show();
         this.eyetracking.recalibrate(this.currentTask.eyetrackingV2numRecalibPoints()).then(
