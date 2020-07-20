@@ -1124,60 +1124,7 @@ Player.prototype.setupPlayerDesign = function () {
 
 
 Player.prototype.startExperiment = function () {
-    var self = this;
-
-    // enable microphone access:
-    var hasAudio = self.experiment.exp_data.studySettings.isAudioRecEnabled();
-    var hasVideo = self.experiment.exp_data.studySettings.isVideoRecEnabled();
-
-    if (hasAudio) {
-        // Request permissions to record audio
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-            navigator.mediaDevices.getUserMedia({ audio: true })
-                .then(function (stream) {
-                    self.microphone_stream = stream;
-                    self.audioContext = new AudioContext();
-                    if (!hasVideo || self.video_stream) {
-                        setTimeout(function () {
-                            self.startExperimentContinue();
-                        }, 1);
-                    }
-                })
-                .catch(function (err) {
-                    console.log("cannot get mic access: error: " + err);
-                    self.finishSessionWithError("Error accessing your microphone. Please check your PC and browser settings and restart the experiment. Supported browsers are Chrome, Firefox and Microsoft Edge.");
-                });
-        }
-        else {
-            self.finishSessionWithError("Error accessing your microphone. Please check your PC and browser settings and restart the experiment. Supported browsers are Chrome, Firefox and Microsoft Edge.");
-        }
-    }
-
-    if (hasVideo) {
-        // Request permissions to record audio
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-            navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-                .then(function (stream) {
-                    self.video_stream = stream;
-                    if (!hasAudio || self.microphone_stream) {
-                        setTimeout(function () {
-                            self.startExperimentContinue();
-                        }, 1);
-                    }
-
-                })
-                .catch(function (err) {
-                    console.log("cannot get video access: error: " + err);
-                    self.finishSessionWithError("Error accessing your webcam. Please check your PC and browser settings and restart the experiment. Supported browsers are Chrome, Firefox and Microsoft Edge.");
-                });
-        }
-        else {
-            self.finishSessionWithError("Error accessing your webcam. Please check your PC and browser settings and restart the experiment. Supported browsers are Chrome, Firefox and Microsoft Edge.");
-        }
-    }
-    if (!hasAudio && !hasVideo) {
-        self.startExperimentContinue();
-    }
+    // this.startExperimentContinue();
 };
 
 Player.prototype.startExperimentContinue = function () {
