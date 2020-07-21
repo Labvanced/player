@@ -475,6 +475,8 @@ var Player = function () {
 
     this.exp_license = null;
 
+    this.eyetrackingValidationAccuracy = null;
+    this.eyetrackingCalibrationAccuracy = null;
 
     this.pausedDueToFullscreen = ko.observable(false);
     this.pausedDueToNoConnectionToJointExpServer = ko.observable(false);
@@ -1407,6 +1409,9 @@ Player.prototype.calibrateEyetrackingV2 = function () {
     console.log("calibrateEyetrackingV2...")
     this.eyetracking.calibrate().then(function (calibResult) {
         console.log("calibResult: ", calibResult);
+        self.eyetrackingCalibrationAccuracy = calibResult;
+
+        // @ HOLGER this treshold seems arbitrary, should at least be communicated, otherwise we get a lot of complain emails.
         if (calibResult.bestValidLoss > 0.03) {
             $("#eyetracking-v2").hide();
             self.finishSessionWithError("Your webcam or lightning conditions are not sufficient for eyetracking.");
@@ -1910,6 +1915,7 @@ Player.prototype.startNextTrialContinue1 = function () {
         $("#eyetracking-v2").show();
         this.eyetracking.recalibrate(this.currentTask.eyetrackingV2numRecalibPoints()).then(
             function (result) {
+                self.eyetrackingValidationAccuracy = result;
                 console.log("eyetracking retest result: ", result);
                 self.eyetracking.startPrediction();
                 $("#eyetracking-v2").hide();
