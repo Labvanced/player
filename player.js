@@ -320,25 +320,32 @@ var Player = function () {
 
     // determine whether this is a crowdsourcingSession
     this.crowdsourcingCode = ko.observable('');
+    this.crowdsourcinSubjId = "";
     this.isPlayerCalledWithType = ko.observable(false);
     this.crowdsourcingType = ko.observable("code");
     var isCrowdsourcingSession = ko.observable(getParameterByName("crowdsourcing"));
     var csType = getParameterByName("type");
     this.askForWorkerId = ko.observable(false);
 
+
     if (csType || isCrowdsourcingSession == "true") {
         this.crowdsourcingCode(guid());
         this.isPlayerCalledWithType(true);
         if (csType == "link") {
-            this.crowdsourcingType("link")
+            this.crowdsourcingType("link");
+            this.crowdsourcinSubjId = getParameterByName("Profilic_PID"); // this is supplied by profilic 
             this.askForWorkerId(true);
+
         }
         else if (csType == "code") {
             this.crowdsourcingType("code");
+            this.crowdsourcinSubjId = getParameterByName("crowdworker_id"); // this is supplied by mTurk
             this.askForWorkerId(true);
+
         }
         else if (csType == "csv") {
             this.crowdsourcingType("csv");
+            this.crowdsourcinSubjId = getParameterByName("user_id"); // this is supplied by clickworker
             this.askForWorkerId(true);
         }
         else if (csType == "sona") {
@@ -388,8 +395,6 @@ var Player = function () {
         this.isTestrun = true;
     }
     this.subject_code = getParameterByName("subject_code");
-
-    this.crowdsourcinSubjId = getParameterByName("user_id"); // this can be supplied by clickworker as the clickworker-ID and will be autofilled in the startup page
 
     this.token = getParameterByName("token");
     this.prevSessionData = null;
