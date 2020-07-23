@@ -1392,7 +1392,7 @@ Player.prototype.setupEyetrackingV2 = function () {
     this.eyetracking.state.expSessionNr = this.expSessionNr;
     this.eyetracking.state.headPoseImgPaths = "/assets/img";
     this.eyetracking.state.calibrationImageType = this.experiment.publishing_data.calibrationImgType();
-    this.eyetracking.state.uploadEnabled = this.experiment.study_settings().eyetrackingUploadEnabled();
+    this.eyetracking.state.uploadEnabled = this.experiment.exp_data.studySettings.eyetrackingUploadEnabled();
 
     $("#eyetracking-v2").show();
     this.eyetracking.setPredictionCallback(function (data) {
