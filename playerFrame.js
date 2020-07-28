@@ -26,6 +26,8 @@ var PlayerFrame = function (frameData, frameDiv, player) {
     this.frameMouseX = null;
     this.frameMouseY = null;
     this.frameMouseXY = ko.observable(null);
+    this.frameLastEyeCoordX = null;
+    this.frameLastEyeCoordY = null;
     this.isPaused = ko.observable(false);
 
     // the following is stored   to later remove the event listener:
@@ -228,6 +230,8 @@ PlayerFrame.prototype.triggerEyetracking = function (data) {
     jQuery.each(this.onEyetrackingCoords, function (idx, eyetrackingCb) {
         eyetrackingCb(coordX, coordY);
     });
+    this.frameLastEyeCoordX = coordX;
+    this.frameLastEyeCoordY = coordY;
     player.experiment.exp_data.varGazeX().value().value(coordX);
     player.experiment.exp_data.varGazeY().value().value(coordY);
 };

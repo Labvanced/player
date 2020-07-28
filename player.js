@@ -1420,7 +1420,7 @@ Player.prototype.calibrateEyetrackingV2 = function () {
         self.eyetrackingCalibrationAccuracy = calibResult;
 
         // @ HOLGER this treshold seems arbitrary, should at least be communicated, otherwise we get a lot of complain emails.
-        if (calibResult.bestValidLoss > 0.03) {
+        if (calibResult.meanSquaredErrorInNormCoord > 0.03) {
             $("#eyetracking-v2").hide();
             self.finishSessionWithError("Your webcam or lightning conditions are not sufficient for eyetracking.");
             return;
