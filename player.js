@@ -1398,6 +1398,7 @@ Player.prototype.setupEyetrackingV2 = function () {
     this.eyetracking.state.headPoseImgPaths = "/assets/img";
     this.eyetracking.state.calibrationImageType = this.experiment.publishing_data.calibrationImgType();
     this.eyetracking.state.uploadEnabled = this.experiment.exp_data.studySettings.eyetrackingUploadEnabled();
+    this.eyetracking.state.useDriftCorrection = this.currentTask.useDriftCorrection();
 
     $("#eyetracking-v2").show();
     this.eyetracking.setPredictionCallback(function (data) {
