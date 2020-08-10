@@ -1949,7 +1949,7 @@ Player.prototype.startNextTrialContinue1 = function () {
     if (this.currentTask.useEyetrackingV2()) {
         this.eyetracking.stopPrediction();
         $("#eyetracking-v2").show();
-        this.eyetracking.recalibrate(this.currentTask.eyetrackingV2numRecalibPoints()).then(
+        this.eyetracking.recalibrate(this.currentTask.eyetrackingV2numRecalibPoints(), this.currentTask.eyetrackingV2numDriftPoints()).then(
             function (result) {
                 self.eyetrackingValidationAccuracy = result;
                 console.log("eyetracking retest result: ", result);
