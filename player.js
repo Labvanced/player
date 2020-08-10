@@ -1682,7 +1682,7 @@ Player.prototype.startRecordingsOfNewTask = function (cb) {
     }
 };
 
-Player.prototype.recordData = function () {
+Player.prototype.recordData = function (isDuringTrial) {
     var self = this;
     if (!this.runOnlyTaskId && !this.isTestrun) {
 
@@ -1695,14 +1695,8 @@ Player.prototype.recordData = function () {
 
         // new, dynamic verison
         for (var i = 0; i < this.variablesToRecord.length; i++) {
-            if (self.experiment.publishing_data.sendRecordedDataToExternalServer() && this.exp_license === 'lab') {
-                // we cannot send variable ids to an exernal server as the external server does not have the experiment structure / variable ids. 
-                // so we have to send the variable names as keys and hope they are unique (for now).
-                recData.addRecordingByName(this.variablesToRecord[i]);
-            }
-            else {
-                recData.addRecording(this.variablesToRecord[i]);
-            }
+            var saveByName = (self.experiment.publishing_data.sendRecordedDataToExternalServer() && this.exp_license === 'lab');
+            recData.addRecording(this.variablesToRecord[i], saveByName, isDuringTrial);
         }
 
         // server command
@@ -1735,9 +1729,41 @@ Player.prototype.processRecordTrialQueue = function () {
             var callback = function (data) {
                 if (data.success == false) {
                     if (data.errorThrown == "Payload Too Large" || data.status == 413) {
+
+                        function countSize(obj) {
+                            var counter = 0;
+                            for(var k in obj) {
+                                if(obj[k] instanceof Object) {
+                                    counter += countSize(obj[k]);
+                                } else {
+                                    counter++;
+                                };
+                            }
+                            return counter;
+                        };
+
+                        var maxSize = 0;
+                        var globVarIdWithMaxSize = null;
+                        for (var globVarId in nextRecordedData.recData.data) {
+                            if (nextRecordedData.recData.data.hasOwnProperty(globVarId)) {
+                                var paramSize = countSize(nextRecordedData.recData.data[globVarId]);
+                                if (paramSize > maxSize) {
+                                    maxSize = paramSize;
+                                    globVarIdWithMaxSize = globVarId;
+                                }
+                            }
+                        }
+
+                        var largestGlobVar = self.experiment.exp_data.availableVars.byId[globVarIdWithMaxSize];
+                        var largestVarErrMsg = "";
+                        if (largestGlobVar && largestGlobVar.name()) {
+                            largestVarErrMsg = "The largest recording was in variable "+largestGlobVar.name()+". If you are the experiment creator, then please reduce the recording size of this variable to fix this problem.";
+                        }
+
                         // remove first element from queue:
                         self.recordTrialQueue.shift();
-                        self.finishSessionWithError("Recordings in this trial are exceeding the maximum allowed size.");
+
+                        self.finishSessionWithError("Recordings in this trial are exceeding the maximum allowed size. " + largestVarErrMsg );
                         self.processRecordTrialQueue();
                     }
                     else {
