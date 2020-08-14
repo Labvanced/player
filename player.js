@@ -333,7 +333,7 @@ var Player = function () {
         this.isPlayerCalledWithType(true);
         if (csType == "link") {
             this.crowdsourcingType("link");
-            this.crowdsourcinSubjId = getParameterByName("Profilic_PID"); // this is supplied by profilic 
+            this.crowdsourcinSubjId = getParameterByName("PROLIFIC_PID"); // this is supplied by profilic 
             this.askForWorkerId(true);
 
         }
@@ -1732,8 +1732,8 @@ Player.prototype.processRecordTrialQueue = function () {
 
                         function countSize(obj) {
                             var counter = 0;
-                            for(var k in obj) {
-                                if(obj[k] instanceof Object) {
+                            for (var k in obj) {
+                                if (obj[k] instanceof Object) {
                                     counter += countSize(obj[k]);
                                 } else {
                                     counter++;
@@ -1757,13 +1757,13 @@ Player.prototype.processRecordTrialQueue = function () {
                         var largestGlobVar = self.experiment.exp_data.availableVars.byId[globVarIdWithMaxSize];
                         var largestVarErrMsg = "";
                         if (largestGlobVar && largestGlobVar.name()) {
-                            largestVarErrMsg = "The largest recording was in variable "+largestGlobVar.name()+". If you are the experiment creator, then please reduce the recording size of this variable to fix this problem.";
+                            largestVarErrMsg = "The largest recording was in variable " + largestGlobVar.name() + ". If you are the experiment creator, then please reduce the recording size of this variable to fix this problem.";
                         }
 
                         // remove first element from queue:
                         self.recordTrialQueue.shift();
 
-                        self.finishSessionWithError("Recordings in this trial are exceeding the maximum allowed size. " + largestVarErrMsg );
+                        self.finishSessionWithError("Recordings in this trial are exceeding the maximum allowed size. " + largestVarErrMsg);
                         self.processRecordTrialQueue();
                     }
                     else {
