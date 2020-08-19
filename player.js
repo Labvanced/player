@@ -1088,7 +1088,7 @@ Player.prototype.runCalibration = function (callback) {
         resize: function (event, ui) {
             var creditWidthInPixel = ui.size.width;
             self.PixelDensityPerMM = creditWidthInPixel / 85.60;
-
+            self.experiment.exp_data.varPixelDensityPerMM().setValue(self.PixelDensityPerMM);
             // set number input:
             var displayDiagInMM = displayDiagInPx / self.PixelDensityPerMM;
             var displayDiagInInch = displayDiagInMM * convertInchToMM;
@@ -1102,7 +1102,7 @@ Player.prototype.runCalibration = function (callback) {
         var displayDiagInInch = $("#calibrationInput").val();
         var displayDiagInMM = displayDiagInInch / convertInchToMM; // converting inch to mm
         self.PixelDensityPerMM = displayDiagInPx / displayDiagInMM;
-
+        self.experiment.exp_data.varPixelDensityPerMM().setValue(self.PixelDensityPerMM);
         // set size of image:
         var creditWidthInPixel = self.PixelDensityPerMM * 85.60;
         $("#creditCard").width(creditWidthInPixel);
@@ -1208,7 +1208,8 @@ Player.prototype.startExperimentContinue = function () {
                         subjCounterGlobal: self.experiment.exp_data.varSubjectNr().value().toJS(),
                         subjCounterPerGroup: self.experiment.exp_data.varSubjectNrPerSubjGroup().value().toJS(),
                         roleId: self.experiment.exp_data.varRoleId().value().toJS(),
-                        displayedLanguage: self.experiment.exp_data.varDisplayedLanguage().value().toJS()
+                        displayedLanguage: self.experiment.exp_data.varDisplayedLanguage().value().toJS(),
+                        pixelDensityPerMM: self.experiment.exp_data.varPixelDensityPerMM().value().toJS(),
                     };
                     playerAjaxPostExternal(
                         '/addMetaInfo',
@@ -1262,7 +1263,9 @@ Player.prototype.startExperimentContinue = function () {
                         subjCounterGlobal: self.experiment.exp_data.varSubjectNr().value().toJS(),
                         subjCounterPerGroup: self.experiment.exp_data.varSubjectNrPerSubjGroup().value().toJS(),
                         roleId: self.experiment.exp_data.varRoleId().value().toJS(),
-                        displayedLanguage: self.experiment.exp_data.varDisplayedLanguage().value().toJS()
+                        displayedLanguage: self.experiment.exp_data.varDisplayedLanguage().value().toJS(),
+                        pixelDensityPerMM: self.experiment.exp_data.varPixelDensityPerMM().value().toJS(),
+
                     };
                     playerAjaxPost(
                         '/addMetaInfo',
@@ -2191,7 +2194,8 @@ Player.prototype.finishSession = function (showEndPage) {
         subjCounterGlobal: this.experiment.exp_data.varSubjectNr().value().toJS(),
         subjCounterPerGroup: this.experiment.exp_data.varSubjectNrPerSubjGroup().value().toJS(),
         roleId: this.experiment.exp_data.varRoleId().value().toJS(),
-        displayedLanguage: this.experiment.exp_data.varDisplayedLanguage().value().toJS()
+        displayedLanguage: this.experiment.exp_data.varDisplayedLanguage().value().toJS(),
+        pixelDensityPerMM: this.experiment.exp_data.varPixelDensityPerMM().value().toJS(),
     };
 
     console.log("finishExpSession...");
