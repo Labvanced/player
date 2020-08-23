@@ -1401,6 +1401,7 @@ Player.prototype.setupEyetrackingV2 = function () {
     this.eyetracking.state.headPoseImgPaths = "/assets/img";
     this.eyetracking.state.calibrationImageType = this.experiment.publishing_data.calibrationImgType();
     this.eyetracking.state.calibrationType = this.experiment.publishing_data.calibrationType();
+    this.eyetracking.state.calibrationInfantFriendly = this.experiment.publishing_data.calibrationInfantFriendly();
     this.eyetracking.state.uploadEnabled = this.experiment.exp_data.studySettings.eyetrackingUploadEnabled();
     this.eyetracking.state.useDriftCorrection = this.currentTask.useDriftCorrection();
 
@@ -1421,15 +1422,7 @@ Player.prototype.calibrateEyetrackingV2 = function () {
     var self = this;
     console.log("calibrateEyetrackingV2...")
     this.eyetracking.calibrate().then(function (calibResult) {
-        console.log("calibResult: ", calibResult);
         self.eyetrackingCalibrationAccuracy = calibResult;
-
-        // @ HOLGER this treshold seems arbitrary, should at least be communicated, otherwise we get a lot of complain emails.
-        if (calibResult.meanSquaredErrorInNormCoord > 0.03) {
-            $("#eyetracking-v2").hide();
-            self.finishSessionWithError("Your webcam or lightning conditions are not sufficient for eyetracking.");
-            return;
-        }
         self.startRunningTask();
     });
 }
