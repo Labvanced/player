@@ -1394,7 +1394,7 @@ Player.prototype.jumpToSpecificBlock = function (blockToJumpId) {
 
 Player.prototype.setupEyetrackingV2 = function () {
     var self = this;
-    console.log("setupEyetrackingV2...")
+    console.log("setupEyetrackingV2...");
     this.eyetracking = new Eyetracking.Eyetracking();
     this.eyetracking.state.webcamStream = this.video_stream;
     this.eyetracking.state.expSessionNr = this.expSessionNr;
@@ -1404,6 +1404,8 @@ Player.prototype.setupEyetrackingV2 = function () {
     this.eyetracking.state.calibrationInfantFriendly = this.experiment.publishing_data.calibrationInfantFriendly();
     this.eyetracking.state.uploadEnabled = this.experiment.exp_data.studySettings.eyetrackingUploadEnabled();
     this.eyetracking.state.useDriftCorrection = this.currentTask.useDriftCorrection();
+    this.eyetracking.state.playSounds = this.experiment.publishing_data.calibrationPlaySounds();
+    this.eyetracking.state.showGridPoints = this.experiment.publishing_data.calibrationShowGrid();
 
     $("#eyetracking-v2").show();
     this.eyetracking.setPredictionCallback(function (data) {
