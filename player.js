@@ -1149,6 +1149,8 @@ Player.prototype.startExperimentContinue = function () {
 
         this.subjCounterGlobal = 1;
         this.subjCounterPerGroup = 1;
+        self.experiment.exp_data.varSubjectNr().value().setValue(1);
+        self.experiment.exp_data.varSubjectNrPerSubjGroup().value().setValue(1);
 
         this.currentTask = this.experiment.exp_data.entities.byId[this.runOnlyTaskId];
         if (this.currentTask.zoomMode() === "visualDegree" || this.currentTask.zoomMode() === "millimeter") {
@@ -1248,7 +1250,6 @@ Player.prototype.startExperimentContinue = function () {
 
                     self.subjCounterGlobal = data.subjCounterGlobal;
                     self.subjCounterPerGroup = data.subjCounterPerGroup;
-
                     self.experiment.exp_data.varSubjectNr().value().setValue(data.subjCounterGlobal);
                     self.experiment.exp_data.varSubjectNrPerSubjGroup().value().setValue(data.subjCounterPerGroup);
 
@@ -1293,7 +1294,6 @@ Player.prototype.startExperimentContinue = function () {
         else {
             self.subjCounterGlobal = 1;
             self.subjCounterPerGroup = 1;
-
             self.experiment.exp_data.varSubjectNr().value().setValue(1);
             self.experiment.exp_data.varSubjectNrPerSubjGroup().value().setValue(1);
 
