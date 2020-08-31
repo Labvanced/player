@@ -946,8 +946,21 @@ Player.prototype.preloadAllContent = function () {
                     var fileValues = elem.value().getValues();
                     $.each(fileValues, function (idx2, subFile) {
                         addToContents(subFile.id, subFile.name);
-                    })
+                    });
                 }
+
+            }
+            if (elem.dataFormat() == "dataframe") {
+                var variables = elem.value().value();
+                $.each(variables, function (idx3, variable) {
+                    if (variable.dataType() == "file") {
+                        var fileValues = variable.value().getValues();
+                        $.each(fileValues, function (idx2, subFile) {
+                            addToContents(subFile.id, subFile.name);
+                        });
+                    }
+
+                });
             }
         }
     });
