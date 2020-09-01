@@ -19,7 +19,7 @@ var PlayerPreloader = function (player) {
             if (event.data && event.data.src) {
                 filename = event.data.src.split('/').reverse()[0];
             }
-            self.player.finishSessionWithError("Dear participant, we are very sorry but your computer and/or internet connection are not compatible with the experiment's technical requirements. We apologize for any inconvenience. Error while loading file " + filename + " (ERROR 957)");
+            self.player.finishSessionWithError("Error,  while loading file " + filename + " (ERROR 957). Either this file has been deleted or your internet connection is too slow to load this file.");
             //self.player.finishSessionWithError("ERROR: A resource could not be loaded! Please try to load the experiment again. If this error repeats please contact the creator of the experiment.")
         }
     });
