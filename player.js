@@ -1419,6 +1419,7 @@ Player.prototype.setupEyetrackingV2 = function () {
     this.eyetracking.state.useDriftCorrection = this.currentTask.useDriftCorrection();
     this.eyetracking.state.playSounds = this.experiment.publishing_data.calibrationPlaySounds();
     this.eyetracking.state.showGridPoints = this.experiment.publishing_data.calibrationShowGrid();
+    this.eyetracking.state.textStrings = this.experiment.exp_data.staticTranslations["German"]["eyetracking"];
 
     $("#eyetracking-v2").show();
     this.eyetracking.setPredictionCallback(function (data) {
