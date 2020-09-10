@@ -2042,14 +2042,20 @@ Player.prototype.startNextPageOrFrameOriginal = function () {
     var currentElement = this.currentSequence.currSelectedElement();
     var frameIdx = this.currentSequence.elements().indexOf(currentElement);
     console.log('starting frame nr: ' + frameIdx + ' in trial nr: ' + this.trialIter);
+    var lastMouseCoords = null;
+    if (this.currentFrame) {
+        lastMouseCoords = this.currentFrame.frameMouseXY();
+    }
+
     switch (currentElement.type) {
         case 'FrameData':
+
             this.currentFrame = this.currentTrialFrames[currentElement.id()];
-            this.currentFrame.startFrame();
+            this.currentFrame.startFrame(lastMouseCoords);
             break;
         case 'PageData':
             this.currentFrame = this.currentTrialFrames[currentElement.id()];
-            this.currentFrame.startFrame();
+            this.currentFrame.startFrame(lastMouseCoords);
             break;
         case 'EndOfSequence':
             console.log("starting next trial");

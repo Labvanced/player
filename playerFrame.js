@@ -237,10 +237,13 @@ PlayerFrame.prototype.triggerEyetracking = function (data) {
 };
 
 
-PlayerFrame.prototype.startFrame = function () {
+PlayerFrame.prototype.startFrame = function (formerMouseCoords) {
     var self = this;
 
     if (this.state == 'preloaded' || this.state == 'finished') {
+        if (formerMouseCoords) {
+            this.setFormerMouseCoords(formerMouseCoords);
+        }
 
         this.setState('displaying');
         this.setTimeOut();
@@ -266,6 +269,12 @@ PlayerFrame.prototype.startFrame = function () {
         }
     }
 
+};
+
+PlayerFrame.prototype.setFormerMouseCoords = function (coordsXY) {
+    this.frameMouseX = coordsXY[0];
+    this.frameMouseY = coordsXY[1];
+    this.frameMouseXY(coordsXY);
 };
 
 
