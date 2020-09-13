@@ -319,7 +319,7 @@ PlayerFrame.prototype.pauseFrame = function () {
         if (content instanceof VideoElement || content instanceof AudioElement) {
             if (content.currentlyPlaying()) {
                 console.log("stop playing video or audio.");
-                content.currentlyPlaying(false);
+                content.executeAction("StopPlayback");
                 pausedElements.push(content);
             }
         }
@@ -346,7 +346,7 @@ PlayerFrame.prototype.continueFrame = function () {
     $.each(this.pausedElements, function (idx, elem) {
         if (elem instanceof VideoElement || elem instanceof AudioElement) {
             console.log("continue playing video or audio.");
-            elem.currentlyPlaying(true);
+            content.executeAction("StartPlayback");
         }
     });
     this.pausedElements = [];
