@@ -1018,22 +1018,22 @@ Player.prototype.setSubjectGroupNr = function (groupNr, sessionNr) {
 
     this.subj_group = this.experiment.exp_data.availableGroups()[this.groupNr - 1];
     if (!this.subj_group) {
-        console.log(this.experiment.exp_data.staticStrings().playerErrorNoSubjGroup);
-        this.finishSessionWithError(this.experiment.exp_data.staticStrings().playerErrorNoSubjGroup);
+        console.log(this.experiment.exp_data.staticStrings().errors.playerErrorNoSubjGroup);
+        this.finishSessionWithError(this.experiment.exp_data.staticStrings().errors.playerErrorNoSubjGroup);
         return;
     }
 
     this.exp_session = this.subj_group.sessions()[this.sessionNr - 1];
     if (!this.exp_session) {
-        console.log(this.experiment.exp_data.staticStrings().playerErrorNoSession);
-        this.finishSessionWithError(this.experiment.exp_data.staticStrings().playerErrorNoSession);
+        console.log(this.experiment.exp_data.staticStrings().errors.playerErrorNoSession);
+        this.finishSessionWithError(this.experiment.exp_data.staticStrings().errors.playerErrorNoSession);
         return;
     }
 
 
     if (this.exp_session.blocks().length == 0) {
-        console.log(this.experiment.exp_data.staticStrings().playerErrorNoBlock);
-        this.finishSessionWithError(this.experiment.exp_data.staticStrings().playerErrorNoBlock);
+        console.log(this.experiment.exp_data.staticStrings().errors.playerErrorNoBlock);
+        this.finishSessionWithError(this.experiment.exp_data.staticStrings().errors.playerErrorNoBlock);
         return;
     }
 
