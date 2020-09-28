@@ -448,7 +448,7 @@ var Player = function () {
     this.eyetracking = null;
     this.variablesToReset = [];
     this.PixelDensityPerMM = null; // in pixel per mm
-    this.distanceTScreenInCM = ko.observable(40);  // default is 40 cm distance
+    this.distanceTScreenInCM = ko.observable(60);  // default is 60 cm distance
 
     this.sessionStartTime = pgFormatDate(new Date());
 
