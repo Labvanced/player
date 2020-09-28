@@ -232,12 +232,17 @@ PlayerFrame.prototype.triggerEyetracking = function (data) {
     });
     this.frameLastEyeCoordX = coordX;
     this.frameLastEyeCoordY = coordY;
-    if (player.experiment.exp_data.varGazeX()) {
-        player.experiment.exp_data.varGazeX().value().value(coordX);
+    if (player.experiment.exp_data.varGazeX) {
+        if (player.experiment.exp_data.varGazeX()) {
+            player.experiment.exp_data.varGazeX().value().value(coordX);
+        }
     }
-    if (player.experiment.exp_data.varGazeY()) {
-        player.experiment.exp_data.varGazeY().value().value(coordY);
+    if (player.experiment.exp_data.varGazeY) {
+        if (player.experiment.exp_data.varGazeY()) {
+            player.experiment.exp_data.varGazeY().value().value(coordY);
+        }
     }
+
 
 
 };
