@@ -1096,6 +1096,18 @@ Player.prototype.runCalibration = function (callback) {
     var displayDiagInPx = Math.sqrt(screen.width * screen.width + screen.height * screen.height);
     var convertInchToMM = 0.0393700787402;
 
+
+    // init value
+
+    var creditWidthInPixel = 500;
+    self.PixelDensityPerMM = creditWidthInPixel / 85.60;
+    self.experiment.exp_data.varPixelDensityPerMM().setValue(self.PixelDensityPerMM);
+    // set number input:
+    var displayDiagInMM = displayDiagInPx / self.PixelDensityPerMM;
+    var displayDiagInInch = displayDiagInMM * convertInchToMM;
+    $("#calibrationInput").val(displayDiagInInch);
+
+
     $("#creditCard").resizable({
         aspectRatio: picWidthHeightRatio,
         handles: { 'e': '.ui-resizable-e' },
