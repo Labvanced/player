@@ -1087,6 +1087,7 @@ Player.prototype.startExperimentContinue = function () {
                         subjCounterGlobal: self.experiment.exp_data.varSubjectNr().value().toJS(),
                         subjCounterPerGroup: self.experiment.exp_data.varSubjectNrPerSubjGroup().value().toJS(),
                         roleId: self.experiment.exp_data.varRoleId().value().toJS(),
+                        multiUserGroupId: self.experiment.exp_data.varMultiUserGroupId().value().toJS(),
                         displayedLanguage: self.experiment.exp_data.varDisplayedLanguage().value().toJS(),
                         pixelDensityPerMM: self.experiment.exp_data.varPixelDensityPerMM().value().toJS(),
                         screenHeight: self.experiment.exp_data.varScreenTotalWidthY().value().toJS(),
@@ -1146,6 +1147,7 @@ Player.prototype.startExperimentContinue = function () {
                         subjCounterGlobal: self.experiment.exp_data.varSubjectNr().value().toJS(),
                         subjCounterPerGroup: self.experiment.exp_data.varSubjectNrPerSubjGroup().value().toJS(),
                         roleId: self.experiment.exp_data.varRoleId().value().toJS(),
+                        multiUserGroupId: self.experiment.exp_data.varMultiUserGroupId().value().toJS(),
                         displayedLanguage: self.experiment.exp_data.varDisplayedLanguage().value().toJS(),
                         pixelDensityPerMM: self.experiment.exp_data.varPixelDensityPerMM().value().toJS(),
                         screenHeight: self.experiment.exp_data.varScreenTotalWidthY().value().toJS(),
@@ -1399,6 +1401,7 @@ Player.prototype.startRunningTask = function () {
         // ad role id if experiment is joint experiment
         if (this.experiment.exp_data.isJointExp()) {
             this.variablesToRecord.push(this.experiment.exp_data.varRoleId());
+            this.variablesToRecord.push(this.experiment.exp_data.varMultiUserGroupId());
         }
 
         // add all factor vars to recordings
@@ -2082,6 +2085,8 @@ Player.prototype.finishSession = function (showEndPage) {
         subjCounterGlobal: this.experiment.exp_data.varSubjectNr().value().toJS(),
         subjCounterPerGroup: this.experiment.exp_data.varSubjectNrPerSubjGroup().value().toJS(),
         roleId: this.experiment.exp_data.varRoleId().value().toJS(),
+        multiUserGroupId: this.experiment.exp_data.varMultiUserGroupId().value().toJS(),
+
         displayedLanguage: this.experiment.exp_data.varDisplayedLanguage().value().toJS(),
         pixelDensityPerMM: this.experiment.exp_data.varPixelDensityPerMM().value().toJS(),
 
