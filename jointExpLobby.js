@@ -230,6 +230,10 @@ JointExpLobby.prototype.initSocketAndListeners = function () {
 
         // assign role id
         player.experiment.exp_data.varRoleId().value().value(data.role_id);
+        player.experiment.exp_data.varMultiUserGroupId().value().value(data.experiment_room_name);
+        console.log(" matched to multi user group: " + data.experiment_room_name);
+
+
         console.log('role_id assigned: ' + data.role_id + '...');
     });
 
