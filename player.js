@@ -1167,16 +1167,23 @@ Player.prototype.startExperimentContinue = function () {
     this.timeMeasureControl();
 
     this.setupPlayerDesign();
+    this.experiment.exp_data.varDisplayWidthX().value().value(window.innerWidth);
+    this.experiment.exp_data.varDisplayWidthY().value().value(window.innerHeight);
+    this.experiment.exp_data.varScreenTotalWidthX().value().value(screen.width);
+    this.experiment.exp_data.varScreenTotalWidthY().value().value(screen.height);
 
     var self = this;
+
+
     if (this.runOnlyTaskId) {
         // run a test task session:
         this.currentTaskIdx = NaN;
 
         this.subjCounterGlobal = 1;
         this.subjCounterPerGroup = 1;
-        self.experiment.exp_data.varSubjectNr().value().setValue(1);
-        self.experiment.exp_data.varSubjectNrPerSubjGroup().value().setValue(1);
+        this.experiment.exp_data.varSubjectNr().value().setValue(1);
+        this.experiment.exp_data.varSubjectNrPerSubjGroup().value().setValue(1);
+
 
         this.currentTask = this.experiment.exp_data.entities.byId[this.runOnlyTaskId];
         if (this.currentTask.zoomMode() === "visualDegree" || this.currentTask.zoomMode() === "millimeter") {
@@ -1238,6 +1245,11 @@ Player.prototype.startExperimentContinue = function () {
                         roleId: self.experiment.exp_data.varRoleId().value().toJS(),
                         displayedLanguage: self.experiment.exp_data.varDisplayedLanguage().value().toJS(),
                         pixelDensityPerMM: self.experiment.exp_data.varPixelDensityPerMM().value().toJS(),
+                        screenHeight: self.experiment.exp_data.varScreenTotalWidthY().value().toJS(),
+                        screenWidth: self.experiment.exp_data.varScreenTotalWidthX().value().toJS(),
+                        windowHeight: self.experiment.exp_data.varDisplayWidthY().value().toJS(),
+                        windowWidth: self.experiment.exp_data.varDisplayWidthX().value().toJS(),
+
                     };
                     playerAjaxPostExternal(
                         '/addMetaInfo',
@@ -1292,6 +1304,10 @@ Player.prototype.startExperimentContinue = function () {
                         roleId: self.experiment.exp_data.varRoleId().value().toJS(),
                         displayedLanguage: self.experiment.exp_data.varDisplayedLanguage().value().toJS(),
                         pixelDensityPerMM: self.experiment.exp_data.varPixelDensityPerMM().value().toJS(),
+                        screenHeight: self.experiment.exp_data.varScreenTotalWidthY().value().toJS(),
+                        screenWidth: self.experiment.exp_data.varScreenTotalWidthX().value().toJS(),
+                        windowHeight: self.experiment.exp_data.varDisplayWidthY().value().toJS(),
+                        windowWidth: self.experiment.exp_data.varDisplayWidthX().value().toJS(),
 
                     };
                     playerAjaxPost(
@@ -2224,6 +2240,11 @@ Player.prototype.finishSession = function (showEndPage) {
         roleId: this.experiment.exp_data.varRoleId().value().toJS(),
         displayedLanguage: this.experiment.exp_data.varDisplayedLanguage().value().toJS(),
         pixelDensityPerMM: this.experiment.exp_data.varPixelDensityPerMM().value().toJS(),
+
+        screenHeight: self.experiment.exp_data.varScreenTotalWidthY().value().toJS(),
+        screenWidth: self.experiment.exp_data.varScreenTotalWidthX().value().toJS(),
+        windowHeight: self.experiment.exp_data.varDisplayWidthY().value().toJS(),
+        windowWidth: self.experiment.exp_data.varDisplayWidthX().value().toJS(),
     };
 
     console.log("finishExpSession...");
