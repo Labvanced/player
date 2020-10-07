@@ -267,6 +267,11 @@ PlayerFrame.prototype.startFrame = function (formerMouseCoords) {
             event.setupOnPlayerFrame(this);
         }
 
+        var globalEvents = this.frameData.parent.globalEvents();
+        for (var i = 0; i < globalEvents.length; i++) {
+            var globalEvent = globalEvents[i];
+            globalEvent.setupOnPlayerFrame(this);
+        }
         if (this.frameData.nrOfTrackMousemove() > 0) {
             this.trackMouseMove();
         }
