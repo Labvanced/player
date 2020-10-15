@@ -483,13 +483,18 @@ var Player = function () {
     this.eyetrackingValidationAccuracy = null;
     this.eyetrackingCalibrationAccuracy = null;
 
+    this.screenOrientationCurrent = ko.observable(null);
+    this.screenOrientationRequired = ko.observable(null);
+
     this.pausedDueToFullscreen = ko.observable(false);
+    this.pausedDueToOrientation = ko.observable(false);
     this.pausedDueToNoConnectionToJointExpServer = ko.observable(false);
     this.pausedDueToAnotherParticipant = ko.observable(false);
 
     this.isPaused = ko.computed(function () {
         return self.pausedDueToAnotherParticipant() ||
             self.pausedDueToFullscreen() ||
+            self.pausedDueToOrientation() ||
             self.pausedDueToNoConnectionToJointExpServer();
     });
 
@@ -2180,6 +2185,79 @@ Player.prototype.copyNextSessionLinkTarget = function () {
 
     this.copyTextContent($("#copyTarget")[0]);
 };
+
+Player.prototype.getScreenOrientation = function () {
+    var orientation = window.screen.orientation;
+    if (orientation) {
+        // orientation api is supported
+        return orientation.type.startsWith("portrait") ? "portrait" : "landscape";
+    }
+    else {
+        // orientation api is not supported
+        return (window.innerHeight > window.innerWidth) ? "portrait" : "landscape";
+    }
+}
+
+Player.prototype.initScreenOrientation = function () {
+    var self = this;
+
+    var currOri = this.getScreenOrientation();
+    this.screenOrientationCurrent(currOri);
+
+    // check screen orientation:
+    var orientation = window.screen.orientation;
+    if (orientation) {
+        // orientation api is supported
+        orientation.addEventListener('change', function() {
+            self.checkScreenOrientation();
+        });
+    }
+    else {
+        // orientation api is not supported...
+        window.addEventListener("orientationchange", function() {
+            self.checkScreenOrientation();
+        }, false);
+    }
+
+    if (this.experiment.exp_data.studySettings.allowedOrientations() == "any") {
+        // jallow changes during the experiment:
+        this.screenOrientationRequired("any");
+        return true;
+    }
+    else if (this.experiment.exp_data.studySettings.allowedOrientations() == "anylock") {
+        // just make sure that the screen orientation does not change during the experiment:
+        this.screenOrientationRequired(currOri);
+        return true;
+    }
+    else {
+        // set target orientation:
+        this.screenOrientationRequired(this.experiment.exp_data.studySettings.allowedOrientations());
+
+        // check if requirmeent is fullfilled:
+        if ( this.checkScreenOrientation() ) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+}
+
+Player.prototype.checkScreenOrientation = function () {
+    // update:
+    this.screenOrientationCurrent(this.getScreenOrientation());
+    if (this.screenOrientationRequired() == "any") {
+        return true;
+    }
+    if (this.screenOrientationRequired() == this.screenOrientationCurrent()) {
+        this.pausedDueToOrientation(false);
+        return true;
+    }
+    else {
+        this.pausedDueToOrientation(true);
+        return false;
+    }
+}
 
 Player.prototype.startFullscreen = function () {
     var self = this;
