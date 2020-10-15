@@ -2189,13 +2189,27 @@ Player.prototype.copyNextSessionLinkTarget = function () {
 Player.prototype.getScreenOrientation = function () {
     var orientation = window.screen.orientation;
     if (orientation) {
-        // orientation api is supported
         return orientation.type.startsWith("portrait") ? "portrait" : "landscape";
     }
     else {
-        // orientation api is not supported
-        return (window.innerHeight > window.innerWidth) ? "portrait" : "landscape";
+        // fallback 1:
+        var mql = window.matchMedia("(orientation: portrait)");
+        return mql.matches ? "portrait" : "landscape";
     }
+    /*else {
+        // fallback 2:
+        var currAngle = (window.orientation + 360) % 90; // can result in 0 or 90
+        if (!this.hasOwnProperty("angleWhenPortrait")) {
+            // need to initialize (mapping window.orientation angles to portrait or landscape)
+            if (window.innerHeight > window.innerWidth) { // portrait:
+                this.angleWhenPortrait = currAngle;
+            }
+            else { // landscape:
+                this.angleWhenPortrait = (currAngle + 90) % 90;
+            }
+        }
+        return (currAngle == this.angleWhenPortrait) ? "portrait" : "landscape";
+    }*/
 }
 
 Player.prototype.initScreenOrientation = function () {
@@ -2207,17 +2221,23 @@ Player.prototype.initScreenOrientation = function () {
     // check screen orientation:
     var orientation = window.screen.orientation;
     if (orientation) {
-        // orientation api is supported
         orientation.addEventListener('change', function() {
             self.checkScreenOrientation();
         });
     }
     else {
-        // orientation api is not supported...
+        // fallback 1:
+        var mql = window.matchMedia("(orientation: portrait)");
+        mql.addListener(function(m) {
+            self.checkScreenOrientation();
+        });
+    }
+    /*else {
+        // fallback 2:
         window.addEventListener("orientationchange", function() {
             self.checkScreenOrientation();
         }, false);
-    }
+    }*/
 
     if (this.experiment.exp_data.studySettings.allowedOrientations() == "any") {
         // jallow changes during the experiment:
