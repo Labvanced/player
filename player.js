@@ -1077,25 +1077,7 @@ Player.prototype.startExperimentContinue = function () {
                         null
                     );
 
-                    var var_data = {
-                        browserSpec: self.experiment.exp_data.varBrowserSpec().value().toJS(),
-                        versionSpec: self.experiment.exp_data.varBrowserVersionSpec().value().toJS(),
-                        systemSpec: self.experiment.exp_data.varSystemSpec().value().toJS(),
-                        agentSpec: self.experiment.exp_data.varAgentSpec().value().toJS(),
-                        crowdsourcinSubjId: self.experiment.exp_data.varCrowdsourcingSubjId().value().toJS(),
-                        crowdsourcingCode: self.experiment.exp_data.varCrowdsourcingCode().value().toJS(),
-                        subjCounterGlobal: self.experiment.exp_data.varSubjectNr().value().toJS(),
-                        subjCounterPerGroup: self.experiment.exp_data.varSubjectNrPerSubjGroup().value().toJS(),
-                        roleId: self.experiment.exp_data.varRoleId().value().toJS(),
-                        multiUserGroupId: self.experiment.exp_data.varMultiUserGroupId().value().toJS(),
-                        displayedLanguage: self.experiment.exp_data.varDisplayedLanguage().value().toJS(),
-                        pixelDensityPerMM: self.experiment.exp_data.varPixelDensityPerMM().value().toJS(),
-                        screenHeight: self.experiment.exp_data.varScreenTotalWidthY().value().toJS(),
-                        screenWidth: self.experiment.exp_data.varScreenTotalWidthX().value().toJS(),
-                        windowHeight: self.experiment.exp_data.varDisplayWidthY().value().toJS(),
-                        windowWidth: self.experiment.exp_data.varDisplayWidthX().value().toJS(),
-
-                    };
+                    var var_data = self.getSessionVarData();
                     playerAjaxPostExternal(
                         '/addMetaInfo',
                         {
@@ -1137,25 +1119,7 @@ Player.prototype.startExperimentContinue = function () {
                     self.experiment.exp_data.varSubjectNrPerSubjGroup().value().setValue(data.subjCounterPerGroup);
 
                     // add routes to save meta data
-                    var var_data = {
-                        browserSpec: self.experiment.exp_data.varBrowserSpec().value().toJS(),
-                        versionSpec: self.experiment.exp_data.varBrowserVersionSpec().value().toJS(),
-                        systemSpec: self.experiment.exp_data.varSystemSpec().value().toJS(),
-                        agentSpec: self.experiment.exp_data.varAgentSpec().value().toJS(),
-                        crowdsourcinSubjId: self.experiment.exp_data.varCrowdsourcingSubjId().value().toJS(),
-                        crowdsourcingCode: self.experiment.exp_data.varCrowdsourcingCode().value().toJS(),
-                        subjCounterGlobal: self.experiment.exp_data.varSubjectNr().value().toJS(),
-                        subjCounterPerGroup: self.experiment.exp_data.varSubjectNrPerSubjGroup().value().toJS(),
-                        roleId: self.experiment.exp_data.varRoleId().value().toJS(),
-                        multiUserGroupId: self.experiment.exp_data.varMultiUserGroupId().value().toJS(),
-                        displayedLanguage: self.experiment.exp_data.varDisplayedLanguage().value().toJS(),
-                        pixelDensityPerMM: self.experiment.exp_data.varPixelDensityPerMM().value().toJS(),
-                        screenHeight: self.experiment.exp_data.varScreenTotalWidthY().value().toJS(),
-                        screenWidth: self.experiment.exp_data.varScreenTotalWidthX().value().toJS(),
-                        windowHeight: self.experiment.exp_data.varDisplayWidthY().value().toJS(),
-                        windowWidth: self.experiment.exp_data.varDisplayWidthX().value().toJS(),
-
-                    };
+                    var var_data = self.getSessionVarData();
                     playerAjaxPost(
                         '/addMetaInfo',
                         {
@@ -2026,6 +1990,34 @@ Player.prototype.finishSessionWithError = function (err_msg) {
     });
 };
 
+Player.prototype.getSessionVarData = function () {
+    var var_data = {
+        browserSpec: this.experiment.exp_data.varBrowserSpec().value().toJS(),
+        versionSpec: this.experiment.exp_data.varBrowserVersionSpec().value().toJS(),
+        systemSpec: this.experiment.exp_data.varSystemSpec().value().toJS(),
+        agentSpec: this.experiment.exp_data.varAgentSpec().value().toJS(),
+        fullscreen: this.experiment.exp_data.varFullscreenSpec().value().toJS(),
+        timeDelayMean: this.experiment.exp_data.varTimeMeasureSpecMean().value().toJS(),
+        crowdsourcinSubjId: this.experiment.exp_data.varCrowdsourcingSubjId().value().toJS(),
+        //  timeDelayMax: this.experiment.exp_data.varTimeMeasureSpecMax().value().toJS(),
+        crowdsourcingCode: this.experiment.exp_data.varCrowdsourcingCode().value().toJS(),
+        serverResponseTimes: this.serverResponseTimes,
+        timeDelayStd: this.experiment.exp_data.varTimeMeasureSpecStd().value().toJS(),
+        subjCounterGlobal: this.experiment.exp_data.varSubjectNr().value().toJS(),
+        subjCounterPerGroup: this.experiment.exp_data.varSubjectNrPerSubjGroup().value().toJS(),
+        roleId: this.experiment.exp_data.varRoleId().value().toJS(),
+        multiUserGroupId: this.experiment.exp_data.varMultiUserGroupId().value().toJS(),
+
+        displayedLanguage: this.experiment.exp_data.varDisplayedLanguage().value().toJS(),
+        pixelDensityPerMM: this.experiment.exp_data.varPixelDensityPerMM().value().toJS(),
+
+        screenHeight: this.experiment.exp_data.varScreenTotalWidthY().value().toJS(),
+        screenWidth: this.experiment.exp_data.varScreenTotalWidthX().value().toJS(),
+        windowHeight: this.experiment.exp_data.varDisplayWidthY().value().toJS(),
+        windowWidth: this.experiment.exp_data.varDisplayWidthX().value().toJS(),
+    };
+    return var_data;
+}
 Player.prototype.finishSession = function (showEndPage) {
     var self = this;
     if (this.sessionEnded) {
@@ -2070,31 +2062,7 @@ Player.prototype.finishSession = function (showEndPage) {
         this.experiment.exp_data.varCrowdsourcingCode().value().value(this.crowdsourcingCode());
     }
 
-    var var_data = {
-        browserSpec: this.experiment.exp_data.varBrowserSpec().value().toJS(),
-        versionSpec: this.experiment.exp_data.varBrowserVersionSpec().value().toJS(),
-        systemSpec: this.experiment.exp_data.varSystemSpec().value().toJS(),
-        agentSpec: this.experiment.exp_data.varAgentSpec().value().toJS(),
-        fullscreen: this.experiment.exp_data.varFullscreenSpec().value().toJS(),
-        timeDelayMean: this.experiment.exp_data.varTimeMeasureSpecMean().value().toJS(),
-        crowdsourcinSubjId: this.experiment.exp_data.varCrowdsourcingSubjId().value().toJS(),
-        //  timeDelayMax: this.experiment.exp_data.varTimeMeasureSpecMax().value().toJS(),
-        crowdsourcingCode: this.experiment.exp_data.varCrowdsourcingCode().value().toJS(),
-        serverResponseTimes: this.serverResponseTimes,
-        timeDelayStd: this.experiment.exp_data.varTimeMeasureSpecStd().value().toJS(),
-        subjCounterGlobal: this.experiment.exp_data.varSubjectNr().value().toJS(),
-        subjCounterPerGroup: this.experiment.exp_data.varSubjectNrPerSubjGroup().value().toJS(),
-        roleId: this.experiment.exp_data.varRoleId().value().toJS(),
-        multiUserGroupId: this.experiment.exp_data.varMultiUserGroupId().value().toJS(),
-
-        displayedLanguage: this.experiment.exp_data.varDisplayedLanguage().value().toJS(),
-        pixelDensityPerMM: this.experiment.exp_data.varPixelDensityPerMM().value().toJS(),
-
-        screenHeight: self.experiment.exp_data.varScreenTotalWidthY().value().toJS(),
-        screenWidth: self.experiment.exp_data.varScreenTotalWidthX().value().toJS(),
-        windowHeight: self.experiment.exp_data.varDisplayWidthY().value().toJS(),
-        windowWidth: self.experiment.exp_data.varDisplayWidthX().value().toJS(),
-    };
+    var var_data = this.getSessionVarData();
 
     console.log("finishExpSession...");
 
