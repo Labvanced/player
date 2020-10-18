@@ -99,64 +99,68 @@ PlayerFrame.prototype.init = function () {
 PlayerFrame.prototype.setState = function (newState) {
     this.state = newState;
     this.stateObs(newState);
-}
+};
+
+
+PlayerFrame.prototype.setMouseCoordsBasedOnEvent = function (event) {
+    var self = this;
+
+    var dot, eventDoc, doc, body, pageX, pageY;
+    event = event || window.event; // IE-ism
+
+    // for mobile use 'originalEvent.touches[0]' object
+    if (event.originalEvent.touches) {
+        event = event.originalEvent.touches[0];
+    }
+
+    // If pageX/Y aren't available and clientX/Y are,
+    // calculate pageX/Y - logic taken from jQuery.
+    // (This is to support old IE)
+    if (event.pageX == null && event.clientX != null) {
+        eventDoc = (event.target && event.target.ownerDocument) || document;
+        doc = eventDoc.documentElement;
+        body = eventDoc.body;
+
+        pageX = event.clientX +
+            (doc && doc.scrollLeft || body && body.scrollLeft || 0) -
+            (doc && doc.clientLeft || body && body.clientLeft || 0);
+        pageY = event.clientY +
+            (doc && doc.scrollTop || body && body.scrollTop || 0) -
+            (doc && doc.clientTop || body && body.clientTop || 0);
+    }
+
+    if (self.frameData instanceof FrameData) {
+        var scale = self.frameView.scale();
+        var offX = (window.innerWidth - self.frameData.frameWidth() * scale) / 2;
+        var offY = (window.innerHeight - self.frameData.frameHeight() * scale) / 2;
+        pageX = (event.pageX - offX) / scale;
+        pageY = (event.pageY - offY) / scale;
+    }
+
+    self.frameMouseX = pageX;
+    self.frameMouseY = pageY;
+    self.frameMouseXY([pageX, pageY]);
+
+};
 
 PlayerFrame.prototype.trackMouseMove = function () {
     var self = this;
-
-    function handleMouseMove(event) {
-        var dot, eventDoc, doc, body, pageX, pageY;
-        event = event || window.event; // IE-ism
-
-        // for mobile use 'originalEvent.touches[0]' object
-        if (event.originalEvent.touches) {
-            event = event.originalEvent.touches[0];
-        }
-
-        // If pageX/Y aren't available and clientX/Y are,
-        // calculate pageX/Y - logic taken from jQuery.
-        // (This is to support old IE)
-        if (event.pageX == null && event.clientX != null) {
-            eventDoc = (event.target && event.target.ownerDocument) || document;
-            doc = eventDoc.documentElement;
-            body = eventDoc.body;
-
-            pageX = event.clientX +
-                (doc && doc.scrollLeft || body && body.scrollLeft || 0) -
-                (doc && doc.clientLeft || body && body.clientLeft || 0);
-            pageY = event.clientY +
-                (doc && doc.scrollTop || body && body.scrollTop || 0) -
-                (doc && doc.clientTop || body && body.clientTop || 0);
-        }
-
-        if (self.frameData instanceof FrameData) {
-            var scale = self.frameView.scale();
-            var offX = (window.innerWidth - self.frameData.frameWidth() * scale) / 2;
-            var offY = (window.innerHeight - self.frameData.frameHeight() * scale) / 2;
-            pageX = (event.pageX - offX) / scale;
-            pageY = (event.pageY - offY) / scale;
-        }
-
-        self.frameMouseX = pageX;
-        self.frameMouseY = pageY;
-        self.frameMouseXY([pageX, pageY]);
-
-    }
-
-    $(window).on("mousemove touchmove", handleMouseMove);
+    $(window).on("mousemove touchmove", function (ev) { self.setMouseCoordsBasedOnEvent(ev); });
 };
 
+
+
 PlayerFrame.prototype.getMouseX = function () {
-    return this.frameMouseX || Number.NaN;
+    return $.isNumeric(this.frameMouseX) ? this.frameMouseX : Number.NaN;
 };
 
 PlayerFrame.prototype.getMouseY = function () {
-    return this.frameMouseY || Number.NaN;
+    return $.isNumeric(this.frameMouseY) ? this.frameMouseY : Number.NaN;
 };
 
 PlayerFrame.prototype.getMouseXY_Array = function () {
     var frameMouseXY = this.frameMouseXY();
-    if (frameMouseXY) {
+    if ($.isNumeric(frameMouseXY)) {
         return frameMouseXY;
     }
     else {
