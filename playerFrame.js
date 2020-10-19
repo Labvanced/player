@@ -25,7 +25,7 @@ var PlayerFrame = function (frameData, frameDiv, player) {
     this.websocketTriggerCallbacks = {};
     this.frameMouseX = null;
     this.frameMouseY = null;
-    this.frameMouseXY = ko.observable(null);
+    this.frameMouseXY = ko.observableArray([]);
     this.frameLastEyeCoordX = null;
     this.frameLastEyeCoordY = null;
     this.isPaused = ko.observable(false);
@@ -285,7 +285,7 @@ PlayerFrame.prototype.startFrame = function (formerMouseCoords) {
 PlayerFrame.prototype.setFormerMouseCoords = function (coordsXY) {
     this.frameMouseX = coordsXY[0];
     this.frameMouseY = coordsXY[1];
-    this.frameMouseXY(coordsXY);
+    this.frameMouseXY([frameMouseX, frameMouseY]);
 };
 
 
