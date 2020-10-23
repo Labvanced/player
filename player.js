@@ -1072,7 +1072,10 @@ Player.prototype.startExperimentContinue = function () {
                         '/setPlayerSessionStartedTime',
                         {
                             start_time: this.sessionStartTime,
-                            expSessionNr: this.expSessionNr
+                            expSessionNr: this.expSessionNr,
+                            expId: self.expId,
+                            sessionNr: this.seesionNr,
+                            groupNr: this.groupNr
                         },
                         null
                     );
@@ -1490,13 +1493,14 @@ Player.prototype.startRecordingsOfNewTask = function (cb) {
         // record variables at start of task:
         var recordData = {
             expSessionNr: this.expSessionNr,
+            expId: self.expId,
             blockNr: this.experiment.exp_data.varBlockNr().value().value(),
             blockId: this.currentBlock.id(),
             blockName: this.experiment.exp_data.varBlockName().value().value(),
             taskNr: this.experiment.exp_data.varTaskNr().value().value(),
             taskId: this.currentTask.id(),
             taskName: this.experiment.exp_data.varTaskName().value().value(),
-            start_time: pgFormatDate(new Date())
+            start_time: pgFormatDate(new Date()),
         };
 
 
@@ -1556,7 +1560,8 @@ Player.prototype.recordData = function (isDuringTrial) {
             expSessionNr: this.expSessionNr,
             trialNr: this.trialIter,
             recData: recData.toJS(),
-            recTaskId: self.recTaskId
+            recTaskId: self.recTaskId,
+            expId: self.expId,
         };
 
         // add new recording to queue:
@@ -1980,6 +1985,24 @@ Player.prototype.finishSessionWithError = function (err_msg) {
     this.sessionEnded = true;
     $("#pauseScreen").empty();
     console.log("error during experiment...");
+
+
+    if (this.experiment.publishing_data.sendRecordedDataToExternalServer()) {
+        if (this.exp_license === 'lab') {
+            playerAjaxPostExternal(
+                '/errExpSession',
+                {  
+                    expSessionNr: self.expSessionNr,
+                    expId: self.expId,
+                    err_msg: err_msg,
+                }
+
+            );
+        } else {
+            console.error("external data storage is only supported for lab license holders");
+        }
+    }
+
     playerAjaxPost(
         '/errExpSession',
         {
