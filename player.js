@@ -490,6 +490,7 @@ var Player = function () {
     this.pausedDueToOrientation = ko.observable(false);
     this.pausedDueToNoConnectionToJointExpServer = ko.observable(false);
     this.pausedDueToAnotherParticipant = ko.observable(false);
+    this.screenCalibInitVal = null;
 
     this.isPaused = ko.computed(function () {
         return self.pausedDueToAnotherParticipant() ||
@@ -938,6 +939,7 @@ Player.prototype.runCalibration = function (callback) {
 
     var picWidthHeightRatio = 85.60 / 53.98;
     var displayDiagInPx = Math.sqrt(screen.width * screen.width + screen.height * screen.height);
+   
     var convertInchToMM = 0.0393700787402;
 
 
@@ -949,6 +951,7 @@ Player.prototype.runCalibration = function (callback) {
     // set number input:
     var displayDiagInMM = displayDiagInPx / self.PixelDensityPerMM;
     var displayDiagInInch = displayDiagInMM * convertInchToMM;
+    this.screenCalibInitVal = displayDiagInInch;
     $("#calibrationInput").val(displayDiagInInch);
 
 
@@ -969,7 +972,7 @@ Player.prototype.runCalibration = function (callback) {
     });
 
     function numberInputChanged() {
-        var displayDiagInInch = $("#calibrationInput").val();
+        var displayDiagInInch = $("#calibrationInput").val()  || self.screenCalibInitVal;
         var displayDiagInMM = displayDiagInInch / convertInchToMM; // converting inch to mm
         self.PixelDensityPerMM = displayDiagInPx / displayDiagInMM;
         self.experiment.exp_data.varPixelDensityPerMM().setValue(self.PixelDensityPerMM);
@@ -2348,7 +2351,6 @@ Player.prototype.exitFullscreen = function () {
 Player.prototype.getCurrentStartWindow = function () {
     var prevSessionEndTime = new Date();
     var sessionNr = this.sessionNr;
-    console.log(this.prevSessionData);
     if (this.prevSessionData) {
         if (this.prevSessionData.length > 0) {
             var ind = 0;
