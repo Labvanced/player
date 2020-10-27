@@ -1798,7 +1798,7 @@ Player.prototype.startNextTrial = function (trialIndex) {
 
 Player.prototype.startNextTrialContinue1 = function () {
     var self = this;
-    if (this.currentTask.useEyetrackingV2()) {
+    if (this.currentTask.useEyetrackingV2() && this.currentTask.eyetrackingV2numRecalibPoints() > 0) {
         this.eyetracking.stopPrediction();
         $("#eyetracking-v2").show();
         this.eyetracking.recalibrate(this.currentTask.eyetrackingV2numRecalibPoints(), this.currentTask.eyetrackingV2numDriftPoints()).then(
@@ -2194,14 +2194,14 @@ Player.prototype.initScreenOrientation = function () {
     // check screen orientation:
     var orientation = window.screen.orientation;
     if (orientation) {
-        orientation.addEventListener('change', function() {
+        orientation.addEventListener('change', function () {
             self.checkScreenOrientation();
         });
     }
     else {
         // fallback 1:
         var mql = window.matchMedia("(orientation: portrait)");
-        mql.addListener(function(m) {
+        mql.addListener(function (m) {
             self.checkScreenOrientation();
         });
     }
@@ -2227,7 +2227,7 @@ Player.prototype.initScreenOrientation = function () {
         this.screenOrientationRequired(this.experiment.exp_data.studySettings.allowedOrientations());
 
         // check if requirmeent is fullfilled:
-        if ( this.checkScreenOrientation() ) {
+        if (this.checkScreenOrientation()) {
             return true;
         }
         else {
