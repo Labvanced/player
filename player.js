@@ -1798,7 +1798,7 @@ Player.prototype.startNextTrial = function (trialIndex) {
 
 Player.prototype.startNextTrialContinue1 = function () {
     var self = this;
-    if (this.currentTask.useEyetrackingV2() && this.currentTask.eyetrackingV2numRecalibPoints() > 0) {
+    if (this.currentTask.useEyetrackingV2()) {
         this.eyetracking.stopPrediction();
         $("#eyetracking-v2").show();
         this.eyetracking.recalibrate(this.currentTask.eyetrackingV2numRecalibPoints(), this.currentTask.eyetrackingV2numDriftPoints()).then(
