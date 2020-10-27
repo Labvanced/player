@@ -1711,6 +1711,17 @@ Player.prototype.switchToNextPreloadedTrial = function () {
 Player.prototype.startNextTrial = function (trialIndex) {
     var self = this;
 
+    if (this.isPaused()) {
+        // wait until unpaused...
+        this.subscriberPausedWhileTrialLoading = this.isPaused.subscribe(function (isPausedNew) {
+            if (!isPausedNew) {
+                self.subscriberPausedWhileTrialLoading.dispose();
+            }
+            self.startNextTrial(trialIndex);
+        });
+        return;
+    }
+
     if (this.trialJumpInProgress) {
         // the last trial jump did not yet finish completely (i.e. preloading of next trial is not yet finished)
 
@@ -2243,6 +2254,10 @@ Player.prototype.checkScreenOrientation = function () {
         return true;
     }
     if (this.screenOrientationRequired() == this.screenOrientationCurrent()) {
+        var orientation = window.screen.orientation;
+        if (orientation) {
+            orientation.lock(this.experiment.exp_data.studySettings.allowedOrientations());
+        }
         this.pausedDueToOrientation(false);
         return true;
     }
