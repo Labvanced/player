@@ -1364,8 +1364,8 @@ Player.prototype.startRunningTask = function () {
 
         // ad role id if experiment is joint experiment
         if (this.experiment.exp_data.isJointExp()) {
-            this.variablesToRecord.push(this.experiment.exp_data.varRoleId());
-            this.variablesToRecord.push(this.experiment.exp_data.varMultiUserGroupId());
+            this.variablesToRecord.push(this.experiment.exp_data.varRoleId()); // TODO: should be deleted here, is instead recorded per session
+            this.variablesToRecord.push(this.experiment.exp_data.varMultiUserGroupId()); // TODO: should be deleted here is instead recorded per session
         }
 
         // add all factor vars to recordings
@@ -2002,7 +2002,29 @@ Player.prototype.finishSessionWithError = function (err_msg) {
 };
 
 Player.prototype.getSessionVarData = function () {
+
+    // collect values of variables with recording scope "subject" and recording scope "session":
+    var subjectData = new RecData();
+    var sessionData = new RecData();
+    subjectData.scope = "subject";
+    sessionData.scope = "session";
+    var allVars = this.experiment.exp_data.availableVars();
+    for (var i = 0; i < allVars.length; i++) {
+        if (allVars[i].isRecorded()) {
+            if (allVars[i].scope() == "subject") {
+                subjectData.addRecording(allVars[i], true, false);
+            }
+            else if (allVars[i].scope() == "session") {
+                sessionData.addRecording(allVars[i], true, false);
+            }
+        }
+    }
+
     var var_data = {
+        subjectData: subjectData.toJS(),
+        sessionData: sessionData.toJS(),
+
+        // the following manual recordings are all deprecated... please do not add new ones here:
         browserSpec: this.experiment.exp_data.varBrowserSpec().value().toJS(),
         versionSpec: this.experiment.exp_data.varBrowserVersionSpec().value().toJS(),
         systemSpec: this.experiment.exp_data.varSystemSpec().value().toJS(),
@@ -2010,7 +2032,6 @@ Player.prototype.getSessionVarData = function () {
         fullscreen: this.experiment.exp_data.varFullscreenSpec().value().toJS(),
         timeDelayMean: this.experiment.exp_data.varTimeMeasureSpecMean().value().toJS(),
         crowdsourcinSubjId: this.experiment.exp_data.varCrowdsourcingSubjId().value().toJS(),
-        //  timeDelayMax: this.experiment.exp_data.varTimeMeasureSpecMax().value().toJS(),
         crowdsourcingCode: this.experiment.exp_data.varCrowdsourcingCode().value().toJS(),
         serverResponseTimes: this.serverResponseTimes,
         timeDelayStd: this.experiment.exp_data.varTimeMeasureSpecStd().value().toJS(),
@@ -2018,14 +2039,13 @@ Player.prototype.getSessionVarData = function () {
         subjCounterPerGroup: this.experiment.exp_data.varSubjectNrPerSubjGroup().value().toJS(),
         roleId: this.experiment.exp_data.varRoleId().value().toJS(),
         multiUserGroupId: this.experiment.exp_data.varMultiUserGroupId().value().toJS(),
-
         displayedLanguage: this.experiment.exp_data.varDisplayedLanguage().value().toJS(),
         pixelDensityPerMM: this.experiment.exp_data.varPixelDensityPerMM().value().toJS(),
-
         screenHeight: this.experiment.exp_data.varScreenTotalWidthY().value().toJS(),
         screenWidth: this.experiment.exp_data.varScreenTotalWidthX().value().toJS(),
         windowHeight: this.experiment.exp_data.varDisplayWidthY().value().toJS(),
         windowWidth: this.experiment.exp_data.varDisplayWidthX().value().toJS(),
+
     };
     return var_data;
 }
