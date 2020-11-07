@@ -161,9 +161,15 @@ PlayerFrame.prototype.getMouseY = function () {
 
 PlayerFrame.prototype.getMouseXY_Array = function () {
     var frameMouseXY = this.frameMouseXY();
-    if ($.isNumeric(frameMouseXY)) {
-        return frameMouseXY;
+    if (frameMouseXY instanceof Array) {
+        if ($.isNumeric(frameMouseXY[0]) && $.isNumeric(frameMouseXY[1])) {
+            return frameMouseXY;
+        }
+        else {
+            return [Number.NaN, Number.NaN];
+        }
     }
+
     else {
         return [Number.NaN, Number.NaN];
     }
