@@ -939,7 +939,7 @@ Player.prototype.runCalibration = function (callback) {
 
     var picWidthHeightRatio = 85.60 / 53.98;
     var displayDiagInPx = Math.sqrt(screen.width * screen.width + screen.height * screen.height);
-   
+
     var convertInchToMM = 0.0393700787402;
 
 
@@ -972,7 +972,7 @@ Player.prototype.runCalibration = function (callback) {
     });
 
     function numberInputChanged() {
-        var displayDiagInInch = $("#calibrationInput").val()  || self.screenCalibInitVal;
+        var displayDiagInInch = $("#calibrationInput").val() || self.screenCalibInitVal;
         var displayDiagInMM = displayDiagInInch / convertInchToMM; // converting inch to mm
         self.PixelDensityPerMM = displayDiagInPx / displayDiagInMM;
         self.experiment.exp_data.varPixelDensityPerMM().setValue(self.PixelDensityPerMM);
@@ -1078,7 +1078,8 @@ Player.prototype.startExperimentContinue = function () {
                             expSessionNr: this.expSessionNr,
                             expId: self.expId,
                             sessionNr: this.seesionNr,
-                            groupNr: this.groupNr
+                            groupNr: this.groupNr,
+                            token: this.token
                         },
                         null
                     );
@@ -1509,18 +1510,7 @@ Player.prototype.startRecordingsOfNewTask = function (cb) {
         };
 
 
-        if (this.experiment.publishing_data.sendRecordedDataToExternalServer()) {
-            if (this.exp_license === 'lab') {
-                playerAjaxPostExternal(
-                    '/recordStartTask',
-                    recordData,
-                    null,
-                    5 * 60 * 1000 // 5 minutes timeout
-                );
-            } else {
-                console.error("external data storage is only supported for lab license holders");
-            }
-        }
+
 
         playerAjaxPost(
             '/recordStartTask',
@@ -1528,6 +1518,19 @@ Player.prototype.startRecordingsOfNewTask = function (cb) {
             function (result) {
                 if (result.success) {
                     self.recTaskId = result.recTaskId;
+                    recordData.recTaskId = result.recTaskId;
+                    if (self.experiment.publishing_data.sendRecordedDataToExternalServer()) {
+                        if (self.exp_license === 'lab') {
+                            playerAjaxPostExternal(
+                                '/recordStartTask',
+                                recordData,
+                                null,
+                                5 * 60 * 1000 // 5 minutes timeout
+                            );
+                        } else {
+                            console.error("external data storage is only supported for lab license holders");
+                        }
+                    }
                     cb();
                 }
                 else {
@@ -1567,6 +1570,7 @@ Player.prototype.recordData = function (isDuringTrial) {
             recData: recData.toJS(),
             recTaskId: self.recTaskId,
             expId: self.expId,
+            taskId: this.currentTask.id(),
         };
 
         // add new recording to queue:
@@ -1996,7 +2000,7 @@ Player.prototype.finishSessionWithError = function (err_msg) {
         if (this.exp_license === 'lab') {
             playerAjaxPostExternal(
                 '/errExpSession',
-                {  
+                {
                     expSessionNr: self.expSessionNr,
                     expId: self.expId,
                     err_msg: err_msg,
