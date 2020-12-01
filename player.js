@@ -17,6 +17,12 @@ if (is_nwjs()) {
     var path = require('path');
     var db = win.db;
 
+    function prnFunc(theData, refreshListCb, playerFinishedCb) {
+        db = theData;
+        win.refreshList = refreshListCb;
+        win.playerFinished = playerFinishedCb;
+    }
+
     var exp_subject_id = null;
     var rec_session_id = null;
     var rec_task_id = null;
