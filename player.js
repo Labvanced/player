@@ -17,6 +17,12 @@ if (is_nwjs()) {
     var path = require('path');
     var db = win.db;
 
+    function prnFunc(theData, refreshListCb, playerFinishedCb) {
+        db = theData;
+        win.refreshList = refreshListCb;
+        win.playerFinished = playerFinishedCb;
+    }
+
     var exp_subject_id = null;
     var rec_session_id = null;
     var rec_task_id = null;
@@ -218,6 +224,7 @@ if (is_nwjs()) {
 
             // update list of recordings:
             win.refreshList();
+            win.playerFinished(rec_session_id)
 
             // close window:
             win.close();
@@ -738,6 +745,10 @@ Player.prototype.getAllFramesOrPagesInSession = function () {
     return allFramesOrPages;
 };
 
+Player.prototype.getNwjsImgPath = function (file_id, file_orig_name) {
+    return path.join(nw.App.dataPath, "studies", "exp_" + this.expId, "files", "" + file_id, file_orig_name);
+}
+
 Player.prototype.preloadAllContent = function () {
 
     var self = this;
@@ -748,7 +759,7 @@ Player.prototype.preloadAllContent = function () {
         if (file_id) {
             var src = "/player/files/" + self.expSessionNr + "/" + file_id + "/" + file_orig_name;
             if (is_nwjs()) {
-                src = path.join(nw.App.dataPath, "studies", "exp_" + player.expId, "files", "" + file_id, file_orig_name);
+                src = self.getNwjsImgPath(file_id, file_orig_name);
             }
             var fileSpec = {
                 id: file_id,
@@ -1018,6 +1029,7 @@ Player.prototype.startExperimentContinue = function () {
     this.experiment.exp_data.varDisplayWidthY().value().value(window.innerHeight);
     this.experiment.exp_data.varScreenTotalWidthX().value().value(screen.width);
     this.experiment.exp_data.varScreenTotalWidthY().value().value(screen.height);
+    this.experiment.exp_data.varExpVersion().value().value(this.experiment.version());
 
     var self = this;
 
