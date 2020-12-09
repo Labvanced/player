@@ -894,7 +894,40 @@ Player.prototype.setSubjectGroupNr = function (groupNr, sessionNr) {
     }
 
     // randomize Block Order
-    if (this.exp_session.blockRandomization() == "permutation") {
+    var self = this;
+    var separator_positions = this.exp_session.blocks().map(function (block, index) {
+        if (block.isSeparator() === true) {
+            return index
+        } else {
+            return -1
+        }
+    }).filter(function (idx) {
+        return idx != -1
+    });
+
+    if (separator_positions.length > 0) {
+        separator_positions.splice(0, 0, -1)
+        var new_order = [];
+        separator_positions.forEach(function (sep_position, index) {
+            var next_pos = separator_positions[index + 1] || self.exp_session.blocks().length
+            var perm = [];
+            for (var i = sep_position + 1; i < next_pos; i++) {
+                perm.push(i);
+            }
+            ExpTrialLoop.prototype.reshuffle(perm);
+            perm.forEach(function (newPos) {
+                new_order.push(newPos)
+            })
+
+        })
+
+        var newArr = [];
+        for (var i = 0; i < new_order.length; i++) {
+            newArr.push(this.exp_session.blocks()[new_order[i]])
+        }
+        this.exp_session.blocks(newArr);
+    }
+    else if (this.exp_session.blockRandomization() == "permutation") {
         var n = this.exp_session.blocks().length;
         if (n > 0) {
             var perm = [];
@@ -913,9 +946,42 @@ Player.prototype.setSubjectGroupNr = function (groupNr, sessionNr) {
     this.blocks = this.exp_session.blocks();
 
     // randomize Task Order
-    var self = this;
     this.blocks.forEach(function (block) {
-        if (block.taskRandomization() == "permutation") {
+        var separator_positions = block.subTasks().map(function (task, index) {
+            if (task.isSeparator() === true) {
+                return index
+            } else {
+                return -1
+            }
+        }).filter(function (idx) {
+            return idx != -1
+        });
+
+        if (separator_positions.length > 0) {
+            separator_positions.splice(0, 0, -1)
+            var new_order = [];
+            var n = block.subTasks().length
+            separator_positions.forEach(function (sep_position, index) {
+                var next_pos = separator_positions[index + 1] || n
+                var perm = [];
+                for (var i = sep_position + 1; i < next_pos; i++) {
+                    perm.push(i);
+                }
+                ExpTrialLoop.prototype.reshuffle(perm);
+                perm.forEach(function (newPos) {
+                    new_order.push(newPos)
+                })
+
+            })
+
+            var newArr = [];
+            for (var i = 0; i < new_order.length; i++) {
+                newArr.push(block.subTasks()[new_order[i]])
+            }
+            block.subTasks(newArr);
+        }
+
+        else if (block.taskRandomization() == "permutation") {
             var n = block.subTasks().length;
             if (n > 0) {
                 var perm = [];
