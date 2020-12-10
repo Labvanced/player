@@ -909,7 +909,10 @@ Player.prototype.setSubjectGroupNr = function (groupNr, sessionNr) {
         separator_positions.splice(0, 0, -1)
         var new_order = [];
         separator_positions.forEach(function (sep_position, index) {
-            var next_pos = separator_positions[index + 1] || self.exp_session.blocks().length
+            var next_pos = separator_positions[index + 1]
+            if (!(next_pos >= 0)) {
+                next_pos = self.exp_session.blocks().length
+            }
             var perm = [];
             for (var i = sep_position + 1; i < next_pos; i++) {
                 perm.push(i);
@@ -962,7 +965,10 @@ Player.prototype.setSubjectGroupNr = function (groupNr, sessionNr) {
             var new_order = [];
             var n = block.subTasks().length
             separator_positions.forEach(function (sep_position, index) {
-                var next_pos = separator_positions[index + 1] || n
+                var next_pos = separator_positions[index + 1]
+                if (!(next_pos >= 0)) {
+                    next_pos = n;
+                }
                 var perm = [];
                 for (var i = sep_position + 1; i < next_pos; i++) {
                     perm.push(i);
