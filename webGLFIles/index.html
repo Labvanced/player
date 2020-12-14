@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity WebGL Player | WebGL Unity Test</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <!-- <link rel="stylesheet" href="TemplateData/style.css"> -->
+    <script src="TemplateData/UnityProgress.js"></script>
+    <script src="Build/UnityLoader.js"></script>
+    <script>
+      var unityInstance = UnityLoader.instantiate("unityContainer", "Build/testWebGLBuild2.json", {onProgress: UnityProgress});
+
+      var testObject = { name:"John", age:34}
+      var jsonString = JSON.stringify(testObject);
+    </script>
+  </head>
+  <body>
+    <div class="webgl-content">
+      <div id="unityContainer" style="width: 960px; height: 600px"></div>
+      <div class="footer">
+        <div class="webgl-logo"></div>
+        <div class="fullscreen" onclick="unityInstance.SetFullscreen(1)"></div>
+        <div class="title">WebGL Unity Test</div>
+      </div>
+      <!-- Two buttons with onclick with the unityInstance.SendMessage function which takes an arguments name of object (unity Csharp function) and method name-->
+      <div style="border:solid 1ppx black; width: 200px; height: 30px; margin: auto; text-align: center;" onclick="unityInstance.SendMessage('JavascriptHook', 'TintRed')">RED</div>
+      <div style="border:solid 1ppx black; width: 200px; height: 30px; margin: auto; text-align: center;" onclick="unityInstance.SendMessage('JavascriptHook', 'TintGreen')">GREEN</div>
+      <div style="border:solid 1ppx black; width: 200px; height: 30px; margin: auto; text-align: center;" onclick="unityInstance.SendMessage('JavascriptHook', 'testJSON', jsonString)">JSON OBJECT</div>
+    </div>
+  </body>
+</html>
